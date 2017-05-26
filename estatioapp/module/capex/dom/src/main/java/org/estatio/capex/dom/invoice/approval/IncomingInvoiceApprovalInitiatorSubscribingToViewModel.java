@@ -18,15 +18,10 @@ import org.estatio.capex.dom.state.StateTransitionService;
 @DomainService(nature = NatureOfService.DOMAIN)
 public class IncomingInvoiceApprovalInitiatorSubscribingToViewModel extends AbstractSubscriber {
 
-    //
-    // TODO: should get rid of this when the upstream document state is implemented.
-    //
-    // (think it's not a harm to have both, behaviour of STS is kinda idempotent).
-    //
-
     @Programmatic
+    @com.google.common.eventbus.Subscribe
     @org.axonframework.eventhandling.annotation.EventHandler
-    public void on(IncomingInvoiceViewmodel_saveInvoice.ActionDomainEvent ev) {
+    public void on(IncomingInvoiceViewmodel_saveInvoice.DomainEvent ev) {
         switch (ev.getEventPhase()) {
         case EXECUTED:
             final IncomingInvoiceViewModel viewModel = (IncomingInvoiceViewModel) ev.getMixedIn();
@@ -34,7 +29,7 @@ public class IncomingInvoiceApprovalInitiatorSubscribingToViewModel extends Abst
 
             transactionService.flushTransaction();
 
-            // an alternative design would be to just do this in IncomingInvoiceViewmodel_saveInvoice#saveInvoice method
+            // an alternative design would be to just do this in IncomingInvoiceViewmodel_saveInvoice#act method
             stateTransitionService.trigger(incomingInvoice, IncomingInvoiceApprovalStateTransitionType.INSTANTIATE, null);
             break;
         }

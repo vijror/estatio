@@ -1,5 +1,6 @@
 package org.estatio.app.services.pdfadvisor;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 
@@ -13,6 +14,7 @@ import org.wicketstuff.pdfjs.Scale;
 
 import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.NatureOfService;
+import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.services.bookmark.Bookmark;
 import org.apache.isis.applib.services.bookmark.BookmarkService2;
 import org.apache.isis.applib.services.jaxb.JaxbService;
@@ -99,15 +101,39 @@ public class PdfAdvisorForEstatio implements PdfJsViewerAdvisor {
     }
 
     private void dump(final String method, final InstanceKey instanceKey) {
+        if(false && !LOG.isDebugEnabled()) {
+            return;
+        }
+
         LOG.debug("\n" + method + "(" + bookmarkFor(instanceKey) + "):\n");
         LOG.debug("  types:");
         for (InstanceKey.TypeKey key : typeAdviceByTypeKey.keySet()) {
             LOG.debug(String.format("    %s: %s", key.getObjectType(), typeAdviceByTypeKey.get(key)));
         }
         LOG.debug("  instances:");
-        for (InstanceKey key : pageNumByInstanceKey.keySet()) {
-            String idx = bookmarkFor(key);
-            LOG.debug(String.format("    %s: %d", idx, pageNumByInstanceKey.get(key)));
+        for (Iterator<InstanceKey> iterator = pageNumByInstanceKey.keySet().iterator(); iterator.hasNext(); ) {
+            final InstanceKey key = iterator.next();
+            String bookmark = bookmarkFor(key);
+            if(bookmark != null) {
+                final Integer integer = pageNumByInstanceKey.get(key);
+                LOG.debug(String.format("    %s: %d", bookmark, integer));
+            } else {
+                // presumably deleted
+                iterator.remove();
+            }
+        }
+    }
+
+    // TODO: we'll need a better way to prevent this class taking up too much memory
+    // for now, this method clears up any cache for documents that have been deleted; but it isn't called yet...
+    @Programmatic
+    public void gc() {
+        for (Iterator<InstanceKey> iterator = pageNumByInstanceKey.keySet().iterator(); iterator.hasNext(); ) {
+            final InstanceKey key = iterator.next();
+            String bookmark = bookmarkFor(key);
+            if (bookmark == null) {
+                iterator.remove();
+            }
         }
     }
 
@@ -124,7 +150,11 @@ public class PdfAdvisorForEstatio implements PdfJsViewerAdvisor {
             IncomingDocumentViewModel viewModel = jaxbService.fromXml(IncomingDocumentViewModel.class, xmlStr);
 
             final Bookmark bookmark = bookmarkService2.bookmarkFor(viewModel.getDocument());
-            return "homePageViewModel:"+bookmark.getIdentifier();
+            if (bookmark != null)
+                return "homePageViewModel:" + bookmark.getIdentifier();
+            else
+                // object presumably deleted
+                return null;
         } else {
             return instanceKey.asBookmark().toString();
         }

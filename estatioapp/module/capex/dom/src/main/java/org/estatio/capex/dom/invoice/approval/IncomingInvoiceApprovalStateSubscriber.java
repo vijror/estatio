@@ -29,6 +29,7 @@ import static org.estatio.capex.dom.invoice.approval.IncomingInvoiceApprovalStat
 public class IncomingInvoiceApprovalStateSubscriber extends AbstractSubscriber {
 
     @Programmatic
+    @com.google.common.eventbus.Subscribe
     @org.axonframework.eventhandling.annotation.EventHandler
     public void on(IncomingDocumentCategorisationStateTransitionType.TransitionEvent ev) {
         final StateTransitionEvent.Phase phase = ev.getPhase();
@@ -37,7 +38,7 @@ public class IncomingInvoiceApprovalStateSubscriber extends AbstractSubscriber {
             final IncomingDocumentCategorisationStateTransitionType transitionType = ev.getTransitionType();
             switch (transitionType) {
 
-            case INSTANTIATING:
+            case INSTANTIATE:
                 break;
             case CATEGORISE_DOCUMENT_TYPE_AND_ASSOCIATE_WITH_PROPERTY:
                 break;
@@ -66,6 +67,7 @@ public class IncomingInvoiceApprovalStateSubscriber extends AbstractSubscriber {
     }
 
     @Programmatic
+    @com.google.common.eventbus.Subscribe
     @org.axonframework.eventhandling.annotation.EventHandler
     public void on(BankAccountVerificationStateTransitionType.TransitionEvent ev) {
         final StateTransitionEvent.Phase phase = ev.getPhase();
@@ -97,6 +99,7 @@ public class IncomingInvoiceApprovalStateSubscriber extends AbstractSubscriber {
     }
 
     @Programmatic
+    @com.google.common.eventbus.Subscribe
     @org.axonframework.eventhandling.annotation.EventHandler
     public void on(IncomingInvoiceApprovalStateTransitionType.TransitionEvent ev) {
         final StateTransitionEvent.Phase phase = ev.getPhase();
