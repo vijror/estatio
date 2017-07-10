@@ -18,6 +18,7 @@
  */
 package org.estatio.capex.dom.invoice.viewmodel;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
@@ -153,6 +154,11 @@ public class IncomingDocAsInvoiceViewModel
     @Property(editing = Editing.ENABLED)
     private String invoiceNumber;
 
+    public void modifyInvoiceNumber(String invoiceNumber){
+        setInvoiceNumber(invoiceNumber);
+        hideNotification();  // for showing the notification when viewmodel is being edited
+    }
+
     //region > dateReceived (prop)
 
     @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
@@ -177,6 +183,7 @@ public class IncomingDocAsInvoiceViewModel
     public void modifyInvoiceDate(LocalDate invoiceDate){
         setInvoiceDate(invoiceDate);
         updateDueDate();
+        hideNotification();  // for showing the notification when viewmodel is being edited
     }
 
     private void updateDueDate(){
@@ -305,6 +312,7 @@ public class IncomingDocAsInvoiceViewModel
                 viewModel.setDueDate(clockService.now().plusDays(dueInNumberOfDaysFromNow));
             }
             viewModel.setPaymentMethod(paymentMethod);
+            viewModel.hideNotification(); // for showing the notification when viewmodel is being edited
             return viewModel;
         }
 
@@ -550,6 +558,60 @@ public class IncomingDocAsInvoiceViewModel
                         .map(IncomingInvoiceItem.class::cast)
                         .findFirst();
         return firstItemIfAny;
+    }
+
+    @Property(editing = Editing.DISABLED)
+    @PropertyLayout(multiLine = 5)
+    public String getNotification(){
+        if (possibleDoubleInvoice()!=null){
+            return possibleDoubleInvoice();
+        }
+        if (sameInvoiceNumber()!=null){
+            return sameInvoiceNumber();
+        }
+        return null;
+    }
+
+    public boolean hideNotification(){
+        if (getNotification()!=null){
+            return false;
+        }
+        return true;
+    }
+
+    private String possibleDoubleInvoice(){
+        if (getInvoiceNumber()==null || getSeller()==null || getInvoiceDate()==null){
+            return null;
+        }
+        if (getDomainObject()!=null){
+            IncomingInvoice possibleDouble = incomingInvoiceRepository.findByInvoiceNumberAndSellerAndInvoiceDate(getInvoiceNumber(), getSeller(), getInvoiceDate());
+            if (possibleDouble!=null && !possibleDouble.equals(domainObject)){
+                return "WARNING: There is already an invoice with the same number and invoice date for this seller. Please check.";
+            }
+        }
+        return null;
+    }
+
+    private String sameInvoiceNumber(){
+        if (getInvoiceNumber()==null || getSeller()==null){
+            return null;
+        }
+        if (getDomainObject()!=null){
+            List<IncomingInvoice> similarNumberedInvoices = new ArrayList<>();
+            for (IncomingInvoice invoice : incomingInvoiceRepository.findByInvoiceNumberAndSeller(getInvoiceNumber(), getSeller())) {
+                if (!invoice.equals(getDomainObject())) {
+                    similarNumberedInvoices.add(invoice);
+                }
+            }
+            if (similarNumberedInvoices.size()>0){
+                String message = "WARNING: Invoices with the same number of this seller are found with invoice date(s): ";
+                for (IncomingInvoice invoice : similarNumberedInvoices){
+                    message = message.concat(invoice.getInvoiceDate().toString()).concat("; ");
+                }
+                return message;
+            }
+        }
+        return null;
     }
 
     @Inject
