@@ -61,8 +61,8 @@ import org.estatio.capex.dom.invoice.approval.IncomingInvoiceApprovalStateTransi
 import org.estatio.capex.dom.order.Order;
 import org.estatio.capex.dom.order.OrderItem;
 import org.estatio.capex.dom.order.OrderItemRepository;
-import org.estatio.capex.dom.order.OrderRepository;
 import org.estatio.capex.dom.order.OrderItemService;
+import org.estatio.capex.dom.order.OrderRepository;
 import org.estatio.capex.dom.orderinvoice.OrderItemInvoiceItemLink;
 import org.estatio.capex.dom.orderinvoice.OrderItemInvoiceItemLinkRepository;
 import org.estatio.capex.dom.state.StateTransitionService;
@@ -154,11 +154,6 @@ public class IncomingDocAsInvoiceViewModel
     @Property(editing = Editing.ENABLED)
     private String invoiceNumber;
 
-    public void modifyInvoiceNumber(String invoiceNumber){
-        setInvoiceNumber(invoiceNumber);
-        hideNotification();  // for showing the notification when viewmodel is being edited
-    }
-
     //region > dateReceived (prop)
 
     @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
@@ -183,7 +178,6 @@ public class IncomingDocAsInvoiceViewModel
     public void modifyInvoiceDate(LocalDate invoiceDate){
         setInvoiceDate(invoiceDate);
         updateDueDate();
-        hideNotification();  // for showing the notification when viewmodel is being edited
     }
 
     private void updateDueDate(){
@@ -312,7 +306,6 @@ public class IncomingDocAsInvoiceViewModel
                 viewModel.setDueDate(clockService.now().plusDays(dueInNumberOfDaysFromNow));
             }
             viewModel.setPaymentMethod(paymentMethod);
-            viewModel.hideNotification(); // for showing the notification when viewmodel is being edited
             return viewModel;
         }
 
@@ -661,5 +654,5 @@ public class IncomingDocAsInvoiceViewModel
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     OrderItemService orderItemService;
-
+    
 }
