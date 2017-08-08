@@ -239,18 +239,5 @@
                 <cpt:property id="sendTo" hidden="EVERYWHERE"/>
             </cpt:fieldSet>
         </bs3:col>
-        <bs3:col span="0">
-            <bs3:tabGroup >
-                <bs3:tab name="hidden">
-                    <bs3:row>
-                        <bs3:col span="12">
-                            <cpt:collection id="attributes">
-                                <cpt:action id="updateAttribute"/>
-                            </cpt:collection>
-                        </bs3:col>
-                    </bs3:row>
-                </bs3:tab>
-            </bs3:tabGroup>
-        </bs3:col>
     </bs3:row>
 </bs3:grid>

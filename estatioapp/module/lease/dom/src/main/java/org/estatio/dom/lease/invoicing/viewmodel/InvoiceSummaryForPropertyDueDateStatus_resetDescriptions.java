@@ -9,7 +9,6 @@ import org.apache.isis.applib.annotation.Mixin;
 import org.apache.isis.applib.annotation.SemanticsOf;
 
 import org.estatio.dom.base.FragmentRenderService;
-import org.estatio.dom.invoice.Invoice;
 import org.estatio.dom.invoice.InvoiceAttributeName;
 import org.estatio.dom.lease.invoicing.InvoiceForLease;
 import org.estatio.dom.lease.invoicing.ssrs.InvoiceAttributesVM;
@@ -38,7 +37,7 @@ public class InvoiceSummaryForPropertyDueDateStatus_resetDescriptions {
         ninvoice.updateAttribute(
                 invoiceAttributeName,
                 fragmentRenderService.render(new InvoiceAttributesVM(ninvoice), invoiceAttributeName.getFragmentName()),
-                Invoice.InvoiceAttributeAction.RESET);
+                InvoiceForLease.InvoiceAttributeAction.RESET);
     }
 
     @Inject FragmentRenderService fragmentRenderService;

@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
@@ -30,6 +31,7 @@ import javax.jdo.annotations.Column;
 import javax.jdo.annotations.Index;
 import javax.jdo.annotations.Indices;
 import javax.jdo.annotations.InheritanceStrategy;
+import javax.jdo.annotations.Persistent;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.joda.time.LocalDate;
@@ -44,6 +46,8 @@ import org.apache.isis.applib.annotation.Editing;
 import org.apache.isis.applib.annotation.InvokeOn;
 import org.apache.isis.applib.annotation.Mixin;
 import org.apache.isis.applib.annotation.Optionality;
+import org.apache.isis.applib.annotation.Parameter;
+import org.apache.isis.applib.annotation.ParameterLayout;
 import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.annotation.Property;
 import org.apache.isis.applib.annotation.PropertyLayout;
@@ -57,6 +61,8 @@ import org.apache.isis.applib.services.user.UserService;
 
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
 
+import org.incode.module.base.dom.types.NotesType;
+
 import org.estatio.dom.asset.FixedAsset;
 import org.estatio.dom.assetfinancial.FixedAssetFinancialAccount;
 import org.estatio.dom.assetfinancial.FixedAssetFinancialAccountRepository;
@@ -66,7 +72,9 @@ import org.estatio.dom.charge.ChargeRepository;
 import org.estatio.dom.financial.FinancialAccount;
 import org.estatio.dom.financial.bankaccount.BankAccount;
 import org.estatio.dom.invoice.Invoice;
+import org.estatio.dom.invoice.InvoiceAttribute;
 import org.estatio.dom.invoice.InvoiceAttributeName;
+import org.estatio.dom.invoice.InvoiceAttributeRepository;
 import org.estatio.dom.invoice.InvoiceItem;
 import org.estatio.dom.invoice.InvoiceRepository;
 import org.estatio.dom.invoice.InvoiceStatus;
@@ -77,6 +85,7 @@ import org.estatio.dom.lease.invoicing.ssrs.InvoiceItemAttributesVM;
 import org.estatio.dom.roles.EstatioRole;
 import org.estatio.numerator.dom.impl.Numerator;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -187,6 +196,16 @@ public class InvoiceForLease
 
     public InvoiceForLease() {
         super("invoiceNumber, collectionNumber, buyer, dueDate, lease, uuid");
+    }
+
+    protected String attributeValueFor(final InvoiceAttributeName invoiceAttributeName) {
+        final InvoiceAttribute invoiceAttribute = invoiceAttributeRepository.findByInvoiceAndName(this, invoiceAttributeName);
+        return invoiceAttribute == null ? null : invoiceAttribute.getValue();
+    }
+
+    protected boolean attributeOverriddenFor(final InvoiceAttributeName invoiceAttributeName) {
+        final InvoiceAttribute invoiceAttribute = invoiceAttributeRepository.findByInvoiceAndName(this, invoiceAttributeName);
+        return invoiceAttribute == null ? false : invoiceAttribute.isOverridden();
     }
 
     @javax.jdo.annotations.Column(name = "leaseId", allowsNull = "true")
@@ -575,22 +594,22 @@ public class InvoiceForLease
         return vm;
     }
 
-    @PropertyLayout(multiLine = Invoice.DescriptionType.Meta.MULTI_LINE)
+    @PropertyLayout(multiLine = InvoiceForLease.DescriptionType.Meta.MULTI_LINE)
     public String getPreliminaryLetterDescription() {
         return attributeValueFor(InvoiceAttributeName.PRELIMINARY_LETTER_DESCRIPTION);
     }
 
-    @PropertyLayout(multiLine = Invoice.DescriptionType.Meta.MULTI_LINE)
+    @PropertyLayout(multiLine = InvoiceForLease.DescriptionType.Meta.MULTI_LINE)
     public String getPreliminaryLetterComment() {
         return attributeValueFor(InvoiceAttributeName.PRELIMINARY_LETTER_COMMENT);
     }
 
-    @PropertyLayout(multiLine = Invoice.DescriptionType.Meta.MULTI_LINE)
+    @PropertyLayout(multiLine = InvoiceForLease.DescriptionType.Meta.MULTI_LINE)
     public String getDescription() {
         return attributeValueFor(InvoiceAttributeName.INVOICE_DESCRIPTION);
     }
 
-    @PropertyLayout(multiLine = Invoice.DescriptionType.Meta.MULTI_LINE)
+    @PropertyLayout(multiLine = InvoiceForLease.DescriptionType.Meta.MULTI_LINE)
     public String getComment() {
         return attributeValueFor(InvoiceAttributeName.INVOICE_COMMENT);
     }
@@ -619,6 +638,50 @@ public class InvoiceForLease
     @javax.inject.Inject
     NumeratorForCollectionRepository numeratorRepository;
 
+    @Persistent(mappedBy = "invoice", dependentElement = "false")
+    @Getter @Setter
+    private SortedSet<InvoiceAttribute> attributes = new TreeSet<InvoiceAttribute>();
+
+    @Action(
+            semantics = SemanticsOf.IDEMPOTENT,
+            restrictTo = RestrictTo.PROTOTYPING
+    )
+    public Invoice updateAttribute(
+            final InvoiceAttributeName name,
+            @Parameter(maxLength = NotesType.Meta.MAX_LEN)
+            @ParameterLayout(multiLine = InvoiceForLease.DescriptionType.Meta.MULTI_LINE)
+            final String value,
+            InvoiceAttributeAction action
+    ){
+        final InvoiceAttribute invoiceAttribute = invoiceAttributeRepository.findByInvoiceAndName(this, name);
+        if (invoiceAttribute == null) {
+            invoiceAttributeRepository.newAttribute(this, name, value, action.isOverride());
+        } else {
+            if (action.isForceful())
+                invoiceAttribute.setValue(value);
+            invoiceAttribute.setOverridden(action.isOverride());
+        }
+        return this;
+    }
+
+    @AllArgsConstructor
+    public enum InvoiceAttributeAction {
+        UPDATE(false, false),
+        RESET(false, true),
+        OVERRIDE(true, true);
+
+        @Getter
+        private boolean override;
+
+        @Getter
+        private boolean forceful;
+
+    }
+
+    @Inject public
+    InvoiceAttributeRepository invoiceAttributeRepository;
+
+
     @Mixin(method = "act")
     public static class _overridePreliminaryLetterDescription extends _overrideAttributeAbstract {
         public _overridePreliminaryLetterDescription(final InvoiceForLease invoice) {
@@ -633,7 +696,7 @@ public class InvoiceForLease
             super(invoice, InvoiceAttributeName.PRELIMINARY_LETTER_DESCRIPTION);
         }
 
-        @Override protected Object viewModelFor(final Invoice invoice) {
+        @Override protected Object viewModelFor(final InvoiceForLease invoice) {
             return new InvoiceAttributesVM((InvoiceForLease) invoice);
         }
     }
@@ -653,7 +716,7 @@ public class InvoiceForLease
         }
 
         @Override
-        protected Object viewModelFor(final Invoice invoice) {
+        protected Object viewModelFor(final InvoiceForLease invoice) {
             return new InvoiceAttributesVM((InvoiceForLease) invoice);
         }
     }
@@ -674,6 +737,89 @@ public class InvoiceForLease
 
     @javax.inject.Inject
     FragmentRenderService fragmentRenderService;
+
+    public static abstract class _overrideAttributeAbstract {
+        private final InvoiceForLease invoice;
+        private final InvoiceAttributeName invoiceAttributeName;
+
+        public _overrideAttributeAbstract(final InvoiceForLease invoice, final InvoiceAttributeName invoiceAttributeName) {
+            this.invoice = invoice;
+            this.invoiceAttributeName = invoiceAttributeName;
+        }
+
+        @Action(semantics = SemanticsOf.IDEMPOTENT)
+        @ActionLayout(contributed = Contributed.AS_ACTION)
+        public Invoice act(
+                @Parameter(maxLength = NotesType.Meta.MAX_LEN, optionality = Optionality.OPTIONAL)
+                @ParameterLayout(multiLine = InvoiceForLease.DescriptionType.Meta.MULTI_LINE)
+                final String overrideWith) {
+            invoice.updateAttribute(this.invoiceAttributeName, overrideWith, InvoiceAttributeAction.OVERRIDE);
+            return invoice;
+        }
+
+        public String disableAct() {
+            if (invoice.isImmutable()) {
+                return "Invoice can't be changed";
+            }
+            return null;
+        }
+
+        public String default0Act() {
+            return invoice.attributeValueFor(invoiceAttributeName);
+        }
+
+    }
+
+    public static abstract class _resetAttributeAbstract<T extends InvoiceForLease> {
+        private final T invoice;
+        private final InvoiceAttributeName invoiceAttributeName;
+
+        public _resetAttributeAbstract(final T invoice, final InvoiceAttributeName invoiceAttributeName) {
+            this.invoice = invoice;
+            this.invoiceAttributeName = invoiceAttributeName;
+        }
+
+        @Action(semantics = SemanticsOf.IDEMPOTENT_ARE_YOU_SURE)
+        @ActionLayout(contributed = Contributed.AS_ACTION)
+        public InvoiceForLease act() {
+            final Object domainObject = viewModelFor(invoice);
+            invoice.updateAttribute(
+                    invoiceAttributeName,
+                    fragmentRenderService.render(domainObject, invoiceAttributeName.getFragmentName()),
+                    InvoiceAttributeAction.RESET);
+            return invoice;
+        }
+
+        protected abstract Object viewModelFor(T invoice);
+
+        public boolean hideAct() {
+            return !invoice.attributeOverriddenFor(invoiceAttributeName);
+        }
+
+        public String disableAct() {
+            if (invoice.isImmutable()) {
+                return "Invoice can't be changed";
+            }
+            return null;
+        }
+
+        @Inject public
+        FragmentRenderService fragmentRenderService;
+
+    }
+
+    public static class DescriptionType {
+
+        private DescriptionType() {}
+
+        public static class Meta {
+
+            public static final int MAX_LEN = InvoiceAttribute.ValueType.Meta.MAX_LEN;
+            public static final int MULTI_LINE = 10;
+
+            private Meta() {}
+        }
+    }
 
 
 }
