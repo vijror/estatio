@@ -6,6 +6,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import org.joda.time.LocalDate;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,8 +20,9 @@ import org.estatio.dom.budgeting.budgetcalculation.BudgetCalculationType;
 import org.estatio.dom.budgeting.budgetitem.BudgetItem;
 import org.estatio.dom.budgeting.budgetitem.BudgetItemValue;
 import org.estatio.dom.budgeting.budgetitem.BudgetItemValueRepository;
-import org.estatio.fixture.EstatioBaseLineFixture;
 import org.estatio.fixture.asset.PropertyForOxfGb;
+import org.estatio.fixture.budget.BudgetBaseLineFixture;
+import org.estatio.fixture.budget.BudgetTeardownFixture;
 import org.estatio.fixture.budget.BudgetsForOxf;
 import org.estatio.integtests.EstatioIntegrationTest;
 
@@ -39,8 +41,18 @@ public class BudgetItemValueRepository_IntegTest extends EstatioIntegrationTest 
         runFixtureScript(new FixtureScript() {
             @Override
             protected void execute(final ExecutionContext executionContext) {
-                executionContext.executeChild(this, new EstatioBaseLineFixture());
+                executionContext.executeChild(this, new BudgetBaseLineFixture());
                 executionContext.executeChild(this, new BudgetsForOxf());
+            }
+        });
+    }
+
+    @After
+    public void teardownData() {
+        runFixtureScript(new FixtureScript() {
+            @Override
+            protected void execute(final ExecutionContext executionContext) {
+                executionContext.executeChild(this, new BudgetTeardownFixture());
             }
         });
     }

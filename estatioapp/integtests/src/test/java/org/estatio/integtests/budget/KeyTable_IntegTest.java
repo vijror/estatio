@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import javax.inject.Inject;
 
 import org.joda.time.LocalDate;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,6 +40,7 @@ import org.estatio.dom.budgeting.keytable.KeyTableRepository;
 import org.estatio.dom.budgeting.keytable.KeyValueMethod;
 import org.estatio.fixture.EstatioBaseLineFixture;
 import org.estatio.fixture.asset.PropertyForOxfGb;
+import org.estatio.fixture.budget.BudgetTeardownFixture;
 import org.estatio.fixture.budget.BudgetsForOxf;
 import org.estatio.integtests.EstatioIntegrationTest;
 
@@ -66,12 +68,24 @@ public class KeyTable_IntegTest extends EstatioIntegrationTest {
         runFixtureScript(new FixtureScript() {
             @Override
             protected void execute(final ExecutionContext executionContext) {
+                // here EstatioBaselineFixture is chosen instead of BudgetBaseLineFixture because PropertyFixtures outside budget module are manipulated
                 executionContext.executeChild(this, new EstatioBaseLineFixture());
                 executionContext.executeChild(this, new BudgetsForOxf());
 
             }
         });
     }
+
+    @After
+    public void teardownData() {
+        runFixtureScript(new FixtureScript() {
+            @Override
+            protected void execute(final ExecutionContext executionContext) {
+                executionContext.executeChild(this, new BudgetTeardownFixture());
+            }
+        });
+    }
+
 
     public static class ChangeKeytableTest extends KeyTable_IntegTest {
 
@@ -135,6 +149,7 @@ public class KeyTable_IntegTest extends EstatioIntegrationTest {
             keyTableByArea = budget.createKeyTable("Some name", FoundationValueType.AREA, KeyValueMethod.PROMILLE);
             keyTableByArea.setPrecision(3);
             unitWithAreaNull = unitRepository.findUnitByReference("OXF-001");
+            BigDecimal unitAreaToRestore = unitWithAreaNull.getArea();
             unitWithAreaNull.setArea(null);
 
             //when
@@ -143,6 +158,10 @@ public class KeyTable_IntegTest extends EstatioIntegrationTest {
             //then
             assertThat(keyItemRepository.findByKeyTableAndUnit(keyTableByArea, unitWithAreaNull).getValue()).isEqualTo(new BigDecimal("0.000"));
             assertThat(keyItemRepository.findByKeyTableAndUnit(keyTableByArea, unitRepository.findUnitByReference("OXF-002")).getValue()).isEqualTo(new BigDecimal("6.173"));
+
+            //restore fixtures outside budget module
+            unitWithAreaNull.setArea(unitAreaToRestore);
+
         }
 
         Unit unitNotIncluded;

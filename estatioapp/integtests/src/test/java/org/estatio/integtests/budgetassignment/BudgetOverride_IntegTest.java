@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import javax.inject.Inject;
 
 import org.joda.time.LocalDate;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,7 +19,8 @@ import org.estatio.dom.charge.Charge;
 import org.estatio.dom.charge.ChargeRepository;
 import org.estatio.dom.lease.Lease;
 import org.estatio.dom.lease.LeaseRepository;
-import org.estatio.fixture.EstatioBaseLineFixture;
+import org.estatio.fixture.budget.BudgetBaseLineFixture;
+import org.estatio.fixture.budget.BudgetTeardownFixture;
 import org.estatio.fixture.charge.ChargeRefData;
 import org.estatio.fixture.lease.LeaseForOxfTopModel001Gb;
 import org.estatio.integtests.EstatioIntegrationTest;
@@ -44,8 +46,20 @@ public class BudgetOverride_IntegTest extends EstatioIntegrationTest {
         runFixtureScript(new FixtureScript() {
             @Override
             protected void execute(final ExecutionContext executionContext) {
-                executionContext.executeChild(this, new EstatioBaseLineFixture());
-                executionContext.executeChild(this, new LeaseForOxfTopModel001Gb());
+                executionContext.executeChild(this, new BudgetBaseLineFixture());
+                if (leaseRepository.findLeaseByReference(LeaseForOxfTopModel001Gb.REF)==null) {
+                    executionContext.executeChild(this, new LeaseForOxfTopModel001Gb());
+                }
+            }
+        });
+    }
+
+    @After
+    public void teardownData() {
+        runFixtureScript(new FixtureScript() {
+            @Override
+            protected void execute(final ExecutionContext executionContext) {
+                executionContext.executeChild(this, new BudgetTeardownFixture());
             }
         });
     }

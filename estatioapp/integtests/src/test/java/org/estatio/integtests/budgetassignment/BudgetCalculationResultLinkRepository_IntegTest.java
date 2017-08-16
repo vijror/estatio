@@ -2,6 +2,7 @@ package org.estatio.integtests.budgetassignment;
 
 import javax.inject.Inject;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,15 +22,16 @@ import org.estatio.dom.budgeting.budgetcalculation.Status;
 import org.estatio.dom.charge.Charge;
 import org.estatio.dom.charge.ChargeRepository;
 import org.estatio.dom.invoice.PaymentMethod;
-import org.estatio.dom.lease.LeaseAgreementRoleTypeEnum;
 import org.estatio.dom.lease.InvoicingFrequency;
 import org.estatio.dom.lease.Lease;
+import org.estatio.dom.lease.LeaseAgreementRoleTypeEnum;
 import org.estatio.dom.lease.LeaseItem;
 import org.estatio.dom.lease.LeaseItemType;
 import org.estatio.dom.lease.LeaseRepository;
 import org.estatio.dom.lease.LeaseTermForServiceCharge;
 import org.estatio.fixture.EstatioBaseLineFixture;
 import org.estatio.fixture.asset.PropertyForOxfGb;
+import org.estatio.fixture.budget.BudgetTeardownFixture;
 import org.estatio.fixture.budget.BudgetsForOxf;
 import org.estatio.fixture.charge.ChargeRefData;
 import org.estatio.fixture.lease.LeaseForOxfTopModel001Gb;
@@ -69,9 +71,11 @@ public class BudgetCalculationResultLinkRepository_IntegTest extends EstatioInte
         runFixtureScript(new FixtureScript() {
             @Override
             protected void execute(final ExecutionContext executionContext) {
+                // here EstatioBaselineFixture is chosen instead of BudgetBaseLineFixture because PropertyFixtures outside budget module are manipulated
                 executionContext.executeChild(this, new EstatioBaseLineFixture());
                 executionContext.executeChild(this, new BudgetsForOxf());
                 executionContext.executeChild(this, new LeaseForOxfTopModel001Gb());
+
             }
         });
         propertyOxf = propertyRepository.findPropertyByReference(PropertyForOxfGb.REF);
@@ -80,6 +84,16 @@ public class BudgetCalculationResultLinkRepository_IntegTest extends EstatioInte
         leaseTopModel = leaseRepository.findLeaseByReference(LeaseForOxfTopModel001Gb.REF);
         run = budgetCalculationRunRepository.createBudgetCalculationRun(leaseTopModel, budget2015, BudgetCalculationType.BUDGETED, Status.NEW);
         leaseItem = leaseTopModel.newItem(LeaseItemType.SERVICE_CHARGE_BUDGETED, LeaseAgreementRoleTypeEnum.LANDLORD, charge, InvoicingFrequency.MONTHLY_IN_ADVANCE, PaymentMethod.DIRECT_DEBIT, leaseTopModel.getStartDate());
+    }
+
+    @After
+    public void teardownData() {
+        runFixtureScript(new FixtureScript() {
+            @Override
+            protected void execute(final ExecutionContext executionContext) {
+                executionContext.executeChild(this, new BudgetTeardownFixture());
+            }
+        });
     }
 
     public static class NewLink extends BudgetCalculationResultLinkRepository_IntegTest {

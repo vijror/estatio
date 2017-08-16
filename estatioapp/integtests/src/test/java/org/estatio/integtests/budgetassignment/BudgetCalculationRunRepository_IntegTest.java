@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,8 +20,9 @@ import org.estatio.dom.budgeting.budgetcalculation.BudgetCalculationType;
 import org.estatio.dom.budgeting.budgetcalculation.Status;
 import org.estatio.dom.lease.Lease;
 import org.estatio.dom.lease.LeaseRepository;
-import org.estatio.fixture.EstatioBaseLineFixture;
 import org.estatio.fixture.asset.PropertyForOxfGb;
+import org.estatio.fixture.budget.BudgetBaseLineFixture;
+import org.estatio.fixture.budget.BudgetTeardownFixture;
 import org.estatio.fixture.budget.BudgetsForOxf;
 import org.estatio.fixture.lease.LeaseForOxfTopModel001Gb;
 import org.estatio.integtests.EstatioIntegrationTest;
@@ -50,14 +52,26 @@ public class BudgetCalculationRunRepository_IntegTest extends EstatioIntegration
         runFixtureScript(new FixtureScript() {
             @Override
             protected void execute(final ExecutionContext executionContext) {
-                executionContext.executeChild(this, new EstatioBaseLineFixture());
+                executionContext.executeChild(this, new BudgetBaseLineFixture());
                 executionContext.executeChild(this, new BudgetsForOxf());
-                executionContext.executeChild(this, new LeaseForOxfTopModel001Gb());
+                if (leaseRepository.findLeaseByReference(LeaseForOxfTopModel001Gb.REF)==null) {
+                    executionContext.executeChild(this, new LeaseForOxfTopModel001Gb());
+                }
             }
         });
         propertyOxf = propertyRepository.findPropertyByReference(PropertyForOxfGb.REF);
         budgetsForOxf = budgetRepository.findByProperty(propertyOxf);
         budget2015 = budgetRepository.findByPropertyAndStartDate(propertyOxf, BudgetsForOxf.BUDGET_2015_START_DATE);
+    }
+
+    @After
+    public void teardownData() {
+        runFixtureScript(new FixtureScript() {
+            @Override
+            protected void execute(final ExecutionContext executionContext) {
+                executionContext.executeChild(this, new BudgetTeardownFixture());
+            }
+        });
     }
 
     public static class FindOrCreate extends BudgetCalculationRunRepository_IntegTest {
