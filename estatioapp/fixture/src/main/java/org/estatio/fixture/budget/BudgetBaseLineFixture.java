@@ -32,31 +32,16 @@ import org.estatio.fixture.security.EstatioSecurityModuleDemoFixture;
 
 public class BudgetBaseLineFixture extends DiscoverableFixtureScript {
 
-    private BudgetTeardownFixture teardownFixtureScript;
-
-    public BudgetBaseLineFixture() {
-        this(new BudgetTeardownFixture());
-    }
-
-    public BudgetBaseLineFixture(final BudgetTeardownFixture teardownFixtureScript) {
-        super(null, "baseline");
-        this.teardownFixtureScript = teardownFixtureScript;
-    }
+    public BudgetBaseLineFixture(){};
 
     @Override
     protected void execute(ExecutionContext executionContext) {
         executionContext.executeChild(this, ClockFixture.setTo("2014-05-18"));
-        // teardown after test
-        // teardown(executionContext);
         if (isRefDataPresent()) {
             return;
         }
         executionContext.executeChild(this, new EstatioRefDataSetupFixture());
         executionContext.executeChild(this, new EstatioSecurityModuleDemoFixture());
-    }
-
-    protected void teardown(final ExecutionContext executionContext) {
-        executionContext.executeChild(this, teardownFixtureScript);
     }
 
     /**

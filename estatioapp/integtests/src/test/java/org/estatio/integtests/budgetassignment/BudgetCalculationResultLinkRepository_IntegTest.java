@@ -71,11 +71,9 @@ public class BudgetCalculationResultLinkRepository_IntegTest extends EstatioInte
         runFixtureScript(new FixtureScript() {
             @Override
             protected void execute(final ExecutionContext executionContext) {
-                // here EstatioBaselineFixture is chosen instead of BudgetBaseLineFixture because PropertyFixtures outside budget module are manipulated
-                executionContext.executeChild(this, new EstatioBaseLineFixture());
-                executionContext.executeChild(this, new BudgetsForOxf());
+                executionContext.executeChild(this, new EstatioBaseLineFixture()); // is needed here instead of BudgetBaseline, because Lease Fixture is not 'aware' of conventions
                 executionContext.executeChild(this, new LeaseForOxfTopModel001Gb());
-
+                executionContext.executeChild(this, new BudgetsForOxf());
             }
         });
         propertyOxf = propertyRepository.findPropertyByReference(PropertyForOxfGb.REF);
@@ -92,6 +90,7 @@ public class BudgetCalculationResultLinkRepository_IntegTest extends EstatioInte
             @Override
             protected void execute(final ExecutionContext executionContext) {
                 executionContext.executeChild(this, new BudgetTeardownFixture());
+                executionContext.executeChild(this, new LeaseForOxfTopModel001Gb().getTearDown());
             }
         });
     }

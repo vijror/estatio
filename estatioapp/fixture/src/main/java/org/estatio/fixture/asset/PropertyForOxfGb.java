@@ -18,10 +18,13 @@
  */
 package org.estatio.fixture.asset;
 
-import org.estatio.dom.asset.PropertyType;
 import org.incode.module.country.dom.impl.Country;
-import org.estatio.dom.party.Party;
 import org.incode.module.country.fixture.CountriesRefData;
+import org.incode.module.fixturesupport.dom.scripts.TeardownFixtureAbstract;
+
+import org.estatio.dom.asset.PropertyType;
+import org.estatio.dom.party.Party;
+import org.estatio.fixture.HasTearDown;
 import org.estatio.fixture.party.OrganisationForHelloWorldGb;
 import org.estatio.fixture.party.OrganisationForTopModelGb;
 import org.estatio.fixture.party.PersonForGinoVannelliGb;
@@ -29,7 +32,7 @@ import org.estatio.fixture.security.tenancy.ApplicationTenancyForGb;
 
 import static org.incode.module.base.integtests.VT.ld;
 
-public class PropertyForOxfGb extends PropertyAbstract {
+public class PropertyForOxfGb extends PropertyAbstract implements HasTearDown {
 
     public static final String REF = "OXF";
     public static final String PARTY_REF_MANAGER = PersonForGinoVannelliGb.REF;
@@ -58,6 +61,11 @@ public class PropertyForOxfGb extends PropertyAbstract {
                 REF, "Oxford Super Mall", "Oxford", greatBritain, PropertyType.SHOPPING_CENTER,
                 25, ld(1999, 1, 1), ld(2008, 6, 1), owner, manager,
                 "51.74579;-1.24334", executionContext);
+    }
+
+    @Override
+    public TeardownFixtureAbstract getTearDown() {
+        return new PropertyAbstract.Teardown();
     }
 
 }

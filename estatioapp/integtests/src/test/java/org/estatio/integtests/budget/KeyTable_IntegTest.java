@@ -38,8 +38,8 @@ import org.estatio.dom.budgeting.keytable.FoundationValueType;
 import org.estatio.dom.budgeting.keytable.KeyTable;
 import org.estatio.dom.budgeting.keytable.KeyTableRepository;
 import org.estatio.dom.budgeting.keytable.KeyValueMethod;
-import org.estatio.fixture.EstatioBaseLineFixture;
 import org.estatio.fixture.asset.PropertyForOxfGb;
+import org.estatio.fixture.budget.BudgetBaseLineFixture;
 import org.estatio.fixture.budget.BudgetTeardownFixture;
 import org.estatio.fixture.budget.BudgetsForOxf;
 import org.estatio.integtests.EstatioIntegrationTest;
@@ -68,8 +68,7 @@ public class KeyTable_IntegTest extends EstatioIntegrationTest {
         runFixtureScript(new FixtureScript() {
             @Override
             protected void execute(final ExecutionContext executionContext) {
-                // here EstatioBaselineFixture is chosen instead of BudgetBaseLineFixture because PropertyFixtures outside budget module are manipulated
-                executionContext.executeChild(this, new EstatioBaseLineFixture());
+                executionContext.executeChild(this, new BudgetBaseLineFixture());
                 executionContext.executeChild(this, new BudgetsForOxf());
 
             }
@@ -82,6 +81,8 @@ public class KeyTable_IntegTest extends EstatioIntegrationTest {
             @Override
             protected void execute(final ExecutionContext executionContext) {
                 executionContext.executeChild(this, new BudgetTeardownFixture());
+                // taking care of changes made in fixture data in other module
+                executionContext.executeChild(this, new PropertyForOxfGb().getTearDown());
             }
         });
     }

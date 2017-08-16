@@ -29,16 +29,19 @@ import org.apache.isis.applib.fixturescripts.FixtureScript;
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancyRepository;
 import org.isisaddons.wicket.gmap3.cpt.applib.Location;
 
-import org.estatio.dom.asset.role.FixedAssetRoleTypeEnum;
+import org.incode.module.country.dom.impl.Country;
+import org.incode.module.country.dom.impl.CountryRepository;
+import org.incode.module.country.dom.impl.StateRepository;
+import org.incode.module.fixturesupport.dom.scripts.TeardownFixtureAbstract;
+
 import org.estatio.dom.asset.Property;
 import org.estatio.dom.asset.PropertyRepository;
 import org.estatio.dom.asset.PropertyType;
 import org.estatio.dom.asset.UnitType;
-import org.incode.module.country.dom.impl.Country;
-import org.incode.module.country.dom.impl.CountryRepository;
-import org.incode.module.country.dom.impl.StateRepository;
+import org.estatio.dom.asset.role.FixedAssetRoleTypeEnum;
 import org.estatio.dom.party.Party;
 import org.estatio.dom.party.PartyRepository;
+import org.estatio.fixture.EstatioOperationalTeardownFixture;
 
 import static org.incode.module.base.integtests.VT.ld;
 
@@ -78,6 +81,18 @@ public abstract class PropertyAbstract extends FixtureScript {
     private UnitType unitType(int n) {
         final UnitType[] unitTypes = UnitType.values();
         return unitTypes[n % unitTypes.length];
+    }
+
+    protected static class Teardown extends TeardownFixtureAbstract {
+            private void teardown (final ExecutionContext executionContext) {
+                // TODO: could be more tailored but because there is no convention for every module to take care of it's own data we can expect anything at the moment
+                executionContext.executeChild(this, new EstatioOperationalTeardownFixture());
+        }
+
+        @Override
+        protected void execute(final ExecutionContext executionContext) {
+            teardown(executionContext);
+        }
     }
 
     // //////////////////////////////////////

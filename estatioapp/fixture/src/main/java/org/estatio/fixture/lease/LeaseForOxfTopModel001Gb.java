@@ -19,10 +19,12 @@
 package org.estatio.fixture.lease;
 
 import org.incode.module.country.fixture.CountriesRefData;
+import org.incode.module.fixturesupport.dom.scripts.TeardownFixtureAbstract;
 
 import org.estatio.dom.lease.Lease;
 import org.estatio.dom.lease.tags.BrandCoverage;
 import org.estatio.dom.party.Party;
+import org.estatio.fixture.HasTearDown;
 import org.estatio.fixture.asset.PropertyForOxfGb;
 import org.estatio.fixture.party.OrganisationForHelloWorldGb;
 import org.estatio.fixture.party.OrganisationForTopModelGb;
@@ -30,7 +32,7 @@ import org.estatio.fixture.party.PersonForGinoVannelliGb;
 
 import static org.incode.module.base.integtests.VT.ld;
 
-public class LeaseForOxfTopModel001Gb extends LeaseAbstract {
+public class LeaseForOxfTopModel001Gb extends LeaseAbstract  implements HasTearDown {
 
     public static final String REF = "OXF-TOPMODEL-001";
 
@@ -75,4 +77,8 @@ public class LeaseForOxfTopModel001Gb extends LeaseAbstract {
         addAddresses(lease);
     }
 
+    @Override
+    public TeardownFixtureAbstract getTearDown() {
+        return new LeaseAbstract.Teardown();
+    }
 }

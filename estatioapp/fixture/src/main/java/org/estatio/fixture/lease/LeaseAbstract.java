@@ -40,28 +40,30 @@ import org.incode.module.communications.dom.impl.commchannel.CommunicationChanne
 import org.incode.module.communications.dom.impl.commchannel.CommunicationChannelType;
 import org.incode.module.country.dom.impl.Country;
 import org.incode.module.country.dom.impl.CountryRepository;
+import org.incode.module.fixturesupport.dom.scripts.TeardownFixtureAbstract;
 
 import org.estatio.dom.agreement.AgreementRole;
 import org.estatio.dom.agreement.AgreementRoleCommunicationChannelType;
-import org.estatio.dom.agreement.commchantype.IAgreementRoleCommunicationChannelType;
 import org.estatio.dom.agreement.AgreementRoleCommunicationChannelTypeRepository;
+import org.estatio.dom.agreement.commchantype.IAgreementRoleCommunicationChannelType;
 import org.estatio.dom.agreement.role.AgreementRoleType;
 import org.estatio.dom.agreement.role.AgreementRoleTypeRepository;
 import org.estatio.dom.apptenancy.ApplicationTenancyConstants;
 import org.estatio.dom.asset.Unit;
 import org.estatio.dom.asset.UnitRepository;
 import org.estatio.dom.lease.AgreementRoleCommunicationChannelTypeEnum;
-import org.estatio.dom.lease.LeaseAgreementRoleTypeEnum;
 import org.estatio.dom.lease.Lease;
+import org.estatio.dom.lease.LeaseAgreementRoleTypeEnum;
 import org.estatio.dom.lease.LeaseRepository;
+import org.estatio.dom.lease.LeaseRoleTypeEnum;
 import org.estatio.dom.lease.LeaseType;
 import org.estatio.dom.lease.LeaseTypeRepository;
 import org.estatio.dom.lease.Occupancy;
 import org.estatio.dom.lease.OccupancyRepository;
-import org.estatio.dom.lease.LeaseRoleTypeEnum;
 import org.estatio.dom.lease.tags.BrandCoverage;
 import org.estatio.dom.party.Party;
 import org.estatio.dom.party.PartyRepository;
+import org.estatio.fixture.EstatioOperationalTeardownFixture;
 
 import static org.incode.module.base.integtests.VT.ld;
 
@@ -238,6 +240,18 @@ public abstract class LeaseAbstract extends FixtureScript {
 
             final CommunicationChannel communicationChannel = communicationChannelIfAny.get();
             agreementRole.addCommunicationChannel(inRoleOfInvoiceAddress, communicationChannel, null, null);
+        }
+    }
+
+    protected static class Teardown extends TeardownFixtureAbstract {
+        private void teardown (final ExecutionContext executionContext) {
+            // TODO: could be more tailored but because there is no convention for every module to take care of it's own data we can expect anything at the moment
+            executionContext.executeChild(this, new EstatioOperationalTeardownFixture());
+        }
+
+        @Override
+        protected void execute(final ExecutionContext executionContext) {
+            teardown(executionContext);
         }
     }
 
