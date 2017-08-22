@@ -27,9 +27,9 @@ import org.apache.isis.applib.fixturescripts.FixtureScript;
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
 
 import org.estatio.dom.country.EstatioApplicationTenancyRepositoryForCountry;
-import org.estatio.tax.dom.Tax;
-import org.estatio.tax.dom.TaxRate;
-import org.estatio.tax.dom.TaxRepository;
+import org.estatio.tax.dom2.Tax;
+import org.estatio.tax.dom2.TaxRate;
+import org.estatio.tax.dom2.TaxRepository;
 
 import static org.incode.module.base.integtests.VT.bd;
 import static org.incode.module.base.integtests.VT.ld;

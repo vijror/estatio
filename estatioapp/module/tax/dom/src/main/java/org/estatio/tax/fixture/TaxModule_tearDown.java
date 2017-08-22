@@ -20,8 +20,8 @@ package org.estatio.tax.fixture;
 
 import org.incode.module.fixturesupport.dom.scripts.TeardownFixtureAbstract;
 
-import org.estatio.tax.dom.Tax;
-import org.estatio.tax.dom.TaxRate;
+import org.estatio.tax.dom2.Tax;
+import org.estatio.tax.dom2.TaxRate;
 
 public class TaxModule_tearDown extends TeardownFixtureAbstract {
 

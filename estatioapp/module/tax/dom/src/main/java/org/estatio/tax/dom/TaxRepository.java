@@ -18,67 +18,15 @@
  */
 package org.estatio.tax.dom;
 
-import java.util.Collection;
-import java.util.List;
-
-import com.google.common.collect.Collections2;
-
-import org.apache.isis.applib.annotation.DomainService;
-import org.apache.isis.applib.annotation.NatureOfService;
-import org.apache.isis.applib.annotation.Programmatic;
-
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
 
-import org.estatio.dom.UdoDomainRepositoryAndFactory;
+public interface TaxRepository {
 
-@DomainService(nature = NatureOfService.DOMAIN, repositoryFor = Tax.class)
-public class TaxRepository extends UdoDomainRepositoryAndFactory<Tax> {
+    Tax findOrCreate(String reference, String name, ApplicationTenancy applicationTenancy);
 
-    public TaxRepository() {
-        super(TaxRepository.class, Tax.class);
-    }
+    Tax findByReference(String reference);
 
-    // //////////////////////////////////////
-
-    @Programmatic
-    public Tax newTax(
-            final String reference,
-            final String name,
-            // TODO: should probably be asking for the country here, but Tax has no dependency on country module at the moment.
-            final ApplicationTenancy applicationTenancy) {
-
-        final Tax tax = newTransientInstance();
-        tax.setReference(reference);
-        tax.setName(name);
-        tax.setApplicationTenancyPath(applicationTenancy.getPath());
-        persist(tax);
-        return tax;
-    }
-
-    @Programmatic
-    public List<Tax> allTaxes() {
-        return allInstances();
-    }
-
-    @Programmatic
-    public Tax findByReference(final String reference) {
-        return uniqueMatch("findByReference", "reference", reference);
-    }
-
-    @Programmatic
-    public Tax findOrCreate(final String reference, final String name, final ApplicationTenancy applicationTenancy) {
-        Tax tax =  findByReference(reference);
-        if (tax == null) {
-            tax = newTax(reference, name, applicationTenancy);
-        }
-        return tax;
-    }
-
-    @Programmatic
-    public Collection<Tax> findByApplicationTenancy(final ApplicationTenancy applicationTenancy) {
-        return Collections2.filter(allInstances(), tax -> tax.getApplicationTenancy().equals(applicationTenancy));
-    }
-
-
+    // TODO: this is only here because TaxMenu uses it (when we move TaxMenu into this module, then can remove)
+    Tax newTax(String reference, String name, ApplicationTenancy applicationTenancy);
 
 }

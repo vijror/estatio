@@ -25,7 +25,7 @@ import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
 
 import org.incode.module.unittestsupport.dom.bean.AbstractBeanPropertiesTest;
 
-import org.estatio.tax.dom.Tax;
+import org.estatio.tax.dom2.Tax;
 
 public class Charge_Test {
 
@@ -35,7 +35,7 @@ public class Charge_Test {
         public void test() {
             newPojoTester()
                     .withFixture(pojos(ChargeGroup.class))
-                    .withFixture(pojos(Tax.class))
+                    .withFixture(pojos(Tax.class, org.estatio.tax.dom2.Tax.class))
                     .withFixture(pojos(ApplicationTenancy.class))
                     .withFixture(pojos(Charge.class))
                     .exercise(new Charge());

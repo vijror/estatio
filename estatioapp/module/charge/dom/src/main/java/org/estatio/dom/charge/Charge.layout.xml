@@ -15,7 +15,7 @@
                             <ns2:fieldSet name="General" id="general">
                                 <ns2:property id="reference"/>
                                 <ns2:property id="name"/>
-                                <ns2:property id="description" hidden="ALL_TABLES"/>
+                                <ns2:property id="description" hidden="ALL_TABLES" multiLine="5"/>
                             </ns2:fieldSet>
                         </col>
                     </row>

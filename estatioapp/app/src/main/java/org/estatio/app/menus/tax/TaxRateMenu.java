@@ -28,7 +28,7 @@ import org.apache.isis.applib.annotation.MemberOrder;
 import org.apache.isis.applib.annotation.SemanticsOf;
 
 import org.estatio.dom.UdoDomainRepositoryAndFactory;
-import org.estatio.tax.dom.TaxRate;
+import org.estatio.tax.dom2.TaxRate;
 
 @DomainService(repositoryFor = TaxRate.class)
 @DomainServiceLayout(

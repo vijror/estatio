@@ -1,4 +1,4 @@
-package org.estatio.app.services.budget;
+package org.estatio.tax.dto;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,9 +20,9 @@ import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancyRepository;
 
 import org.estatio.dom.Importable;
-import org.estatio.tax.dom.Tax;
-import org.estatio.tax.dom.TaxRate;
-import org.estatio.tax.dom.TaxRepository;
+import org.estatio.tax.dom2.Tax;
+import org.estatio.tax.dom2.TaxRate;
+import org.estatio.tax.dom2.TaxRepository;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -86,9 +86,9 @@ public class TaxImport implements ExcelFixtureRowHandler, Importable {
     }
 
     @Inject
-    private ApplicationTenancyRepository securityApplicationTenancyRepository;
+    ApplicationTenancyRepository securityApplicationTenancyRepository;
 
     @Inject
-    private TaxRepository taxRepository;
+    TaxRepository taxRepository;
 
 }

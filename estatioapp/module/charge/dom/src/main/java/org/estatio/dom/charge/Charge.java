@@ -21,6 +21,7 @@ package org.estatio.dom.charge;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.annotation.Nullable;
 import javax.jdo.annotations.Column;
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
@@ -30,8 +31,6 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.Editing;
-import org.apache.isis.applib.annotation.Optionality;
-import org.apache.isis.applib.annotation.Parameter;
 import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.annotation.Property;
 import org.apache.isis.applib.annotation.PropertyLayout;
@@ -191,15 +190,11 @@ public class Charge
     @Getter @Setter
     private String name;
 
-
     @javax.jdo.annotations.Column(allowsNull = "false", length = DescriptionType.Meta.MAX_LEN)
-    @PropertyLayout(multiLine = DescriptionType.Meta.MULTI_LINE)
     @Getter @Setter
     private String description;
 
-
     @javax.jdo.annotations.Column(allowsNull = "true", length = NameType.Meta.MAX_LEN)
-    @Property(optionality = Optionality.OPTIONAL)
     @Getter @Setter
     private String externalReference;
 
@@ -211,21 +206,23 @@ public class Charge
     @Getter @Setter
     private ChargeGroup group;
 
-
     @javax.jdo.annotations.Column(allowsNull = "true", length = ReferenceType.Meta.MAX_LEN)
-    @Property(optionality = Optionality.OPTIONAL)
     @Getter @Setter
     private String sortOrder;
+
 
     // //////////////////////////////////////
 
     public Charge change(
             final String name,
-            final @Parameter(optionality = Optionality.OPTIONAL) Tax tax,
+            @Nullable
+            final Tax tax,
             final String description,
             final ChargeGroup group,
-            final @Parameter(optionality = Optionality.OPTIONAL) String externalReference,
-            final @Parameter(optionality = Optionality.OPTIONAL) String sortOrder) {
+            @Nullable
+            final String externalReference,
+            @Nullable
+            final String sortOrder) {
 
         setName(name);
         setTax(tax);

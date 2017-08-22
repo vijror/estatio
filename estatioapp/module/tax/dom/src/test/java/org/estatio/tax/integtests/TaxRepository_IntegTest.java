@@ -28,8 +28,8 @@ import org.junit.Test;
 import org.isisaddons.module.fakedata.dom.FakeDataService;
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
 
-import org.estatio.tax.dom.Tax;
-import org.estatio.tax.dom.TaxRepository;
+import org.estatio.tax.dom2.Tax;
+import org.estatio.tax.dom2.TaxRepository;
 import org.estatio.tax.fixture.data.Tax_data;
 
 import static org.assertj.core.api.Assertions.assertThat;

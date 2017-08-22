@@ -28,9 +28,9 @@ import org.apache.isis.applib.query.Query;
 
 import org.incode.module.unittestsupport.dom.repo.FinderInteraction;
 import org.incode.module.unittestsupport.dom.repo.FinderInteraction.FinderMethod;
-import org.estatio.tax.dom.Tax;
-import org.estatio.tax.dom.TaxRate;
-import org.estatio.tax.dom.TaxRateRepository;
+import org.estatio.tax.dom2.Tax;
+import org.estatio.tax.dom2.TaxRate;
+import org.estatio.tax.dom2.TaxRateRepository;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;

@@ -43,6 +43,8 @@ import org.estatio.dom.country.EstatioApplicationTenancyRepositoryForCountry;
 import org.estatio.tax.dom.Tax;
 import org.estatio.tax.dom.TaxRepository;
 
+// TODO: we'd like to move this back into the tax module, however need to decouple apptenancy from country first
+// (eg the choicesXxx methods)
 @DomainService(nature = NatureOfService.VIEW_MENU_ONLY)
 @DomainServiceLayout(
         named = "Other",

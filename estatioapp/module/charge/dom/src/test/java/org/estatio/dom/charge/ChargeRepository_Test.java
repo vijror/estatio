@@ -35,7 +35,7 @@ import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
 import org.incode.module.unittestsupport.dom.repo.FinderInteraction;
 import org.incode.module.unittestsupport.dom.repo.FinderInteraction.FinderMethod;
 
-import org.estatio.tax.dom.Tax;
+import org.estatio.tax.dom2.Tax;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

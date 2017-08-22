@@ -13,8 +13,7 @@ import org.apache.isis.applib.services.repository.RepositoryService;
 import org.estatio.country.fixture.data.Country_data;
 import org.estatio.dom.fixture.DemoData2;
 import org.estatio.dom.fixture.DemoData2PersistAbstract;
-import org.estatio.tax.dom.Tax;
-import org.estatio.tax.dom.TaxRate;
+import org.estatio.tax.dom2.Tax;
 
 import static java.util.Arrays.asList;
 import lombok.AllArgsConstructor;
