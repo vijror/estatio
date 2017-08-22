@@ -53,8 +53,8 @@ import org.estatio.dom.charge.Charge;
 import org.estatio.dom.charge.ChargeRepository;
 import org.estatio.dom.invoice.Invoice;
 import org.estatio.dom.invoice.InvoiceItem;
-import org.estatio.dom.tax.Tax;
 import org.estatio.dom.utils.FinancialAmountUtil;
+import org.estatio.tax.dom.Tax;
 
 import lombok.Getter;
 import lombok.Setter;
