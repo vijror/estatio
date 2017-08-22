@@ -3,6 +3,8 @@ package org.estatio.tax.fixture.data;
 import java.math.BigDecimal;
 import java.util.List;
 
+import javax.ws.rs.HEAD;
+
 import org.joda.time.LocalDate;
 
 import org.apache.isis.applib.services.registry.ServiceRegistry2;
@@ -56,12 +58,11 @@ public enum Tax_data implements DemoData2<Tax_data, Tax> {
         final Tax tax = Tax.builder()
                 .applicationTenancyPath(countryData.getAtPath())
                 .reference(getReference())
-                .name("Value Added Tax (Standard, " + countryData.getRef3() + ")")
+                .name("Value Added Tax (Standard, " + countryData.getRef2() + ")")
                 .build();
         serviceRegistry2.injectServicesInto(tax);
         for (RateData rate : rates) {
-            final TaxRate taxRate = tax.newRate(rate.date, rate.rateValue);
-            tax.getRates().add(taxRate);
+            tax.newRate(rate.date, rate.rateValue);
         }
         return tax;
     }

@@ -19,6 +19,7 @@
 package org.estatio.tax.integtests;
 
 import javax.inject.Inject;
+import javax.ws.rs.HEAD;
 
 import org.junit.After;
 import org.junit.Before;
