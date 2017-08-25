@@ -24,6 +24,7 @@ import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.VersionStrategy;
 
 import org.apache.isis.applib.annotation.Action;
+import org.apache.isis.applib.annotation.ActionLayout;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.Editing;
 import org.apache.isis.applib.annotation.Optionality;
@@ -191,6 +192,7 @@ public class Brand
     }
 
     @Action(domainEvent = Brand.RemoveEvent.class)
+    @ActionLayout(named = "Delete", cssClassFa = "fa-trash", cssClass = "btn-danger") // TODO: rename method to delete()
     public void remove() {
         removeAndReplace(null);
     }

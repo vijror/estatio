@@ -185,6 +185,7 @@ public class AgreementRoleCommunicationChannel
     // //////////////////////////////////////
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT_ARE_YOU_SURE)
+    @ActionLayout(named = "Delete", cssClassFa = "fa-trash", cssClass = "btn-danger") // TODO: rename method to delete()
     public AgreementRole remove() {
         remove(this);
         return getRole();

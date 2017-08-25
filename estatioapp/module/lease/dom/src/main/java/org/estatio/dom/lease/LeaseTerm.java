@@ -37,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 
 import org.apache.isis.applib.annotation.Action;
+import org.apache.isis.applib.annotation.ActionLayout;
 import org.apache.isis.applib.annotation.BookmarkPolicy;
 import org.apache.isis.applib.annotation.CollectionLayout;
 import org.apache.isis.applib.annotation.DomainObject;
@@ -352,6 +353,7 @@ public abstract class LeaseTerm
     // //////////////////////////////////////
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT_ARE_YOU_SURE)
+    @ActionLayout(named = "Delete", cssClassFa = "fa-trash", cssClass = "btn-danger") // TODO: rename method to delete()
     public Object remove() {
         LeaseItem item = getLeaseItem();
         if (doRemove()) {

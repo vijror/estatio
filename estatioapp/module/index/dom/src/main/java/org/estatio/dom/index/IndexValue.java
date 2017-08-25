@@ -27,6 +27,7 @@ import javax.jdo.annotations.VersionStrategy;
 import org.joda.time.LocalDate;
 
 import org.apache.isis.applib.annotation.Action;
+import org.apache.isis.applib.annotation.ActionLayout;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.annotation.SemanticsOf;
@@ -35,8 +36,8 @@ import org.apache.isis.applib.services.eventbus.ActionDomainEvent;
 
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
 
-import org.incode.module.base.dom.with.WithStartDate;
 import org.incode.module.base.dom.utils.TitleBuilder;
+import org.incode.module.base.dom.with.WithStartDate;
 
 import org.estatio.dom.UdoDomainObject2;
 import org.estatio.dom.apptenancy.WithApplicationTenancyCountry;
@@ -117,7 +118,8 @@ public class IndexValue
     @Getter @Setter
     private BigDecimal value;
 
-    @Action(semantics = SemanticsOf.NON_IDEMPOTENT, domainEvent = UpdateEvent.class)
+    @Action(semantics = SemanticsOf.NON_IDEMPOTENT_ARE_YOU_SURE, domainEvent = UpdateEvent.class)
+    @ActionLayout(named = "Delete", cssClassFa = "fa-trash", cssClass = "btn-danger") // TODO: rename method to delete()
     public void remove() {
         getContainer().remove(this);
     }

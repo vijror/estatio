@@ -25,6 +25,7 @@ import javax.jdo.annotations.VersionStrategy;
 import com.google.common.base.Function;
 
 import org.apache.isis.applib.annotation.Action;
+import org.apache.isis.applib.annotation.ActionLayout;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.Editing;
 import org.apache.isis.applib.annotation.MemberOrder;
@@ -158,6 +159,7 @@ public class FixedAssetFinancialAccount
     }
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT_ARE_YOU_SURE)
+    @ActionLayout(named = "Delete", cssClassFa = "fa-trash", cssClass = "btn-danger") // TODO: rename method to delete()
     public void remove() {
         getContainer().remove(this);
         getContainer().flush();

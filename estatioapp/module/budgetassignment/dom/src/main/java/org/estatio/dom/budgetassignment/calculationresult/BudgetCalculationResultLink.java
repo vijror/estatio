@@ -8,7 +8,10 @@ import javax.jdo.annotations.Query;
 import javax.jdo.annotations.Unique;
 import javax.jdo.annotations.VersionStrategy;
 
+import org.apache.isis.applib.annotation.Action;
+import org.apache.isis.applib.annotation.ActionLayout;
 import org.apache.isis.applib.annotation.DomainObject;
+import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
 import org.estatio.dom.lease.LeaseTermForServiceCharge;
@@ -58,6 +61,8 @@ public class BudgetCalculationResultLink {
     @Column(name="leaseTermId", allowsNull = "false")
     private LeaseTermForServiceCharge leaseTermForServiceCharge;
 
+    @Action(semantics = SemanticsOf.NON_IDEMPOTENT_ARE_YOU_SURE)
+    @ActionLayout(named = "Delete", cssClassFa = "fa-trash", cssClass = "btn-danger") // TODO: rename method to delete()
     public void remove() {
         repositoryService.removeAndFlush(this);
     }

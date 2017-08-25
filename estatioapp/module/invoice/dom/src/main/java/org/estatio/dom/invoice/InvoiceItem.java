@@ -333,6 +333,7 @@ public abstract class InvoiceItem<T extends InvoiceItem<T>>
     // //////////////////////////////////////
 
     @Action(invokeOn = InvokeOn.OBJECT_AND_COLLECTION, semantics = SemanticsOf.NON_IDEMPOTENT_ARE_YOU_SURE)
+    @ActionLayout(named = "Delete", cssClassFa = "fa-trash", cssClass = "btn-danger") // TODO: rename method to delete()
     public Invoice remove() {
         if (!getInvoice().isImmutable()) {
             repositoryService.remove(this);
