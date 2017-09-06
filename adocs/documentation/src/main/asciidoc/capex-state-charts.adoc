@@ -75,6 +75,7 @@ state "IncomingInvoiceApprovalStateTransitionType" as iia {
 
     iia_pbac --> iia_payable : CONFIRM_BANK_ACCOUNT_VERIFIED\n guard: [bank account verified || paymentMethod="DIRECT_DEBIT" ]
     iia_payable --> iia_paid: PAY_BY_IBP\nmatch: [paymentMethod = \n            "BANK_TRANSFER"]
+    iia_payable --> iia_paid: ALREADY_PAID\nmatch: [paymentMethod = \n           "ALREADY_PAID"]
     iia_payable --> iia_paid: PAY_BY_IBP_MANUAL\nmatch: [paymentMethod = \n             "MANUAL_PROCESS"]
     iia_payable --> iia_paid: PAY_BY_DD\n  match: [paymentMethod=\n            "DIRECT_DEBIT"]
 

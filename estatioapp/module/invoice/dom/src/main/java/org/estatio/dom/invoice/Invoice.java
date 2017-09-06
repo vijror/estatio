@@ -20,6 +20,7 @@ package org.estatio.dom.invoice;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -342,6 +343,10 @@ public abstract class Invoice<T extends Invoice<T>>
 
         public PaymentMethod default0Exec() {
             return invoice.getPaymentMethod();
+        }
+
+        public List<PaymentMethod> choices0Exec() {
+            return PaymentMethod.allBarManualProcess();
         }
 
         public String disableExec() {

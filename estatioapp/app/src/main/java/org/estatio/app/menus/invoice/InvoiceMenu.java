@@ -96,6 +96,10 @@ public class InvoiceMenu extends UdoDomainRepositoryAndFactory<Invoice> {
                 lease, null);
     }
 
+    public List<PaymentMethod> choices2NewInvoiceForLease() {
+        return PaymentMethod.allBarManualProcess();
+    }
+
     public String validateNewInvoiceForLease(final Lease lease, final LocalDate dueDate, final PaymentMethod paymentMethod, final Currency currency ) {
         final Property propertyIfAny = lease.getProperty();
         if(propertyIfAny == null) {

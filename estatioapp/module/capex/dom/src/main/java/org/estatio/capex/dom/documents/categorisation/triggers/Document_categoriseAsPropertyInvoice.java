@@ -60,7 +60,7 @@ public class Document_categoriseAsPropertyInvoice
                 null, // seller
                 null, // invoiceDate
                 dueDate,
-                null,
+                null, // paymentMethod
                 InvoiceStatus.NEW,
                 dateReceived,
                 null, // bankAccount

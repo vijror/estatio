@@ -63,7 +63,7 @@ public class Document_categoriseAsOtherInvoice
                 null, // seller
                 null, // invoiceDate
                 dueDate,
-                null,
+                null, // paymentMethod
                 InvoiceStatus.NEW,
                 dateReceived,
                 null, // bankAccount

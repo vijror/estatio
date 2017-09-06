@@ -101,10 +101,23 @@ public class IncomingInvoice_Test {
     public static class reasonIncomplete_Test extends IncomingInvoice_Test {
 
         @Test
-        public void scenario() throws Exception {
+        public void scenario_for_MANUAL_PROCESS() throws Exception {
+
+            scenarioFor(PaymentMethod.MANUAL_PROCESS);
+
+        }
+
+        @Test
+        public void scenario_for_ALREADY_PAID() throws Exception {
+
+            scenarioFor(PaymentMethod.ALREADY_PAID);
+
+        }
+
+        private void scenarioFor(final PaymentMethod paymentMethod) {
 
             // given
-            invoice.setPaymentMethod(PaymentMethod.MANUAL_PROCESS);
+            invoice.setPaymentMethod(paymentMethod);
             invoice.setBankAccount(new BankAccount());
 
             IncomingInvoiceItem item1 = new IncomingInvoiceItem();
@@ -116,7 +129,6 @@ public class IncomingInvoice_Test {
             String result = invoice.reasonIncomplete();
             // then
             assertThat(result).isEqualTo("incoming invoice type, invoice number, buyer, seller, date received, due date, net amount, gross amount, (on item 1) incoming invoice type, start date, end date, net amount, vat amount, gross amount, charge required");
-
 
             // and when conditions on item satisfied
             invoice.setType(IncomingInvoiceType.PROPERTY_EXPENSES);
@@ -133,7 +145,6 @@ public class IncomingInvoice_Test {
             // then
             assertThat(result).isEqualTo("buyer, seller, date received, due date, gross amount, property required");
 
-
             // and when conditions for invoice satisfied
             item1.setIncomingInvoiceType(IncomingInvoiceType.CAPEX);
             invoice.setBuyer(new Organisation());
@@ -147,14 +158,12 @@ public class IncomingInvoice_Test {
             // then
             assertThat(result).isEqualTo("(on item 1) project (capex), fixed asset required");
 
-
             // and when all conditions satisfied
             item1.setFixedAsset(new Property());
             item1.setProject(new Project());
             result = invoice.reasonIncomplete();
             // then
             assertThat(result).isNull();
-
         }
     }
 
@@ -306,6 +315,15 @@ public class IncomingInvoice_Test {
             invoice = new IncomingInvoice();
             // when
             invoice.setPaymentMethod(PaymentMethod.MANUAL_PROCESS);
+            result = validator.validateForPaymentMethod(invoice).getResult();
+            // then
+            Assertions.assertThat(result).isNull();
+
+            // given
+            validator = new IncomingInvoice.Validator();
+            invoice = new IncomingInvoice();
+            // when
+            invoice.setPaymentMethod(PaymentMethod.ALREADY_PAID);
             result = validator.validateForPaymentMethod(invoice).getResult();
             // then
             Assertions.assertThat(result).isNull();

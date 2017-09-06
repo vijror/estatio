@@ -244,6 +244,18 @@ public enum IncomingInvoiceApprovalStateTransitionType
             return incomingInvoice.getPaymentMethod() == PaymentMethod.BANK_TRANSFER;
         }
     },
+    ALREADY_PAID(
+            IncomingInvoiceApprovalState.PAYABLE,
+            IncomingInvoiceApprovalState.PAID,
+            NextTransitionSearchStrategy.firstMatchingExcluding(REJECT),
+            TaskAssignmentStrategy.none(),
+            AdvancePolicy.AUTOMATIC) {
+        @Override public boolean isMatch(
+                final IncomingInvoice incomingInvoice,
+                final ServiceRegistry2 serviceRegistry2) {
+            return incomingInvoice.getPaymentMethod() == PaymentMethod.ALREADY_PAID;
+        }
+    },
     PAY_BY_IBP_MANUAL(
             IncomingInvoiceApprovalState.PAYABLE,
             IncomingInvoiceApprovalState.PAID,

@@ -85,6 +85,10 @@
                                     <cpt:named>Mark as paid by DD</cpt:named>
                                 </cpt:action>
                             </cpt:collection>
+                            <cpt:collection id="incomingInvoicesPayableByAlreadyPaid" paged="15">
+                                <cpt:named>Already Paid</cpt:named>
+                                <cpt:action id="updateAsAlreadyPaidByTransfer"/>
+                            </cpt:collection>
                             <cpt:collection id="incomingInvoicesPayableByManualProcess" paged="15">
                                 <cpt:named>Payable by Manual Process</cpt:named>
                                 <cpt:action id="updateAsPayableByTransfer"/>

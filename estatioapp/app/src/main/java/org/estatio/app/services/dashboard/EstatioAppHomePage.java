@@ -153,6 +153,11 @@ public class EstatioAppHomePage {
     }
 
     @Collection(notPersisted = true)
+    public List<IncomingInvoice> getIncomingInvoicesPayableByAlreadyPaid() {
+        return incomingInvoiceRepository.findByApprovalStateAndPaymentMethod(IncomingInvoiceApprovalState.PAYABLE, PaymentMethod.ALREADY_PAID);
+    }
+
+    @Collection(notPersisted = true)
     public List<IncomingInvoice> getIncomingInvoicesPayableByManualProcess() {
         return incomingInvoiceRepository.findByApprovalStateAndPaymentMethod(IncomingInvoiceApprovalState.PAYABLE, PaymentMethod.MANUAL_PROCESS);
     }

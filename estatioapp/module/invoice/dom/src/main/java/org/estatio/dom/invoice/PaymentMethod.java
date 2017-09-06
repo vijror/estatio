@@ -18,6 +18,12 @@
  */
 package org.estatio.dom.invoice;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.Lists;
+
 import org.incode.module.base.dom.utils.StringUtils;
 
 public enum PaymentMethod {
@@ -27,7 +33,16 @@ public enum PaymentMethod {
     BANK_TRANSFER,
     CASH,
     CHEQUE,
-    MANUAL_PROCESS;
+    MANUAL_PROCESS,
+    ALREADY_PAID;
+
+    public static List<PaymentMethod> allBarManualProcess() {
+        return Lists.newArrayList(
+                Arrays.stream(values())
+                     .filter(x -> x != MANUAL_PROCESS)
+                     .collect(Collectors.toList())
+        );
+    }
 
     public String title() {
         return StringUtils.enumTitle(this.name());

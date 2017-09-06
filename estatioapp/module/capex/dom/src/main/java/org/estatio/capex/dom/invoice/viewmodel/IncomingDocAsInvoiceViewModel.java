@@ -213,6 +213,9 @@ public class IncomingDocAsInvoiceViewModel
     public PaymentMethod defaultPaymentMethod(){
         return getPaymentMethod();
     }
+    public List<PaymentMethod> choicesPaymentMethod(){
+        return PaymentMethod.allBarManualProcess();
+    }
     //endregion
 
 
