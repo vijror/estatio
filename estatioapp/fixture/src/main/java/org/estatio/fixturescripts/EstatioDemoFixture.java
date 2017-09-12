@@ -52,6 +52,7 @@ import org.estatio.fixture.lease.LeaseForOxfPret004Gb;
 import org.estatio.fixture.lease.LeaseItemAndLeaseTermForRentForKalPoison001;
 import org.estatio.fixture.lease.LeaseItemAndTermsForOxfMiracl005Gb;
 import org.estatio.fixture.numerator.NumeratorForOrganisationFra;
+import org.estatio.fixture.order.OrderFixture;
 import org.estatio.fixture.party.PersonForBrunoJeremieFr;
 import org.estatio.fixture.party.PersonForDylanClaytonGb;
 import org.estatio.fixture.party.PersonForEmmaFarmerGb;
@@ -136,6 +137,8 @@ public class EstatioDemoFixture extends DiscoverableFixtureScript {
         executionContext.executeChild(this, new OrderInvoiceFixture());
 
         executionContext.executeChild(this, new IncomingPdfFixture().setRunAs("estatio-user-fr"));
+
+        executionContext.executeChild(this, new OrderFixture());
 
         final FixtureClock fixtureClock = (FixtureClock) FixtureClock.getInstance();
         fixtureClock.reset();
