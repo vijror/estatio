@@ -19,17 +19,22 @@ import org.estatio.capex.dom.order.OrderRepository;
 import org.estatio.fixture.EstatioBaseLineFixture;
 import org.estatio.fixture.order.OrderFixture;
 import org.estatio.integtests.EstatioIntegrationTest;
+import org.estatio.integtests.capex.TickingFixtureClock;
 
 public class Order_IntegTest extends EstatioIntegrationTest {
 
     @Before
     public void setupData() {
+
         runFixtureScript(new FixtureScript() {
             @Override
             protected void execute(final FixtureScript.ExecutionContext executionContext) {
                 executionContext.executeChild(this, new EstatioBaseLineFixture());
             }
         });
+
+        TickingFixtureClock.replaceExisting();
+
         runFixtureScript(new FixtureScript() {
             @Override
             protected void execute(final FixtureScript.ExecutionContext executionContext) {
