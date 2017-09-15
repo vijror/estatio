@@ -29,6 +29,7 @@ import org.estatio.dom.party.PartyRepository;
 import org.estatio.fixture.asset.PropertyForOxfGb;
 import org.estatio.fixture.party.OrganisationForHelloWorldGb;
 import org.estatio.fixture.party.OrganisationForTopModelGb;
+import org.estatio.fixture.party.PersonForDylanClaytonGb;
 import org.estatio.fixture.project.ProjectForOxf;
 import org.estatio.tax.dom.Tax;
 import org.estatio.tax.dom.TaxRepository;
@@ -55,7 +56,7 @@ public class OrderFixture extends FixtureScript {
 
         Document fakeOrder2Doc = incomingDocumentRepository.matchAllIncomingDocumentsByName("fakeOrder2.pdf").get(0);
         Property propertyForOxf = propertyRepository.findPropertyByReference(PropertyForOxfGb.REF);
-        sudoService.sudo("estatio-user-gb", (Runnable) () ->
+        sudoService.sudo(PersonForDylanClaytonGb.SECURITY_USERNAME, (Runnable) () ->
         wrap(mixin(Document_categoriseAsOrder.class,fakeOrder2Doc)).act(propertyForOxf, ""));
 
         Project projectForOxf = projectRepository.findByReference("OXF-02");
