@@ -18,8 +18,10 @@
  */
 package org.estatio.fixturescripts;
 
-import org.apache.isis.applib.fixtures.FixtureClock;
+import org.apache.isis.applib.events.system.FixturesInstalledEvent;
+import org.apache.isis.applib.events.system.FixturesInstallingEvent;
 import org.apache.isis.applib.fixturescripts.DiscoverableFixtureScript;
+import org.apache.isis.applib.services.eventbus.EventBusService;
 
 import org.estatio.capex.fixture.orderinvoice.OrderInvoiceFixture;
 import org.estatio.fixture.EstatioBaseLineFixture;
@@ -68,6 +70,7 @@ import org.estatio.fixture.party.PersonForRosaireEvrardFr;
 import org.estatio.fixture.party.PersonForThibaultJosueFr;
 import org.estatio.fixture.project.ProjectsForGra;
 import org.estatio.fixture.project.ProjectsForKal;
+import org.estatio.integtests.capex.TickingFixtureClock;
 
 public class EstatioDemoFixture extends DiscoverableFixtureScript {
 
@@ -81,6 +84,21 @@ public class EstatioDemoFixture extends DiscoverableFixtureScript {
 
     @Override
     protected void execute(ExecutionContext executionContext) {
+
+        try {
+            eventBusService.post(new FixturesInstallingEvent(this));
+
+            TickingFixtureClock.replaceExisting();
+
+            doExecute(executionContext);
+
+        } finally {
+            eventBusService.post(new FixturesInstalledEvent(this));
+        }
+
+    }
+
+    private void doExecute(final ExecutionContext executionContext) {
         executionContext.executeChild(this, new EstatioBaseLineFixture());
         executionContext.executeChild(this, new PersonForLinusTorvaldsNl());
         executionContext.executeChild(this, new BankAccountForAcmeNl());
@@ -128,7 +146,7 @@ public class EstatioDemoFixture extends DiscoverableFixtureScript {
         executionContext.executeChild(this, new BudgetsForOxf());
         executionContext.executeChild(this, new KeyTablesForOxf());
         executionContext.executeChild(this, new PartitioningAndItemsForOxf());
-        
+
         executionContext.executeChild(this, new PropertyForCARTEST());
         executionContext.executeChild(this, new NumeratorForOrganisationFra());
 
@@ -139,9 +157,9 @@ public class EstatioDemoFixture extends DiscoverableFixtureScript {
         executionContext.executeChild(this, new IncomingPdfFixture().setRunAs("estatio-user-fr"));
 
         executionContext.executeChild(this, new OrderFixture());
-
-        final FixtureClock fixtureClock = (FixtureClock) FixtureClock.getInstance();
-        fixtureClock.reset();
-
     }
+
+    @javax.inject.Inject
+    EventBusService eventBusService;
+
 }
