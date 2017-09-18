@@ -18,8 +18,6 @@
  */
 package org.estatio.fixturescripts;
 
-import org.apache.isis.applib.events.system.FixturesInstalledEvent;
-import org.apache.isis.applib.events.system.FixturesInstallingEvent;
 import org.apache.isis.applib.fixturescripts.DiscoverableFixtureScript;
 import org.apache.isis.applib.services.eventbus.EventBusService;
 
@@ -84,18 +82,8 @@ public class EstatioDemoFixture extends DiscoverableFixtureScript {
 
     @Override
     protected void execute(ExecutionContext executionContext) {
-
-        try {
-            eventBusService.post(new FixturesInstallingEvent(this));
-
-            TickingFixtureClock.replaceExisting();
-
-            doExecute(executionContext);
-
-        } finally {
-            eventBusService.post(new FixturesInstalledEvent(this));
-        }
-
+        TickingFixtureClock.replaceExisting();
+        doExecute(executionContext);
     }
 
     private void doExecute(final ExecutionContext executionContext) {
