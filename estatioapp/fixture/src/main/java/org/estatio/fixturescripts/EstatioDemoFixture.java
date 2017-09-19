@@ -19,7 +19,6 @@
 package org.estatio.fixturescripts;
 
 import org.apache.isis.applib.fixturescripts.DiscoverableFixtureScript;
-import org.apache.isis.applib.services.eventbus.EventBusService;
 
 import org.estatio.capex.fixture.orderinvoice.OrderInvoiceFixture;
 import org.estatio.fixture.EstatioBaseLineFixture;
@@ -42,6 +41,7 @@ import org.estatio.fixture.financial.BankAccountForMediaXGb;
 import org.estatio.fixture.financial.BankAccountForMiracleGb;
 import org.estatio.fixture.financial.BankAccountForPretGb;
 import org.estatio.fixture.guarantee.GuaranteeForOxfTopModel001Gb;
+import org.estatio.fixture.invoice.IncomingInvoiceFixture;
 import org.estatio.fixture.invoice.InvoiceForLeaseItemTypeOfDiscountOneQuarterForOxfMiracle005;
 import org.estatio.fixture.invoice.InvoiceForLeaseItemTypeOfRentOneQuarterForKalPoison001;
 import org.estatio.fixture.invoice.InvoiceForLeaseItemTypeOfRentOneQuarterForOxfPoison003;
@@ -145,9 +145,9 @@ public class EstatioDemoFixture extends DiscoverableFixtureScript {
         executionContext.executeChild(this, new IncomingPdfFixture().setRunAs("estatio-user-fr"));
 
         executionContext.executeChild(this, new OrderFixture());
-    }
 
-    @javax.inject.Inject
-    EventBusService eventBusService;
+        executionContext.executeChild(this, new IncomingInvoiceFixture());
+
+    }
 
 }
