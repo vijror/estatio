@@ -65,7 +65,7 @@ public class OrderFixture extends FixtureScript {
         Order fakeOrder = orderRepository.findOrderByDocumentName("fakeOrder2.pdf").get(0);
         fakeOrder.setSeller(partyRepository.findPartyByReference(OrganisationForTopModelGb.REF));
         fakeOrder.setBuyer(partyRepository.findPartyByReference(OrganisationForHelloWorldGb.REF));
-        fakeOrder.addItem(chargeRepository.findByReference("WORKS"), "order item", new BigDecimal("1000.00"), new BigDecimal("200.00"), new BigDecimal("1200.00"), taxForGbr, "F2016", propertyForOxf,projectForOxf, null);
+        fakeOrder.addItem(chargeRepository.findByReference("WORKS"), "order item", new BigDecimal("1000.00"), new BigDecimal("210.00"), new BigDecimal("1210.00"), taxForGbr, "F2016", propertyForOxf,projectForOxf, null);
 
     }
 
