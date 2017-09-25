@@ -1,19 +1,14 @@
 package org.estatio.fixture.invoice;
 
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.URL;
 
 import javax.inject.Inject;
-
-import com.google.common.io.Resources;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
 import org.apache.isis.applib.fixturescripts.FixtureScript;
 import org.apache.isis.applib.services.sudo.SudoService;
-import org.apache.isis.applib.value.Blob;
 
 import org.incode.module.document.dom.impl.docs.Document;
 
@@ -35,6 +30,7 @@ import org.estatio.dom.charge.ChargeRepository;
 import org.estatio.dom.invoice.PaymentMethod;
 import org.estatio.dom.party.PartyRepository;
 import org.estatio.fixture.asset.PropertyForOxfGb;
+import org.estatio.fixture.documents.incoming.IncomingPdfFixtureForInvoice;
 import org.estatio.fixture.order.OrderFixture;
 import org.estatio.fixture.party.OrganisationForHelloWorldGb;
 import org.estatio.fixture.party.OrganisationForTopModelGb;
@@ -52,21 +48,11 @@ public class IncomingInvoiceFixture extends FixtureScript {
         // prereqs
         executionContext.executeChild(this, new ProjectForOxf());
         executionContext.executeChild(this, new OrderFixture());
+        executionContext.executeChild(this, new IncomingPdfFixtureForInvoice().setRunAs("estatio-user-gb"));
 
-
-        String resourceName = "fakeInvoice2.pdf";
-        final URL url = Resources.getResource(getClass(), resourceName);
-        byte[] bytes;
-        try {
-            bytes = Resources.toByteArray(url);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        final Blob blob = new Blob(resourceName, "application/pdf", bytes);
-        sudoService.sudo("estatio-user-gb", (Runnable) () -> wrap(documentMenu).upload(blob));
-
-        Document fakeInvoice2Doc = incomingDocumentRepository.matchAllIncomingDocumentsByName("fakeInvoice2.pdf").get(0);
-        fakeInvoice2Doc.setCreatedAt(new DateTime(2017,5,22,11,10));
+        Document fakeInvoice2Doc = incomingDocumentRepository.matchAllIncomingDocumentsByName(IncomingPdfFixtureForInvoice.resourceName).get(0);
+        fakeInvoice2Doc.setCreatedAt(new DateTime(2014,5,22,11,10));
+        fakeInvoice2Doc.setAtPath("/GBR");
         Property propertyForOxf = propertyRepository.findPropertyByReference(PropertyForOxfGb.REF);
         sudoService.sudo(PersonForDylanClaytonGb.SECURITY_USERNAME, (Runnable) () ->
         wrap(mixin(Document_categoriseAsPropertyInvoice.class,fakeInvoice2Doc)).act(propertyForOxf, ""));
@@ -75,14 +61,14 @@ public class IncomingInvoiceFixture extends FixtureScript {
         Tax taxForGbr = taxRepository.findByReference(Tax_data.GB_VATSTD.getReference());
 
         IncomingInvoice fakeInvoice = incomingInvoiceRepository.findIncomingInvoiceByDocumentName("fakeInvoice2.pdf").get(0);
-        fakeInvoice.setDateReceived(new LocalDate(2017,5,23));
+        fakeInvoice.setDateReceived(new LocalDate(2014,5,15));
         fakeInvoice.setSeller(partyRepository.findPartyByReference(OrganisationForTopModelGb.REF));
         fakeInvoice.setBuyer(partyRepository.findPartyByReference(OrganisationForHelloWorldGb.REF));
         fakeInvoice.setType(IncomingInvoiceType.CAPEX);
-        fakeInvoice.setDueDate(new LocalDate(2017,6,23));
+        fakeInvoice.setDueDate(new LocalDate(2014,6,15));
         fakeInvoice.setInvoiceNumber("65432");
         fakeInvoice.setPaymentMethod(PaymentMethod.BANK_TRANSFER);
-        fakeInvoice.setInvoiceDate(new LocalDate(2017,5,20));
+        fakeInvoice.setInvoiceDate(new LocalDate(2014,5,13));
         mixin(IncomingInvoice.addItem.class,fakeInvoice).act(
                 IncomingInvoiceType.CAPEX,
                 chargeRepository.findByReference("WORKS"),
@@ -91,8 +77,8 @@ public class IncomingInvoiceFixture extends FixtureScript {
                 new BigDecimal("42.00"),
                 new BigDecimal("242.00"),
                 taxForGbr,
-                new LocalDate(2017,6,23),
-                "F2018",
+                new LocalDate(2014,6,15),
+                "F2014",
                 propertyForOxf,
                 projectForOxf,
                 null);
@@ -109,8 +95,8 @@ public class IncomingInvoiceFixture extends FixtureScript {
                 new BigDecimal("21.00"),
                 new BigDecimal("121.00"),
                 taxForGbr,
-                new LocalDate(2017,6,23),
-                "F2018",
+                new LocalDate(2014,6,15),
+                "F2014",
                 propertyForOxf,
                 null,
                 null);
