@@ -16,8 +16,6 @@ import org.estatio.capex.dom.invoice.approval.IncomingInvoiceApprovalStateTransi
 import org.estatio.capex.dom.pdfmanipulator.ExtractSpec;
 import org.estatio.capex.dom.pdfmanipulator.PdfManipulator;
 import org.estatio.capex.dom.pdfmanipulator.Stamp;
-import org.estatio.capex.dom.task.Task;
-import org.estatio.dom.party.Person;
 
 /**
  * Wraps a document and is able (using a provided {@link PdfManipulator} object) to extract a selection of pages
@@ -60,15 +58,10 @@ class DocumentPreparer {
 
             leftLineTexts.add(documentName);
             if(transitionIfAny != null) {
-                Task task = transitionIfAny.getTask();
-                if (task != null) {
-                    Person personAssignedTo = task.getPersonAssignedTo();
-                    if (personAssignedTo != null) {
-                        leftLineTexts.add(String.format(
-                                "approved by: %s %s",
-                                personAssignedTo.getFirstName(), personAssignedTo.getLastName()));
-                    }
-                }
+                final String completedBy = transitionIfAny.getCompletedBy();
+                leftLineTexts.add(String.format(
+                        "approved by: %s",
+                        completedBy != null ? completedBy : "(unknown)"));
                 leftLineTexts.add("approved on: " + transitionIfAny.getCompletedOn().toString("dd-MMM-yyyy HH:mm"));
             } else {
                 leftLineTexts.add("not yet approved");

@@ -82,12 +82,12 @@ import org.estatio.capex.dom.payment.approval.PaymentBatchApprovalStateTransitio
 import org.estatio.capex.dom.pdfmanipulator.ExtractSpec;
 import org.estatio.capex.dom.pdfmanipulator.PdfManipulator;
 import org.estatio.capex.dom.pdfmanipulator.Stamp;
+import org.estatio.capex.dom.state.NatureOfTransition;
 import org.estatio.capex.dom.state.State;
 import org.estatio.capex.dom.state.StateTransition;
 import org.estatio.capex.dom.state.StateTransitionService;
 import org.estatio.capex.dom.state.StateTransitionType;
 import org.estatio.capex.dom.state.Stateful;
-import org.estatio.capex.dom.task.Task;
 import org.estatio.dom.UdoDomainObject2;
 import org.estatio.dom.financial.bankaccount.BankAccount;
 import org.estatio.dom.invoice.DocumentTypeData;
@@ -607,20 +607,16 @@ public class PaymentBatch extends UdoDomainObject2<PaymentBatch> implements Stat
 
                         IncomingInvoiceApprovalStateTransition transitionIfAny =
                                 stateTransitionRepository.findByDomainObjectAndToState(invoice,
-                                        IncomingInvoiceApprovalState.APPROVED_BY_COUNTRY_DIRECTOR);
+                                        IncomingInvoiceApprovalState.APPROVED_BY_COUNTRY_DIRECTOR,
+                                        NatureOfTransition.EXPLICIT);
 
                         List<String> leftLines = Lists.newArrayList();
                         leftLines.add("xfer id: " + transfer.getEndToEndId() + " / " + line.getSequence());
                         if(transitionIfAny != null) {
-                            Task task = transitionIfAny.getTask();
-                            if (task != null) {
-                                Person personAssignedTo = task.getPersonAssignedTo();
-                                if (personAssignedTo != null) {
-                                    leftLines.add(String.format(
-                                            "approved by: %s %s",
-                                            personAssignedTo.getFirstName(), personAssignedTo.getLastName()));
-                                }
-                            }
+                            final String completedBy = transitionIfAny.getCompletedBy();
+                            leftLines.add(String.format(
+                                    "approved by: %s",
+                                    completedBy != null ? completedBy : "(unknown)"));
                             leftLines.add("approved on: " + transitionIfAny.getCompletedOn().toString("dd-MMM-yyyy HH:mm"));
                         }
 
