@@ -44,6 +44,7 @@ import org.incode.module.document.dom.impl.paperclips.PaperclipRepository;
 import org.incode.module.document.dom.impl.types.DocumentType;
 
 import org.estatio.capex.dom.documents.BudgetItemChooser;
+import org.estatio.capex.dom.invoice.IncomingInvoiceRoleTypeEnum;
 import org.estatio.capex.dom.project.Project;
 import org.estatio.capex.dom.project.ProjectRepository;
 import org.estatio.capex.dom.task.Task;
@@ -68,6 +69,8 @@ import org.estatio.dom.financial.utils.IBANValidator;
 import org.estatio.dom.party.Organisation;
 import org.estatio.dom.party.OrganisationRepository;
 import org.estatio.dom.party.Party;
+import org.estatio.dom.party.PartyRepository;
+import org.estatio.dom.party.role.PartyRoleRepository;
 import org.estatio.tax.dom.Tax;
 
 import lombok.Getter;
@@ -158,19 +161,45 @@ public abstract class IncomingDocViewModel<T> implements HintStore.HintIdProvide
 
     @Setter @Getter
     @org.apache.isis.applib.annotation.Property(editing = Editing.ENABLED)
+    @org.apache.isis.applib.annotation.PropertyLayout(named = "ECP (as buyer)")
     private Party buyer;
-
-    @Setter @Getter
-    @org.apache.isis.applib.annotation.Property(editing = Editing.ENABLED)
-    private Party seller;
-    // use of modify so can be overridden on IncomingInvoiceViewmodel
-    public void modifySeller(final Party seller){
-        setSeller(seller);
+    public List<Party> autoCompleteBuyer(@MinLength(3) final String searchPhrase){
+        return partyRepository.autoCompleteWithRole(searchPhrase, IncomingInvoiceRoleTypeEnum.ECP);
+    }
+    public String validateBuyer(final Party party){
+        return partyRoleRepository.validateThat(party, IncomingInvoiceRoleTypeEnum.ECP);
     }
 
-    @Action(
-            semantics = SemanticsOf.IDEMPOTENT
-    )
+    @Setter @Getter
+    @org.apache.isis.applib.annotation.Property(editing = Editing.DISABLED)
+    @org.apache.isis.applib.annotation.PropertyLayout(named = "Supplier")
+    private Party seller;
+    // use of modify so can be overridden on IncomingInvoiceViewmodel
+
+    @ActionLayout(named = "Edit Supplier")
+    public IncomingDocViewModel editSeller(final Party supplier, final boolean createRoleIfRequired) {
+        setSeller(supplier);
+        if(createRoleIfRequired) {
+            partyRoleRepository.findOrCreate(supplier, IncomingInvoiceRoleTypeEnum.SUPPLIER);
+        }
+        onEditSeller(supplier);
+        return this;
+    }
+
+    protected void onEditSeller(final Party seller){
+    }
+    public String validateEditSeller(final Party party, final boolean createRoleIfRequired){
+        if(!createRoleIfRequired) {
+            // requires that the supplier already has this role
+            return partyRoleRepository.validateThat(party, IncomingInvoiceRoleTypeEnum.SUPPLIER);
+        }
+        return null;
+    }
+
+
+
+    @Action(semantics = SemanticsOf.IDEMPOTENT)
+    @ActionLayout(named = "Create Supplier")
     public IncomingDocViewModel createSeller(
             final @Parameter(regexPattern = ReferenceType.Meta.REGEX, regexPatternReplacement = ReferenceType.Meta.REGEX_DESCRIPTION, optionality = Optionality.OPTIONAL) String reference,
             final boolean useNumeratorForReference,
@@ -589,6 +618,13 @@ public abstract class IncomingDocViewModel<T> implements HintStore.HintIdProvide
     @Inject
     BudgetItemChooser budgetItemChooser;
 
+    @XmlTransient
+    @Inject
+    PartyRoleRepository partyRoleRepository;
+
+    @XmlTransient
+    @Inject
+    PartyRepository partyRepository;
 
 
 }

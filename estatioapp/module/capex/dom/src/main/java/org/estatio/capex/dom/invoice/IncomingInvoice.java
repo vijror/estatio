@@ -32,6 +32,7 @@ import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.DomainObjectLayout;
 import org.apache.isis.applib.annotation.Editing;
 import org.apache.isis.applib.annotation.MemberOrder;
+import org.apache.isis.applib.annotation.MinLength;
 import org.apache.isis.applib.annotation.Mixin;
 import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.annotation.SemanticsOf;
@@ -72,6 +73,8 @@ import org.estatio.dom.invoice.InvoiceItem;
 import org.estatio.dom.invoice.InvoiceStatus;
 import org.estatio.dom.invoice.PaymentMethod;
 import org.estatio.dom.party.Party;
+import org.estatio.dom.party.PartyRepository;
+import org.estatio.dom.party.role.PartyRoleRepository;
 import org.estatio.tax.dom.Tax;
 
 import lombok.Getter;
@@ -756,9 +759,21 @@ public class IncomingInvoice extends Invoice<IncomingInvoice> implements SellerB
         super.setCurrency(invalidateApprovalIfDiffer(getCurrency(), currency));
     }
 
+    @org.apache.isis.applib.annotation.PropertyLayout(named = "ECP (as buyer)")
+    @Override
+    public Party getBuyer() {
+        return super.getBuyer();
+    }
+
     @Override
     public void setBuyer(final Party buyer) {
         super.setBuyer(invalidateApprovalIfDiffer(super.getBuyer(), buyer));
+    }
+
+    @org.apache.isis.applib.annotation.PropertyLayout(named = "Supplier")
+    @Override
+    public Party getSeller() {
+        return super.getSeller();
     }
 
     @Override
@@ -852,35 +867,53 @@ public class IncomingInvoice extends Invoice<IncomingInvoice> implements SellerB
 
 
     @Action(semantics = SemanticsOf.IDEMPOTENT)
+    @ActionLayout(named = "Edit ECP (as buyer)")
     public IncomingInvoice editBuyer(
             @Nullable
             final Party buyer){
         setBuyer(buyer);
         return this;
     }
-
+    public List<Party> autoComplete0EditBuyer(@MinLength(3) final String searchPhrase){
+        return partyRepository.autoCompleteWithRole(searchPhrase, IncomingInvoiceRoleTypeEnum.ECP);
+    }
+    public String validate0EditBuyer(final Party party){
+        return partyRoleRepository.validateThat(party, IncomingInvoiceRoleTypeEnum.ECP);
+    }
     public Party default0EditBuyer(){
         return getBuyer();
     }
-
     public String disableEditBuyer(){
         final Object viewContext = this;
         return reasonDisabledDueToState(viewContext);
     }
 
+    
+    
+    
     @Action(semantics = SemanticsOf.IDEMPOTENT)
+    @ActionLayout(named = "Edit Supplier")
     public IncomingInvoice editSeller(
             @Nullable
-            final Party seller){
-        setSeller(seller);
-        setBankAccount(bankAccountRepository.getFirstBankAccountOfPartyOrNull(seller));
+            final Party supplier,
+            final boolean createRoleIfRequired){
+        setSeller(supplier);
+        setBankAccount(bankAccountRepository.getFirstBankAccountOfPartyOrNull(supplier));
+        if(supplier != null && createRoleIfRequired) {
+            partyRoleRepository.findOrCreate(supplier, IncomingInvoiceRoleTypeEnum.SUPPLIER);
+        }
         return this;
     }
-
+    public String validateEditSeller(final Party party, final boolean createRoleIfRequired){
+        if(party != null && !createRoleIfRequired) {
+            // requires that the supplier already has this role
+            return partyRoleRepository.validateThat(party, IncomingInvoiceRoleTypeEnum.SUPPLIER);
+        }
+        return null;
+    }
     public Party default0EditSeller(){
         return getSeller();
     }
-
     public String disableEditSeller(){
         if (isImmutable()){
             final Object viewContext = this;
@@ -888,6 +921,8 @@ public class IncomingInvoice extends Invoice<IncomingInvoice> implements SellerB
         }
         return sellerIsImmutableReason();
     }
+
+
 
     private String sellerIsImmutableReason(){
         for (InvoiceItem item : getItems()){
@@ -1176,5 +1211,10 @@ public class IncomingInvoice extends Invoice<IncomingInvoice> implements SellerB
     @Inject
     OrderItemInvoiceItemLinkRepository orderItemInvoiceItemLinkRepository;
 
+    @Inject
+    PartyRoleRepository partyRoleRepository;
+
+    @Inject
+    PartyRepository partyRepository;
 
 }

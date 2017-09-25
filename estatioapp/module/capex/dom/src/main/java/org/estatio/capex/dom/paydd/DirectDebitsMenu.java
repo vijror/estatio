@@ -19,8 +19,8 @@ import org.estatio.capex.dom.paydd.manager.DirectDebitsManager;
 )
 @DomainServiceLayout(
         menuBar = DomainServiceLayout.MenuBar.PRIMARY,
-        named = "Invoices In",
-        menuOrder = "299"
+        named = "Payments",
+        menuOrder = "70.2"
 )
 public class DirectDebitsMenu {
 
@@ -29,10 +29,10 @@ public class DirectDebitsMenu {
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout(cssClassFa = "fa-check-square-o")
     @MemberOrder(sequence = "300.10")
-    public DirectDebitsManager openDirectDebitManager() {
-        final DirectDebitsManager paymentBatchManager = new DirectDebitsManager();
-        serviceRegistry2.injectServicesInto(paymentBatchManager);
-        return paymentBatchManager;
+    public DirectDebitsManager directDebitManager() {
+        final DirectDebitsManager directDebitsManager = new DirectDebitsManager();
+        serviceRegistry2.injectServicesInto(directDebitsManager);
+        return directDebitsManager;
     }
 
 

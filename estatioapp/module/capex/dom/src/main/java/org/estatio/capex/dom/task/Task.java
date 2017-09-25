@@ -2,6 +2,7 @@ package org.estatio.capex.dom.task;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.jdo.annotations.Column;
@@ -15,7 +16,6 @@ import javax.jdo.annotations.Version;
 import javax.jdo.annotations.VersionStrategy;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 
 import org.joda.time.LocalDateTime;
@@ -26,18 +26,26 @@ import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.DomainObjectLayout;
 import org.apache.isis.applib.annotation.InvokeOn;
 import org.apache.isis.applib.annotation.Property;
+import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.annotation.Title;
 import org.apache.isis.applib.annotation.Where;
+import org.apache.isis.applib.services.metamodel.MetaModelService3;
 import org.apache.isis.applib.services.title.TitleService;
 import org.apache.isis.applib.services.user.UserService;
 import org.apache.isis.applib.types.DescriptionType;
+import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.schema.utils.jaxbadapters.PersistentEntityAdapter;
+
+import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
+import org.isisaddons.module.security.dom.tenancy.ApplicationTenancyRepository;
+import org.isisaddons.module.security.dom.tenancy.HasAtPath;
 
 import org.estatio.capex.dom.state.State;
 import org.estatio.capex.dom.state.StateTransition;
 import org.estatio.capex.dom.state.StateTransitionService;
 import org.estatio.capex.dom.state.StateTransitionType;
+import org.estatio.dom.apptenancy.WithApplicationTenancy;
 import org.estatio.dom.party.Person;
 import org.estatio.dom.party.PersonRepository;
 import org.estatio.dom.party.role.PartyRoleType;
@@ -100,7 +108,7 @@ import lombok.Setter;
 @DomainObject(objectType = "task.Task")
 @DomainObjectLayout(bookmarking = BookmarkPolicy.AS_ROOT)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
-public class Task implements Comparable<Task> {
+public class Task implements Comparable<Task>, WithApplicationTenancy {
 
     public Task(
             final PartyRoleType assignedTo,
@@ -146,7 +154,7 @@ public class Task implements Comparable<Task> {
      * this {@link Task}.
      *
      * <p>
-     *     The value held is the {@link org.apache.isis.applib.services.metamodel.MetaModelService3#toObjectType(Class) object type} of the corresponding {@link StateTransition}.
+     *     The value held is the {@link MetaModelService3#toObjectType(Class) object type} of the corresponding {@link StateTransition}.
      * </p>
      */
     @Property(hidden = Where.EVERYWHERE)
@@ -183,6 +191,34 @@ public class Task implements Comparable<Task> {
     @Getter @Setter
     private String comment;
 
+
+
+    @Property(hidden = Where.ALL_TABLES)
+    @PropertyLayout(
+            named = "Application Level",
+            describedAs = "Determines those users for whom this object is available to view and/or modify."
+    )
+    public ApplicationTenancy getApplicationTenancy() {
+        final String atPath = getAtPath();
+        return atPath != null
+                ? securityApplicationTenancyRepository.findByPathCached(atPath)
+                : null;
+    }
+
+    @PropertyLayout(named = "Path")
+    @Override
+    public String getAtPath() {
+        final Object domainObject = getObject();
+        if(domainObject instanceof HasAtPath) {
+            final HasAtPath hasAtPath = (HasAtPath) domainObject;
+            return hasAtPath.getAtPath();
+        }
+        return null;
+    }
+
+
+
+
     /**
      * Convenience method to (naively) convert a list of {@link StateTransition}s to their corresponding {@link Task}.
      */
@@ -205,8 +241,10 @@ public class Task implements Comparable<Task> {
             S extends State<S>
     > List<Task> from(final List<ST> transitions) {
         return Lists.newArrayList(
-                FluentIterable.from(transitions).transform(StateTransition::getTask)
-                        .filter(Objects::nonNull).toList()
+                transitions.stream()
+                        .map(StateTransition::getTask)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList())
         );
     }
 
@@ -229,10 +267,11 @@ public class Task implements Comparable<Task> {
     }
 
     public String validateAssignTasksToMe(){
-        if (personRepository.me()==null){
+        final Person meAsPerson = personRepository.me();
+        if (meAsPerson ==null){
             return "Your login is not linked to a person in Estatio";
         }
-        if (!personRepository.me().hasPartyRoleType(getAssignedTo())){
+        if (!meAsPerson.hasPartyRoleType(getAssignedTo())){
             return "You do not have a role with of role type found on the task";
         }
         return null;
@@ -240,7 +279,7 @@ public class Task implements Comparable<Task> {
 
     @Override
     public int compareTo(final Task other) {
-        return org.apache.isis.applib.util.ObjectContracts.compare(this, other, "createdOn,transitionObjectType,description,comment");
+        return ObjectContracts.compare(this, other, "createdOn,transitionObjectType,description,comment");
     }
 
     @Inject
@@ -255,4 +294,6 @@ public class Task implements Comparable<Task> {
     @Inject
     PersonRepository personRepository;
 
+    @Inject
+    private ApplicationTenancyRepository securityApplicationTenancyRepository;
 }
