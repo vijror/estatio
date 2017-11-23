@@ -22,7 +22,7 @@ import org.incode.module.communications.dom.impl.commchannel.CommunicationChanne
 
 import org.estatio.module.asset.fixtures.person.personas.PersonAndRolesForJohnSmithGb;
 import org.estatio.module.asset.fixtures.property.personas.PropertyAndOwnerAndManagerForOxfGb;
-import org.estatio.module.country.fixtures.enums.Country_enum;
+import org.estatio.module.country.fixtures.enums.Country_data;
 import org.estatio.module.lease.dom.Lease;
 import org.estatio.module.lease.dom.occupancy.tags.BrandCoverage;
 import org.estatio.module.lease.fixtures.LeaseAbstract;
@@ -40,7 +40,7 @@ public class LeaseForOxfPoison003Gb extends LeaseAbstract {
 
     public static final String BRAND = "Poison";
     public static final BrandCoverage BRAND_COVERAGE = BrandCoverage.INTERNATIONAL;
-    public static final String COUNTRY_OF_ORIGIN_REF = Country_enum.NLD.getRef3();
+    public static final String COUNTRY_OF_ORIGIN_REF = Country_data.NLD.getRef3();
 
     public static final String PARTY_REF_TENANT = OrganisationForPoisonGb.REF;
     public static final String PARTY_REF_MANAGER = PersonAndRolesForJohnSmithGb.REF;

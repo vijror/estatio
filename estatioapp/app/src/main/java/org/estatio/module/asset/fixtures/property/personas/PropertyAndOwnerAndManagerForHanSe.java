@@ -24,7 +24,7 @@ import org.estatio.module.asset.dom.PropertyType;
 import org.estatio.module.asset.fixtures.property.PropertyAndUnitsAndOwnerAndManagerAbstract;
 import org.estatio.module.asset.fixtures.person.personas.PersonAndRolesForAgnethaFaltskogSe;
 import org.estatio.module.base.fixtures.security.apptenancy.personas.ApplicationTenancyForSe;
-import org.estatio.module.country.fixtures.enums.Country_enum;
+import org.estatio.module.country.fixtures.enums.Country_data;
 import org.estatio.module.party.dom.Party;
 import org.estatio.module.party.fixtures.organisation.personas.OrganisationForHelloWorldSe;
 
@@ -52,7 +52,7 @@ public class PropertyAndOwnerAndManagerForHanSe extends PropertyAndUnitsAndOwner
         Party owner = partyRepository.findPartyByReference(PARTY_REF_OWNER);
         Party manager = partyRepository.findPartyByReference(PARTY_REF_MANAGER);
 
-        final Country sweden = Country_enum.SWE.findUsing(serviceRegistry);
+        final Country sweden = Country_data.SWE.findUsing(serviceRegistry);
 
         createPropertyAndUnits(
                 AT_PATH_COUNTRY,

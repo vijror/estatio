@@ -29,11 +29,11 @@ import org.isisaddons.module.base.platform.fixturesupport.DemoData2Persist;
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancyRepository;
 
-import org.estatio.module.base.fixtures.security.apptenancy.enums.ApplicationTenancy_enum;
+import org.estatio.module.base.fixtures.security.apptenancy.enums.ApplicationTenancy_data;
 import org.estatio.module.numerator.dom.Numerator;
 import org.estatio.module.numerator.dom.NumeratorRepository;
 import org.estatio.module.numerator.integtests.dom.NumeratorExampleObject;
-import org.estatio.module.numerator.integtests.dom.NumeratorExampleObject_enum;
+import org.estatio.module.numerator.integtests.dom.NumeratorExampleObject_data;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNull;
@@ -54,14 +54,14 @@ public class NumeratorRepository_IntegTest extends NumeratorModuleIntegTestAbstr
 
     @Before
     public void setUp() throws Exception {
-        runFixtureScript(new DemoData2Persist<NumeratorExampleObject_enum, NumeratorExampleObject>(NumeratorExampleObject_enum.class) {});
+        runFixtureScript(new DemoData2Persist<NumeratorExampleObject_data, NumeratorExampleObject>(NumeratorExampleObject_data.class) {});
 
 
-        applicationTenancyKal = ApplicationTenancy_enum.NlKal.findUsing(serviceRegistry);
-        applicationTenancyOxf = ApplicationTenancy_enum.GbOxf.findUsing(serviceRegistry);
+        applicationTenancyKal = ApplicationTenancy_data.NlKal.findUsing(serviceRegistry);
+        applicationTenancyOxf = ApplicationTenancy_data.GbOxf.findUsing(serviceRegistry);
 
-        propertyKal = NumeratorExampleObject_enum.Kal.findUsing(serviceRegistry);
-        propertyOxf = NumeratorExampleObject_enum.Oxf.findUsing(serviceRegistry);
+        propertyKal = NumeratorExampleObject_data.Kal.findUsing(serviceRegistry);
+        propertyOxf = NumeratorExampleObject_data.Oxf.findUsing(serviceRegistry);
     }
 
 

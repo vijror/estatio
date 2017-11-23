@@ -20,7 +20,7 @@ package org.estatio.module.lease.fixtures.lease;
 
 import org.estatio.module.asset.fixtures.person.personas.PersonAndRolesForJohnDoeNl;
 import org.estatio.module.asset.fixtures.property.personas.PropertyAndOwnerAndManagerForBudNl;
-import org.estatio.module.country.fixtures.enums.Country_enum;
+import org.estatio.module.country.fixtures.enums.Country_data;
 import org.estatio.module.lease.dom.occupancy.tags.BrandCoverage;
 import org.estatio.module.lease.fixtures.LeaseAbstract;
 import org.estatio.module.party.dom.Party;
@@ -70,7 +70,7 @@ public class LeasesForBudNl extends LeaseAbstract {
     public static final String BRAND5 = "Nl Hypermarkt";
 
     public static final BrandCoverage BRAND_COVERAGE = BrandCoverage.INTERNATIONAL;
-    public static final String COUNTRY_OF_ORIGIN_REF = Country_enum.NLD.getRef3();
+    public static final String COUNTRY_OF_ORIGIN_REF = Country_data.NLD.getRef3();
 
     @Override
     protected void execute(final ExecutionContext executionContext) {

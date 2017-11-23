@@ -42,7 +42,7 @@ import org.estatio.module.capex.integtests.CapexModuleIntegTestAbstract;
 import org.estatio.module.capex.seed.DocumentTypesAndTemplatesForCapexFixture;
 import org.estatio.module.charge.dom.Charge;
 import org.estatio.module.charge.dom.ChargeRepository;
-import org.estatio.module.country.fixtures.enums.Country_enum;
+import org.estatio.module.country.fixtures.enums.Country_data;
 import org.estatio.module.party.dom.Party;
 import org.estatio.module.party.dom.PartyRepository;
 import org.estatio.module.party.dom.Person;
@@ -94,7 +94,7 @@ public class IncomingInvoiceApprovalState_IntegTest extends CapexModuleIntegTest
         buyer = partyRepository.findPartyByReference(OrganisationForHelloWorldGb.REF);
         seller = partyRepository.findPartyByReference(OrganisationForTopModelGb.REF);
 
-        greatBritain = countryRepository.findCountry(Country_enum.GBR.getRef3());
+        greatBritain = countryRepository.findCountry(Country_data.GBR.getRef3());
         charge_for_works = chargeRepository.findByReference("WORKS");
 
         project = projectRepository.findByReference("OXF-02");

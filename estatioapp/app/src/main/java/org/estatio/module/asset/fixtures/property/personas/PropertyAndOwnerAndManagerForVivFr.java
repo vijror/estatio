@@ -24,7 +24,7 @@ import org.estatio.module.asset.dom.PropertyType;
 import org.estatio.module.asset.fixtures.property.PropertyAndUnitsAndOwnerAndManagerAbstract;
 import org.estatio.module.asset.fixtures.person.personas.PersonAndRolesForJeanneDarcFr;
 import org.estatio.module.base.fixtures.security.apptenancy.personas.ApplicationTenancyForFr;
-import org.estatio.module.country.fixtures.enums.Country_enum;
+import org.estatio.module.country.fixtures.enums.Country_data;
 import org.estatio.module.party.dom.Party;
 import org.estatio.module.party.fixtures.organisation.personas.OrganisationForHelloWorldFr;
 
@@ -52,7 +52,7 @@ public class PropertyAndOwnerAndManagerForVivFr extends PropertyAndUnitsAndOwner
         Party owner = partyRepository.findPartyByReference(PARTY_REF_OWNER);
         Party manager = partyRepository.findPartyByReference(PARTY_REF_MANAGER);
 
-        final Country france = Country_enum.FRA.findUsing(serviceRegistry);
+        final Country france = Country_data.FRA.findUsing(serviceRegistry);
 
         createPropertyAndUnits(
                 AT_PATH_COUNTRY,

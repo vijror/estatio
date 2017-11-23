@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.estatio.module.charge.dom.Charge;
 import org.estatio.module.charge.dom.ChargeRepository;
 import org.estatio.module.charge.fixtures.ChargeRefData;
-import org.estatio.module.country.fixtures.enums.Country_enum;
+import org.estatio.module.country.fixtures.enums.Country_data;
 
 public class ChargeRepository_IntegTest extends ChargeModuleIntegTestAbstract {
 
@@ -92,7 +92,7 @@ public class ChargeRepository_IntegTest extends ChargeModuleIntegTestAbstract {
         @Test
         public void forCountry() throws Exception {
             // when
-            final List<Charge> chargeList = chargeRepository.chargesForCountry("/" + Country_enum.GBR.getRef3());
+            final List<Charge> chargeList = chargeRepository.chargesForCountry("/" + Country_data.GBR.getRef3());
 
             // then
             Assertions.assertThat(chargeList).containsOnly(gbCharges.toArray(new Charge[gbCharges.size()]));
@@ -101,7 +101,7 @@ public class ChargeRepository_IntegTest extends ChargeModuleIntegTestAbstract {
         @Test
         public void forProperty() throws Exception {
             // when
-            final List<Charge> chargeList = chargeRepository.chargesForCountry("/" + Country_enum.GBR.getRef3() + "/OXF");
+            final List<Charge> chargeList = chargeRepository.chargesForCountry("/" + Country_data.GBR.getRef3() + "/OXF");
 
             // then
             Assertions.assertThat(chargeList).containsOnly(gbCharges.toArray(new Charge[gbCharges.size()]));
@@ -110,7 +110,7 @@ public class ChargeRepository_IntegTest extends ChargeModuleIntegTestAbstract {
         @Test
         public void forLocal() throws Exception {
             // when
-            final List<Charge> chargeList = chargeRepository.chargesForCountry("/" + Country_enum.GBR.getRef3() + "/OXF/ta");
+            final List<Charge> chargeList = chargeRepository.chargesForCountry("/" + Country_data.GBR.getRef3() + "/OXF/ta");
 
             // then
             Assertions.assertThat(chargeList).containsOnly(gbCharges.toArray(new Charge[gbCharges.size()]));

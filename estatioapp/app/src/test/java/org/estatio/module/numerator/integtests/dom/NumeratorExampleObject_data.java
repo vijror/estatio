@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @Getter
 @Accessors(chain = true)
-public enum NumeratorExampleObject_enum implements DemoData2<NumeratorExampleObject_enum, NumeratorExampleObject> {
+public enum NumeratorExampleObject_data implements DemoData2<NumeratorExampleObject_data, NumeratorExampleObject> {
 
     Kal("Kal"),
     Oxf("Oxf");
@@ -27,16 +27,16 @@ public enum NumeratorExampleObject_enum implements DemoData2<NumeratorExampleObj
                 .build();
     }
 
-    public static class PersistScript extends DemoData2Persist<NumeratorExampleObject_enum, NumeratorExampleObject> {
+    public static class PersistScript extends DemoData2Persist<NumeratorExampleObject_data, NumeratorExampleObject> {
         public PersistScript() {
-            super(NumeratorExampleObject_enum.class);
+            super(NumeratorExampleObject_data.class);
         }
     }
 
     public static class DeleteScript
-            extends DemoData2Teardown<NumeratorExampleObject_enum, NumeratorExampleObject> {
+            extends DemoData2Teardown<NumeratorExampleObject_data, NumeratorExampleObject> {
         public DeleteScript() {
-            super(NumeratorExampleObject_enum.class);
+            super(NumeratorExampleObject_data.class);
         }
     }
 

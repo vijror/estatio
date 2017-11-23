@@ -51,7 +51,7 @@ public class EstatioNumeratorExampleModule extends ModuleAbstract {
         return new TeardownFixtureAbstract() {
             @Override
             protected void execute(final ExecutionContext executionContext) {
-                executionContext.executeChild(this, new DemoData2Teardown<>(NumeratorExampleObject_enum.class));
+                executionContext.executeChild(this, new DemoData2Teardown<>(NumeratorExampleObject_data.class));
             }
         };
     }

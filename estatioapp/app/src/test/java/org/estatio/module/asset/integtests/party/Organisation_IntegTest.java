@@ -40,7 +40,7 @@ import org.incode.module.country.dom.impl.CountryRepository;
 
 import org.estatio.module.asset.integtests.AssetModuleIntegTestAbstract;
 import org.estatio.module.countryapptenancy.dom.EstatioApplicationTenancyRepositoryForCountry;
-import org.estatio.module.country.fixtures.enums.Country_enum;
+import org.estatio.module.country.fixtures.enums.Country_data;
 import org.estatio.module.party.dom.Organisation;
 import org.estatio.module.party.dom.OrganisationPreviousName;
 import org.estatio.module.party.dom.OrganisationRepository;
@@ -154,7 +154,7 @@ public class Organisation_IntegTest extends AssetModuleIntegTestAbstract {
 
             // given
             ApplicationTenancy applicationTenancyForFra = estatioApplicationTenancyRepository.findOrCreateTenancyFor(countryRepository.findCountry(
-                    Country_enum.FRA.getRef3()));
+                    Country_data.FRA.getRef3()));
 
             // when
             organisation1 = organisationRepository.newOrganisation(null, true, "SOME_NAME", applicationTenancyForFra);

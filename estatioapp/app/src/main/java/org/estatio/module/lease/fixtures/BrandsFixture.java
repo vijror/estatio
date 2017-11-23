@@ -8,7 +8,7 @@ import org.isisaddons.module.security.dom.tenancy.ApplicationTenancyRepository;
 
 import org.incode.module.country.dom.impl.CountryRepository;
 
-import org.estatio.module.country.fixtures.enums.Country_enum;
+import org.estatio.module.country.fixtures.enums.Country_data;
 import org.estatio.module.lease.dom.occupancy.tags.BrandCoverage;
 import org.estatio.module.lease.dom.occupancy.tags.BrandRepository;
 
@@ -31,9 +31,10 @@ public class BrandsFixture extends FixtureScript {
     @Override protected void execute(final ExecutionContext executionContext) {
 
         brandRepository.newBrand(YU_S_NOODLE_JOINT, BrandCoverage.INTERNATIONAL, countryRepository.findCountry(
-                Country_enum.NLD.getRef3()), YU_GROUP, applicationTenancyRepository.findByPath("/"));
-        brandRepository.newBrand(YU_S_CLEANING_SERVICES, BrandCoverage.INTERNATIONAL, countryRepository.findCountry(Country_enum.NLD.getRef3()), YU_GROUP, applicationTenancyRepository.findByPath("/"));
-        brandRepository.newBrand(HAPPY_VALLEY, BrandCoverage.INTERNATIONAL, countryRepository.findCountry(Country_enum.NLD.getRef3()), null, applicationTenancyRepository.findByPath("/"));
+                Country_data.NLD.getRef3()), YU_GROUP, applicationTenancyRepository.findByPath("/"));
+        brandRepository.newBrand(YU_S_CLEANING_SERVICES, BrandCoverage.INTERNATIONAL, countryRepository.findCountry(
+                Country_data.NLD.getRef3()), YU_GROUP, applicationTenancyRepository.findByPath("/"));
+        brandRepository.newBrand(HAPPY_VALLEY, BrandCoverage.INTERNATIONAL, countryRepository.findCountry(Country_data.NLD.getRef3()), null, applicationTenancyRepository.findByPath("/"));
 
     }
 }

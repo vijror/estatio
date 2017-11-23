@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @Getter
 @Accessors(chain = true)
-public enum ApplicationTenancy_enum implements DemoData2<ApplicationTenancy_enum, ApplicationTenancy> {
+public enum ApplicationTenancy_data implements DemoData2<ApplicationTenancy_data, ApplicationTenancy> {
 
     Global      ("/",           "Global"),
     GlobalOnly  ("/_",          "Global only"),
@@ -86,16 +86,16 @@ public enum ApplicationTenancy_enum implements DemoData2<ApplicationTenancy_enum
     }
 
     public static class PersistScript
-            extends DemoData2Persist<ApplicationTenancy_enum, ApplicationTenancy> {
+            extends DemoData2Persist<ApplicationTenancy_data, ApplicationTenancy> {
         public PersistScript() {
-            super(ApplicationTenancy_enum.class);
+            super(ApplicationTenancy_data.class);
         }
     }
 
     public static class DeleteScript
-            extends DemoData2Teardown<ApplicationTenancy_enum, ApplicationTenancy> {
+            extends DemoData2Teardown<ApplicationTenancy_data, ApplicationTenancy> {
         public DeleteScript() {
-            super(ApplicationTenancy_enum.class);
+            super(ApplicationTenancy_data.class);
         }
     }
 

@@ -38,7 +38,7 @@ import org.estatio.module.asset.dom.PropertyType;
 import org.estatio.module.asset.fixtures.property.personas.PropertyAndOwnerAndManagerForKalNl;
 import org.estatio.module.asset.fixtures.property.personas.PropertyAndOwnerAndManagerForOxfGb;
 import org.estatio.module.asset.integtests.AssetModuleIntegTestAbstract;
-import org.estatio.module.country.fixtures.enums.Country_enum;
+import org.estatio.module.country.fixtures.enums.Country_data;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
@@ -142,7 +142,7 @@ public class PropertyRepository_IntegTest extends AssetModuleIntegTestAbstract {
         public void happyCase() throws Exception {
 
             // given
-            final Country gbrCountry = countryRepository.findCountry(Country_enum.GBR.getRef3());
+            final Country gbrCountry = countryRepository.findCountry(Country_data.GBR.getRef3());
 
             // when
             final Property property = propertyRepository.newProperty("ARN", "Arndale", PropertyType.RETAIL_PARK, "Manchester", gbrCountry, new LocalDate(2014,4,1));
@@ -153,7 +153,7 @@ public class PropertyRepository_IntegTest extends AssetModuleIntegTestAbstract {
             Assertions.assertThat(property.getCountry()).isEqualTo(gbrCountry);
             Assertions.assertThat(property.getCity()).isEqualTo("Manchester");
             Assertions.assertThat(property.getAcquireDate()).isEqualTo(new LocalDate(2014, 4, 1));
-            Assertions.assertThat(property.getApplicationTenancy().getPath()).isEqualTo("/" + Country_enum.GBR.getRef3() + "/ARN");
+            Assertions.assertThat(property.getApplicationTenancy().getPath()).isEqualTo("/" + Country_data.GBR.getRef3() + "/ARN");
 
         }
     }

@@ -36,7 +36,7 @@ import org.incode.module.country.dom.impl.State;
 import org.incode.module.fixturesupport.dom.scripts.TeardownFixtureAbstract;
 
 import org.estatio.module.base.EstatioBaseModule;
-import org.estatio.module.country.fixtures.enums.Country_enum;
+import org.estatio.module.country.fixtures.enums.Country_data;
 
 /**
  * This is a "proxy" for the corresponding module defined in the Incode Platform,
@@ -57,7 +57,7 @@ public final class IncodeDomCountryModule extends ModuleAbstract {
 
     @Override
     public FixtureScript getRefDataSetupFixture() {
-        return new DemoData2Persist<>(Country_enum.class);
+        return new DemoData2Persist<>(Country_data.class);
     }
 
     @Override
@@ -68,7 +68,7 @@ public final class IncodeDomCountryModule extends ModuleAbstract {
                 deleteFrom(State.class);
             }
         };
-        return Util.allOf(teardownState, new DemoData2Teardown<>(Country_enum.class));
+        return Util.allOf(teardownState, new DemoData2Teardown<>(Country_data.class));
     }
 
 

@@ -24,7 +24,7 @@ import org.estatio.module.asset.dom.PropertyType;
 import org.estatio.module.asset.fixtures.property.PropertyAndUnitsAndOwnerAndManagerAbstract;
 import org.estatio.module.asset.fixtures.person.personas.PersonAndRolesForGinoVannelliGb;
 import org.estatio.module.base.fixtures.security.apptenancy.personas.ApplicationTenancyForGb;
-import org.estatio.module.country.fixtures.enums.Country_enum;
+import org.estatio.module.country.fixtures.enums.Country_data;
 import org.estatio.module.party.dom.Party;
 import org.estatio.module.party.fixtures.organisation.personas.OrganisationForHelloWorldGb;
 import org.estatio.module.party.fixtures.organisation.personas.OrganisationForTopModelGb;
@@ -54,7 +54,7 @@ public class PropertyAndOwnerAndManagerForOxfGb extends PropertyAndUnitsAndOwner
         final Party owner = partyRepository.findPartyByReference(PARTY_REF_OWNER);
         final Party manager = partyRepository.findPartyByReference(PARTY_REF_MANAGER);
 
-        final Country greatBritain = Country_enum.GBR.findUsing(serviceRegistry);
+        final Country greatBritain = Country_data.GBR.findUsing(serviceRegistry);
 
         createPropertyAndUnits(
                 AT_PATH_COUNTRY,

@@ -56,12 +56,13 @@ public class PropertyUnitsBuilder
         defaultParam("numberOfUnits", executionContext, fakeDataService.values().anInt(10,20));
 
         for (int i = 0; i < getNumberOfUnits(); i++) {
-            final String unitRef = buildUnitReference(property.getReference(), i);
+            final int unitNum = i + 1;
+            final String unitRef = buildUnitReference(property.getReference(), unitNum);
             final UnitType unitType = fakeDataService.collections().anEnum(UnitType.class);
             final String unitName = fakeDataService.name().firstName();
             final Unit unit = wrap(property).newUnit(unitRef, unitName, unitType);
 
-            unit.setArea(new BigDecimal((i + 1) * 100));
+            unit.setArea(new BigDecimal(unitNum * 100));
 
             units.add(unit);
             executionContext.addResult(this, unitRef, unit);

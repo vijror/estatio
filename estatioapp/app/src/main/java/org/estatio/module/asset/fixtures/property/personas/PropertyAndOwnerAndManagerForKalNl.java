@@ -24,7 +24,7 @@ import org.estatio.module.asset.dom.PropertyType;
 import org.estatio.module.asset.fixtures.property.PropertyAndUnitsAndOwnerAndManagerAbstract;
 import org.estatio.module.asset.fixtures.person.personas.PersonAndRolesForJohnDoeNl;
 import org.estatio.module.base.fixtures.security.apptenancy.personas.ApplicationTenancyForNl;
-import org.estatio.module.country.fixtures.enums.Country_enum;
+import org.estatio.module.country.fixtures.enums.Country_data;
 import org.estatio.module.party.dom.Party;
 import org.estatio.module.party.fixtures.organisation.personas.OrganisationForAcmeNl;
 
@@ -52,7 +52,7 @@ public class PropertyAndOwnerAndManagerForKalNl extends PropertyAndUnitsAndOwner
         final Party owner = partyRepository.findPartyByReference(PARTY_REF_OWNER);
         final Party manager = partyRepository.findPartyByReference(PARTY_REF_MANAGER);
 
-        final Country netherlands = Country_enum.NLD.findUsing(serviceRegistry);
+        final Country netherlands = Country_data.NLD.findUsing(serviceRegistry);
 
         createPropertyAndUnits(
                 AT_PATH_COUNTRY,

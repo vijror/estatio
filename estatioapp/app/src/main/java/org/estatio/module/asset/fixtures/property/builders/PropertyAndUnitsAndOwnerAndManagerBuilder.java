@@ -40,10 +40,10 @@ import lombok.experimental.Accessors;
 public class PropertyAndUnitsAndOwnerAndManagerBuilder
         extends BuilderScriptAbstract<PropertyAndUnitsAndOwnerAndManagerBuilder> {
 
-    PropertyBuilder propertyBuilder = new PropertyBuilder();
-    PropertyUnitsBuilder propertyUnitsBuilder = new PropertyUnitsBuilder();
-    PropertyOwnerBuilder propertyOwnerBuilder = new PropertyOwnerBuilder();
-    PropertyManagerBuilder propertyManagerBuilder = new PropertyManagerBuilder();
+    PropertyBuilder propertyBuilder = new PropertyBuilder() {};
+    PropertyUnitsBuilder propertyUnitsBuilder = new PropertyUnitsBuilder() {};
+    PropertyOwnerBuilder propertyOwnerBuilder = new PropertyOwnerBuilder() {};
+    PropertyManagerBuilder propertyManagerBuilder = new PropertyManagerBuilder() {};
 
     @Getter @Setter
     private String reference;
@@ -96,26 +96,26 @@ public class PropertyAndUnitsAndOwnerAndManagerBuilder
                 .setCountry(country)
                 .setOpeningDate(openingDate)
                 .setLocationStr(locationStr)
-                .build(executionContext)
+                .build(this, executionContext)
                 .getProperty();
 
         this.units = propertyUnitsBuilder
                 .setProperty(property)
                 .setNumberOfUnits(numberOfUnits)
-                .build(executionContext)
+                .build(this, executionContext)
                 .getUnits();
 
         if(owner != null) {
             propertyOwnerBuilder
                     .setProperty(property)
                     .setOwner(owner)
-                    .build(executionContext);
+                    .build(this, executionContext);
         }
         if(manager != null) {
             propertyManagerBuilder
                     .setProperty(property)
                     .setManager(manager)
-                    .build(executionContext);
+                    .build(this, executionContext);
         }
 
     }

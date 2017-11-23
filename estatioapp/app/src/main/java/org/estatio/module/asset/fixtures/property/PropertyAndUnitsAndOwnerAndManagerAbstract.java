@@ -53,10 +53,10 @@ import static org.incode.module.base.integtests.VT.ld;
  */
 public abstract class PropertyAndUnitsAndOwnerAndManagerAbstract extends FixtureScript {
 
-    PropertyBuilder propertyBuilder = new PropertyBuilder();
-    PropertyUnitsBuilder propertyUnitsBuilder = new PropertyUnitsBuilder();
-    PropertyOwnerBuilder propertyOwnerBuilder = new PropertyOwnerBuilder();
-    PropertyManagerBuilder propertyManagerBuilder = new PropertyManagerBuilder();
+    PropertyBuilder propertyBuilder = new PropertyBuilder() {};
+    PropertyUnitsBuilder propertyUnitsBuilder = new PropertyUnitsBuilder() {};
+    PropertyOwnerBuilder propertyOwnerBuilder = new PropertyOwnerBuilder() {};
+    PropertyManagerBuilder propertyManagerBuilder = new PropertyManagerBuilder() {};
 
     @Getter
     public Property property;
@@ -87,13 +87,13 @@ public abstract class PropertyAndUnitsAndOwnerAndManagerAbstract extends Fixture
                 .setCountry(country)
                 .setOpeningDate(openingDate)
                 .setLocationStr(locationStr)
-                .build(executionContext)
+                .build(this, executionContext)
                 .getProperty();
 
         this.units = propertyUnitsBuilder
                 .setProperty(property)
                 .setNumberOfUnits(numberOfUnits)
-                .build(executionContext)
+                .build(this, executionContext)
                 .getUnits();
 
         if(owner != null) {
@@ -102,13 +102,13 @@ public abstract class PropertyAndUnitsAndOwnerAndManagerAbstract extends Fixture
                     .setOwner(owner)
                     .setStartDate(ld(1999, 1, 1))
                     .setEndDate(ld(2000, 1, 1))
-                    .build(executionContext);
+                    .build(this, executionContext);
         }
         if(manager != null) {
             propertyManagerBuilder
                     .setProperty(property)
                     .setManager(manager)
-                    .build(executionContext);
+                    .build(this, executionContext);
         }
 
         return property;

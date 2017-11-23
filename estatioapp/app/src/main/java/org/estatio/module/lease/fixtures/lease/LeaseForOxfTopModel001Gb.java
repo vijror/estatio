@@ -20,7 +20,7 @@ package org.estatio.module.lease.fixtures.lease;
 
 import org.estatio.module.asset.fixtures.person.personas.PersonAndRolesForGinoVannelliGb;
 import org.estatio.module.asset.fixtures.property.personas.PropertyAndOwnerAndManagerForOxfGb;
-import org.estatio.module.country.fixtures.enums.Country_enum;
+import org.estatio.module.country.fixtures.enums.Country_data;
 import org.estatio.module.lease.dom.Lease;
 import org.estatio.module.lease.dom.occupancy.tags.BrandCoverage;
 import org.estatio.module.lease.fixtures.LeaseAbstract;
@@ -40,7 +40,7 @@ public class LeaseForOxfTopModel001Gb extends LeaseAbstract {
 
     public static final String BRAND = "Topmodel";
     public static final BrandCoverage BRAND_COVERAGE = BrandCoverage.NATIONAL;
-    public static final String COUNTRY_OF_ORIGIN_REF = Country_enum.GBR.getRef3();
+    public static final String COUNTRY_OF_ORIGIN_REF = Country_data.GBR.getRef3();
 
     @Override
     protected void execute(ExecutionContext executionContext) {

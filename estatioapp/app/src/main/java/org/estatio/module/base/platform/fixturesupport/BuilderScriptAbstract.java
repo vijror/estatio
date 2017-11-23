@@ -18,23 +18,17 @@
  */
 package org.estatio.module.base.platform.fixturesupport;
 
-import javax.inject.Inject;
-
 import org.apache.isis.applib.fixturescripts.FixtureScript;
 import org.apache.isis.core.runtime.system.context.IsisContext;
 
-import org.estatio.module.party.dom.role.PartyRoleTypeService;
-
 public abstract class BuilderScriptAbstract<T extends BuilderScriptAbstract> extends FixtureScript {
 
-    public T build(ExecutionContext executionContext) {
-        IsisContext.getSessionFactory().getServicesInjector().injectServicesInto(this);
-        execute(executionContext);
+    public T build(
+            final FixtureScript parentFixtureScript,
+            ExecutionContext executionContext) {
+        executionContext.executeChild(parentFixtureScript, this);
         return (T)this;
     }
-
-    @Inject
-    PartyRoleTypeService partyRoleTypeService;
 
 }
 

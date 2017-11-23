@@ -46,7 +46,7 @@ import org.isisaddons.wicket.pdfjs.IncodeWktPdfJsModule;
 import org.incode.module.base.services.BaseServicesModule;
 
 import org.estatio.module.base.fixtures.clock.TickingClockFixture;
-import org.estatio.module.base.fixtures.security.apptenancy.enums.ApplicationTenancy_enum;
+import org.estatio.module.base.fixtures.security.apptenancy.enums.ApplicationTenancy_data;
 import org.estatio.module.base.fixtures.security.perms.personas.EstatioRolesAndPermissions;
 import org.estatio.module.base.fixtures.security.userrole.personas.EstatioAdmin_Has_EstatioSuperuserRole;
 import org.estatio.module.base.fixtures.security.users.personas.EstatioAdmin;
@@ -110,7 +110,7 @@ public final class EstatioBaseModule extends ModuleAbstract {
             @Override
             protected void execute(final ExecutionContext executionContext) {
                 executionContext.executeChild(this, new TickingClockFixture());
-                executionContext.executeChild(this, new ApplicationTenancy_enum.PersistScript());
+                executionContext.executeChild(this, new ApplicationTenancy_data.PersistScript());
 
                 // set up 3 estatio roles
                 executionContext.executeChild(this, new EstatioRolesAndPermissions());

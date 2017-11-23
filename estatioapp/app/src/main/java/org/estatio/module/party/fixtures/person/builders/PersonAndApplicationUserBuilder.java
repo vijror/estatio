@@ -32,8 +32,8 @@ import lombok.experimental.Accessors;
 public class PersonAndApplicationUserBuilder
         extends BuilderScriptAbstract<PersonAndApplicationUserBuilder> {
 
-    PersonBuilder personBuilder = new PersonBuilder();
-    ApplicationUserBuilder applicationUserBuilder = new ApplicationUserBuilder();
+    PersonBuilder personBuilder = new PersonBuilder() {};
+    ApplicationUserBuilder applicationUserBuilder = new ApplicationUserBuilder() {};
 
     @Getter @Setter
     private String atPath;
@@ -69,7 +69,7 @@ public class PersonAndApplicationUserBuilder
                 .setInitials(initials)
                 .setLastName(lastName)
                 .setPersonGenderType(personGenderType)
-                .build(executionContext)
+                .build(this, executionContext)
                 .getPerson();
 
 
@@ -78,7 +78,7 @@ public class PersonAndApplicationUserBuilder
             applicationUser = applicationUserBuilder
                     .setSecurityUsername(securityUsername)
                     .setSecurityUserAccountCloneFrom(securityUserAccountCloneFrom)
-                    .build(executionContext)
+                    .build(this, executionContext)
                     .getApplicationUser();
         }
     }

@@ -7,7 +7,7 @@ import org.isisaddons.module.base.platform.fixturesupport.DemoData2;
 import org.incode.module.country.dom.impl.Country;
 import org.incode.module.country.dom.impl.CountryRepository;
 
-import org.estatio.module.base.fixtures.security.apptenancy.enums.ApplicationTenancy_enum;
+import org.estatio.module.base.fixtures.security.apptenancy.enums.ApplicationTenancy_data;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,18 +16,18 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @Getter
 @Accessors(chain = true)
-public enum Country_enum implements DemoData2<Country_enum, Country> {
+public enum Country_data implements DemoData2<Country_data, Country> {
 
-    GBR("GBR", "GB", "United Kingdom",   ApplicationTenancy_enum.Gb),
-    NLD("NLD", "NL", "The Netherlands", ApplicationTenancy_enum.Nl),
-    ITA("ITA", "IT", "Italy",           ApplicationTenancy_enum.It),
-    FRA("FRA", "FR", "France",          ApplicationTenancy_enum.Fr),
-    SWE("SWE", "SE", "Sweden",          ApplicationTenancy_enum.Se);
+    GBR("GBR", "GB", "United Kingdom",   ApplicationTenancy_data.Gb),
+    NLD("NLD", "NL", "The Netherlands", ApplicationTenancy_data.Nl),
+    ITA("ITA", "IT", "Italy",           ApplicationTenancy_data.It),
+    FRA("FRA", "FR", "France",          ApplicationTenancy_data.Fr),
+    SWE("SWE", "SE", "Sweden",          ApplicationTenancy_data.Se);
 
     private final String ref3;
     private final String ref2;
     private final String name;
-    private final ApplicationTenancy_enum appTenancyData;
+    private final ApplicationTenancy_data appTenancyData;
 
     @Override
     public Country asDomainObject(final ServiceRegistry2 serviceRegistry2) {

@@ -51,13 +51,13 @@ import lombok.experimental.Accessors;
 public class PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder
         extends BuilderScriptAbstract<PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder> {
 
-    PersonBuilder personBuilder = new PersonBuilder();
-    ApplicationUserBuilder applicationUserBuilder = new ApplicationUserBuilder();
-    PersonCommsBuilder personCommsBuilder = new PersonCommsBuilder();
-    PersonRelationshipBuilder personRelationshipBuilder = new PersonRelationshipBuilder();
+    PersonBuilder personBuilder = new PersonBuilder() {};
+    ApplicationUserBuilder applicationUserBuilder = new ApplicationUserBuilder() {};
+    PersonCommsBuilder personCommsBuilder = new PersonCommsBuilder() {};
+    PersonRelationshipBuilder personRelationshipBuilder = new PersonRelationshipBuilder() {};
 
-    PersonPartyRolesBuilder personPartyRolesBuilder = new PersonPartyRolesBuilder();
-    PersonFixedAssetRolesBuilder fixedAssetRolesBuilder = new PersonFixedAssetRolesBuilder();
+    PersonPartyRolesBuilder personPartyRolesBuilder = new PersonPartyRolesBuilder() {};
+    PersonFixedAssetRolesBuilder fixedAssetRolesBuilder = new PersonFixedAssetRolesBuilder() {};
 
     @Getter @Setter
     private String atPath;
@@ -133,7 +133,7 @@ public class PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder
                 .setLastName(lastName)
                 .setPersonGenderType(personGenderType)
                 .setReference(reference)
-                .build(executionContext)
+                .build(this, executionContext)
                 .getPerson();
 
         if(securityUsername != null) {
@@ -141,7 +141,7 @@ public class PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder
                     .setPerson(person)
                     .setSecurityUsername(securityUsername)
                     .setSecurityUserAccountCloneFrom(securityUserAccountCloneFrom)
-                    .build(executionContext)
+                    .build(this, executionContext)
                     .getApplicationUser();
         }
 
@@ -151,7 +151,7 @@ public class PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder
                     .setPerson(person)
                     .setEmailAddress(emailAddress)
                     .setPhoneNumber(phoneNumber)
-                    .build(executionContext);
+                    .build(this, executionContext);
         }
 
         if(relationshipType != null) {
@@ -159,20 +159,20 @@ public class PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder
                     .setPerson(person)
                     .setFromPartyStr(fromPartyStr)
                     .setRelationshipType(relationshipType)
-                    .build(executionContext)
+                    .build(this, executionContext)
                     .getPartyRelationship();
         }
 
         partyRoles = personPartyRolesBuilder
                 .setPerson(person)
                 .addPartyRoleTypes(partyRoleTypes)
-                .build(executionContext)
+                .build(this, executionContext)
                 .getPartyRoles();
 
         fixedAssetRolesBuilder
                 .setPerson(person)
                 .addFixedAssetRoles(fixedAssetRoles)
-                .build(executionContext);
+                .build(this, executionContext);
     }
 
     @Inject
