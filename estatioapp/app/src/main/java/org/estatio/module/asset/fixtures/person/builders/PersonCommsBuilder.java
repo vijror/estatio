@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.estatio.module.party.fixtures;
+package org.estatio.module.asset.fixtures.person.builders;
 
 import javax.inject.Inject;
 
@@ -24,35 +24,34 @@ import org.isisaddons.module.security.dom.tenancy.ApplicationTenancies;
 
 import org.incode.module.communications.dom.impl.commchannel.CommunicationChannelOwner_newChannelContributions;
 import org.incode.module.communications.dom.impl.commchannel.CommunicationChannelType;
-import org.incode.module.country.dom.impl.CountryRepository;
 
-import org.estatio.module.party.dom.Party;
+import org.estatio.module.base.platform.fixturesupport.BuilderScriptAbstract;
 import org.estatio.module.party.dom.PartyRepository;
 import org.estatio.module.party.dom.Person;
-import org.estatio.module.party.dom.PersonGenderType;
 import org.estatio.module.party.dom.PersonRepository;
 import org.estatio.module.party.dom.relationship.PartyRelationshipRepository;
 
-public abstract class PersonAndCommsAndRelationshipAbstract extends PersonAbstract {
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+@Accessors(chain = true)
+public class PersonCommsBuilder
+        extends BuilderScriptAbstract<PersonCommsBuilder> {
+
+    @Getter @Setter
+    private Person person;
+
+    @Getter @Setter
+    private String phoneNumber;
+
+    @Getter @Setter
+    private String emailAddress;
 
     @Override
-    public abstract void execute(ExecutionContext executionContext);
+    public void execute(ExecutionContext executionContext) {
 
-    protected Person createPerson(
-            final String atPath,
-            final String reference,
-            final String initials,
-            final String firstName,
-            final String lastName,
-            final PersonGenderType gender,
-            final String phoneNumber,
-            final String emailAddress,
-            final String fromPartyStr,
-            final String relationshipType,
-            final ExecutionContext executionContext) {
-
-        // adds to executionContext
-        final Person person = createPerson(atPath, reference, initials, firstName, lastName, gender, executionContext);
+        checkParam("person", executionContext, Person.class);
 
         if(emailAddress != null) {
             communicationChannelContributedActions
@@ -63,20 +62,7 @@ public abstract class PersonAndCommsAndRelationshipAbstract extends PersonAbstra
                     .newPhoneOrFax(person, CommunicationChannelType.PHONE_NUMBER, phoneNumber);
         }
 
-        // associate person
-        Party from = partyRepository.findPartyByReference(fromPartyStr);
-        if(relationshipType != null) {
-            partyRelationshipRepository.newRelationship(from, person, relationshipType, null);
-        }
-
-        return person;
     }
-
-
-    // //////////////////////////////////////
-
-    @Inject
-    protected CountryRepository countryRepository;
 
     @Inject
     protected PartyRepository partyRepository;
@@ -93,4 +79,6 @@ public abstract class PersonAndCommsAndRelationshipAbstract extends PersonAbstra
     @Inject
     protected ApplicationTenancies applicationTenancies;
 
+
 }
+

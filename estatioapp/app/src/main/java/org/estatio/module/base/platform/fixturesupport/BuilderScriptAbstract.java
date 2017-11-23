@@ -16,17 +16,25 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.estatio.module.party.fixtures;
+package org.estatio.module.base.platform.fixturesupport;
 
 import javax.inject.Inject;
 
 import org.apache.isis.applib.fixturescripts.FixtureScript;
+import org.apache.isis.core.runtime.system.context.IsisContext;
 
-import org.incode.module.country.dom.impl.CountryRepository;
+import org.estatio.module.party.dom.role.PartyRoleTypeService;
 
-import org.estatio.module.party.dom.PersonRepository;
+public abstract class BuilderScriptAbstract<T extends BuilderScriptAbstract> extends FixtureScript {
 
-public abstract class PersonAbstract extends FixtureScript {
+    public T build(ExecutionContext executionContext) {
+        IsisContext.getSessionFactory().getServicesInjector().injectServicesInto(this);
+        execute(executionContext);
+        return (T)this;
+    }
 
+    @Inject
+    PartyRoleTypeService partyRoleTypeService;
 
 }
+

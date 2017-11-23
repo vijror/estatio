@@ -22,19 +22,23 @@ import javax.inject.Inject;
 
 import org.isisaddons.module.security.dom.user.ApplicationUserRepository;
 
+import org.incode.module.country.dom.impl.CountryRepository;
+
 import org.estatio.module.base.fixtures.security.apptenancy.personas.ApplicationTenancyForGlobal;
 import org.estatio.module.base.platform.fake.EstatioFakeDataService;
+import org.estatio.module.base.platform.fixturesupport.BuilderScriptAbstract;
 import org.estatio.module.party.dom.Person;
 import org.estatio.module.party.dom.PersonGenderType;
+import org.estatio.module.party.dom.PersonRepository;
 import org.estatio.module.party.dom.role.PartyRoleTypeService;
-import org.estatio.module.party.fixtures.PersonAbstract;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
 @Accessors(chain = true)
-public class PersonBuilder extends PersonAbstract {
+public class PersonBuilder
+        extends BuilderScriptAbstract<PersonBuilder> {
 
     @Getter @Setter
     private String atPath;
@@ -57,17 +61,8 @@ public class PersonBuilder extends PersonAbstract {
     @Getter
     private Person person;
 
-
     @Override
-    public void execute(ExecutionContext executionContext) {
-
-        defaultAndCheckParams(executionContext);
-
-        person = createPerson(getAtPath(), getReference(), getInitials(), getFirstName(), getLastName(), getPersonGenderType(), executionContext);
-
-    }
-
-    public PersonBuilder defaultAndCheckParams(final ExecutionContext executionContext) {
+    protected void execute(ExecutionContext executionContext) {
 
         defaultParam("atPath", executionContext, ApplicationTenancyForGlobal.PATH);
         defaultParam("reference", executionContext, fakeDataService.lorem().fixedString(6));
@@ -76,7 +71,10 @@ public class PersonBuilder extends PersonAbstract {
         defaultParam("personGenderType", executionContext, fakeDataService.collections().anEnum(PersonGenderType.class));
         defaultParam("initials", executionContext, firstName.substring(0,1));
 
-        return this;
+        person = personRepository.newPerson(getReference(), getInitials(), getFirstName(), getLastName(),
+                getPersonGenderType(), getAtPath());
+
+        executionContext.addResult(this, person.getReference(), person);
     }
 
     @Inject
@@ -87,6 +85,13 @@ public class PersonBuilder extends PersonAbstract {
 
     @Inject
     ApplicationUserRepository applicationUserRepository;
+
+    @Inject
+    protected CountryRepository countryRepository;
+
+    @Inject
+    protected PersonRepository personRepository;
+
 
 }
 

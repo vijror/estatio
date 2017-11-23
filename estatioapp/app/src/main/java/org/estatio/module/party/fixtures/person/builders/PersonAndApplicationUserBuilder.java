@@ -20,16 +20,20 @@ package org.estatio.module.party.fixtures.person.builders;
 
 import org.isisaddons.module.security.dom.user.ApplicationUser;
 
+import org.estatio.module.base.platform.fixturesupport.BuilderScriptAbstract;
 import org.estatio.module.party.dom.Person;
 import org.estatio.module.party.dom.PersonGenderType;
-import org.estatio.module.party.fixtures.PersonAbstract;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
 @Accessors(chain = true)
-public class PersonAndApplicationUserBuilder extends PersonAbstract {
+public class PersonAndApplicationUserBuilder
+        extends BuilderScriptAbstract<PersonAndApplicationUserBuilder> {
+
+    PersonBuilder personBuilder = new PersonBuilder();
+    ApplicationUserBuilder applicationUserBuilder = new ApplicationUserBuilder();
 
     @Getter @Setter
     private String atPath;
@@ -55,40 +59,36 @@ public class PersonAndApplicationUserBuilder extends PersonAbstract {
     @Getter @Setter
     private String securityUserAccountCloneFrom;
 
+    @Override
+    protected void execute(ExecutionContext executionContext) {
+
+        // person
+        person = personBuilder.setAtPath(atPath)
+                .setReference(reference)
+                .setFirstName(firstName)
+                .setInitials(initials)
+                .setLastName(lastName)
+                .setPersonGenderType(personGenderType)
+                .build(executionContext)
+                .getPerson();
+
+
+        // application user
+        if(securityUsername != null) {
+            applicationUser = applicationUserBuilder
+                    .setSecurityUsername(securityUsername)
+                    .setSecurityUserAccountCloneFrom(securityUserAccountCloneFrom)
+                    .build(executionContext)
+                    .getApplicationUser();
+        }
+    }
+
     @Getter
     private Person person;
 
     @Getter
     private ApplicationUser applicationUser;
 
-    @Override
-    public void execute(ExecutionContext executionContext) {
-
-        // person
-        PersonBuilder personBuilder = new PersonBuilder();
-        personBuilder.setAtPath(atPath)
-                .setReference(reference)
-                .setFirstName(firstName)
-                .setInitials(initials)
-                .setLastName(lastName)
-                .setPersonGenderType(personGenderType)
-                .defaultAndCheckParams(executionContext);
-        personBuilder.execute(executionContext);
-        person = personBuilder.getPerson();
-
-
-        // application user
-        ApplicationUserBuilder applicationUserBuilder = new ApplicationUserBuilder();
-
-        if(securityUsername != null) {
-            applicationUserBuilder.setSecurityUsername(securityUsername)
-                    .setSecurityUserAccountCloneFrom(securityUserAccountCloneFrom)
-                    .defaultAndCheckParams(executionContext);
-
-            applicationUserBuilder.execute(executionContext);
-            applicationUser = applicationUserBuilder.getApplicationUser();
-        }
-    }
 
 }
 

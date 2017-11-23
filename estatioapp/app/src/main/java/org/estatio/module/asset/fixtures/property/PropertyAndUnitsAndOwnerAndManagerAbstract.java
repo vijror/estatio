@@ -16,29 +16,31 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.estatio.module.asset.fixtures;
+package org.estatio.module.asset.fixtures.property;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 import javax.inject.Inject;
+
+import com.google.common.collect.Lists;
 
 import org.joda.time.LocalDate;
 
 import org.apache.isis.applib.fixturescripts.FixtureScript;
 
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancyRepository;
-import org.isisaddons.wicket.gmap3.cpt.applib.Location;
 
 import org.incode.module.country.dom.impl.Country;
 import org.incode.module.country.dom.impl.CountryRepository;
-import org.incode.module.country.dom.impl.StateRepository;
 
 import org.estatio.module.asset.dom.Property;
 import org.estatio.module.asset.dom.PropertyRepository;
 import org.estatio.module.asset.dom.PropertyType;
 import org.estatio.module.asset.dom.Unit;
-import org.estatio.module.asset.dom.UnitType;
-import org.estatio.module.asset.dom.role.FixedAssetRoleTypeEnum;
+import org.estatio.module.asset.fixtures.property.builders.PropertyBuilder;
+import org.estatio.module.asset.fixtures.property.builders.PropertyManagerBuilder;
+import org.estatio.module.asset.fixtures.property.builders.PropertyOwnerBuilder;
+import org.estatio.module.asset.fixtures.property.builders.PropertyUnitsBuilder;
 import org.estatio.module.party.dom.Party;
 import org.estatio.module.party.dom.PartyRepository;
 
@@ -49,10 +51,18 @@ import static org.incode.module.base.integtests.VT.ld;
  * Sets up the {@link Property} and also a number of
  * {@link Unit}s.
  */
-public abstract class PropertyAndOwnerAndManagerAbstract extends FixtureScript {
+public abstract class PropertyAndUnitsAndOwnerAndManagerAbstract extends FixtureScript {
+
+    PropertyBuilder propertyBuilder = new PropertyBuilder();
+    PropertyUnitsBuilder propertyUnitsBuilder = new PropertyUnitsBuilder();
+    PropertyOwnerBuilder propertyOwnerBuilder = new PropertyOwnerBuilder();
+    PropertyManagerBuilder propertyManagerBuilder = new PropertyManagerBuilder();
 
     @Getter
     public Property property;
+
+    @Getter
+    private List<Unit> units = Lists.newArrayList();
 
     protected Property createPropertyAndUnits(
             final String atPath,
@@ -67,32 +77,42 @@ public abstract class PropertyAndOwnerAndManagerAbstract extends FixtureScript {
             final Party owner,
             final Party manager,
             final String locationStr,
-            final ExecutionContext fixtureResults) {
+            final ExecutionContext executionContext) {
 
-        Property property = propertyRepository.newProperty(reference, name, type, city, country, acquireDate);
-        property.setOpeningDate(openingDate);
-        property.setLocation(Location.fromString(locationStr));
-        property.addRoleIfDoesNotExist(owner, FixedAssetRoleTypeEnum.PROPERTY_OWNER, ld(1999, 1, 1), ld(2000, 1, 1));
-        property.addRoleIfDoesNotExist(manager, FixedAssetRoleTypeEnum.ASSET_MANAGER, null, null);
-        for (int i = 0; i < numberOfUnits; i++) {
-            int unitNumber = i + 1;
-            property.newUnit(String.format("%s-%03d", reference, unitNumber), "Unit " + unitNumber, unitType(i)).setArea(new BigDecimal((i + 1) * 100));
+        this.property = propertyBuilder
+                .setReference(reference)
+                .setName(name)
+                .setAcquireDate(acquireDate)
+                .setCity(city)
+                .setCountry(country)
+                .setOpeningDate(openingDate)
+                .setLocationStr(locationStr)
+                .build(executionContext)
+                .getProperty();
+
+        this.units = propertyUnitsBuilder
+                .setProperty(property)
+                .setNumberOfUnits(numberOfUnits)
+                .build(executionContext)
+                .getUnits();
+
+        if(owner != null) {
+            propertyOwnerBuilder
+                    .setProperty(property)
+                    .setOwner(owner)
+                    .setStartDate(ld(1999, 1, 1))
+                    .setEndDate(ld(2000, 1, 1))
+                    .build(executionContext);
+        }
+        if(manager != null) {
+            propertyManagerBuilder
+                    .setProperty(property)
+                    .setManager(manager)
+                    .build(executionContext);
         }
 
-        this.property = property;
-
-        return fixtureResults.addResult(this, property.getReference(), property);
+        return property;
     }
-
-    private UnitType unitType(int n) {
-        final UnitType[] unitTypes = UnitType.values();
-        return unitTypes[n % unitTypes.length];
-    }
-
-    // //////////////////////////////////////
-
-    @Inject
-    protected StateRepository stateRepository;
 
     @Inject
     protected CountryRepository countryRepository;

@@ -21,7 +21,7 @@ package org.estatio.module.asset.fixtures.property.personas;
 import org.incode.module.country.dom.impl.Country;
 
 import org.estatio.module.asset.dom.PropertyType;
-import org.estatio.module.asset.fixtures.PropertyAndOwnerAndManagerAbstract;
+import org.estatio.module.asset.fixtures.property.PropertyAndUnitsAndOwnerAndManagerAbstract;
 import org.estatio.module.asset.fixtures.person.personas.PersonAndRolesForGinoVannelliGb;
 import org.estatio.module.base.fixtures.security.apptenancy.personas.ApplicationTenancyForGb;
 import org.estatio.module.country.fixtures.enums.Country_enum;
@@ -31,7 +31,7 @@ import org.estatio.module.party.fixtures.organisation.personas.OrganisationForTo
 
 import static org.incode.module.base.integtests.VT.ld;
 
-public class PropertyAndOwnerAndManagerForOxfGb extends PropertyAndOwnerAndManagerAbstract {
+public class PropertyAndOwnerAndManagerForOxfGb extends PropertyAndUnitsAndOwnerAndManagerAbstract {
 
     public static final String REF = "OXF";
     public static final String PARTY_REF_MANAGER = PersonAndRolesForGinoVannelliGb.REF;

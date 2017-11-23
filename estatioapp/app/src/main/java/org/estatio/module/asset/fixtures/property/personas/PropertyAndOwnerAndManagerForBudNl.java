@@ -21,7 +21,7 @@ package org.estatio.module.asset.fixtures.property.personas;
 import org.incode.module.country.dom.impl.Country;
 
 import org.estatio.module.asset.dom.PropertyType;
-import org.estatio.module.asset.fixtures.PropertyAndOwnerAndManagerAbstract;
+import org.estatio.module.asset.fixtures.property.PropertyAndUnitsAndOwnerAndManagerAbstract;
 import org.estatio.module.asset.fixtures.person.personas.PersonAndRolesForJohnDoeNl;
 import org.estatio.module.base.fixtures.security.apptenancy.personas.ApplicationTenancyForNl;
 import org.estatio.module.country.fixtures.enums.Country_enum;
@@ -30,7 +30,7 @@ import org.estatio.module.party.fixtures.organisation.personas.OrganisationForAc
 
 import static org.incode.module.base.integtests.VT.ld;
 
-public class PropertyAndOwnerAndManagerForBudNl extends PropertyAndOwnerAndManagerAbstract {
+public class PropertyAndOwnerAndManagerForBudNl extends PropertyAndUnitsAndOwnerAndManagerAbstract {
 
     public static final String REF = "BUD";
     public static final String PARTY_REF_OWNER = OrganisationForAcmeNl.REF;

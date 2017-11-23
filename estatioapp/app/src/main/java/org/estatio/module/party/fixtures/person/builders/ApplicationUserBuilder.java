@@ -25,15 +25,16 @@ import org.apache.isis.applib.value.Password;
 import org.isisaddons.module.security.dom.user.ApplicationUser;
 import org.isisaddons.module.security.dom.user.ApplicationUserRepository;
 
+import org.estatio.module.base.platform.fixturesupport.BuilderScriptAbstract;
 import org.estatio.module.party.dom.Person;
-import org.estatio.module.party.fixtures.PersonAbstract;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
 @Accessors(chain = true)
-public class ApplicationUserBuilder extends PersonAbstract {
+public class ApplicationUserBuilder
+        extends BuilderScriptAbstract<ApplicationUserBuilder> {
 
     @Getter @Setter
     private String securityUsername;
@@ -48,9 +49,13 @@ public class ApplicationUserBuilder extends PersonAbstract {
     ApplicationUser applicationUser;
 
     @Override
-    public void execute(ExecutionContext executionContext) {
+    protected void execute(ExecutionContext executionContext) {
 
-        defaultAndCheckParams(executionContext);
+        checkParam("person", executionContext, Person.class);
+        checkParam("securityUsername", executionContext, String.class);
+
+        defaultParam("securityUserAccountCloneFrom", executionContext, "estatio-admin");
+
 
         if(securityUsername != null) {
             ApplicationUser userToCloneFrom = applicationUserRepository.findByUsername(securityUserAccountCloneFrom);
@@ -67,17 +72,6 @@ public class ApplicationUserBuilder extends PersonAbstract {
 
             executionContext.addResult(this, securityUsername, userToCloneFrom);
         }
-    }
-
-    public ApplicationUserBuilder defaultAndCheckParams(
-            final ExecutionContext executionContext) {
-
-        checkParam("person", executionContext, Person.class);
-        checkParam("securityUsername", executionContext, String.class);
-
-        defaultParam("securityUserAccountCloneFrom", executionContext, "estatio-admin");
-
-        return this;
     }
 
     @Inject

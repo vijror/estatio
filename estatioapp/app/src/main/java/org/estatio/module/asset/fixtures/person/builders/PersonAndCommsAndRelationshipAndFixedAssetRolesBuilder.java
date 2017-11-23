@@ -24,30 +24,40 @@ import javax.inject.Inject;
 
 import com.google.common.collect.Lists;
 
-import org.apache.isis.applib.value.Password;
-
+import org.isisaddons.module.security.dom.tenancy.ApplicationTenancies;
 import org.isisaddons.module.security.dom.user.ApplicationUser;
-import org.isisaddons.module.security.dom.user.ApplicationUserRepository;
 
-import org.estatio.module.asset.dom.Property;
-import org.estatio.module.asset.dom.PropertyRepository;
+import org.incode.module.communications.dom.impl.commchannel.CommunicationChannelOwner_newChannelContributions;
+
 import org.estatio.module.asset.dom.role.FixedAssetRoleTypeEnum;
-import org.estatio.module.base.platform.fake.EstatioFakeDataService;
+import org.estatio.module.base.platform.fixturesupport.BuilderScriptAbstract;
+import org.estatio.module.party.dom.PartyRepository;
 import org.estatio.module.party.dom.Person;
 import org.estatio.module.party.dom.PersonGenderType;
+import org.estatio.module.party.dom.PersonRepository;
+import org.estatio.module.party.dom.relationship.PartyRelationship;
+import org.estatio.module.party.dom.relationship.PartyRelationshipRepository;
 import org.estatio.module.party.dom.role.IPartyRoleType;
-import org.estatio.module.party.dom.role.PartyRoleTypeService;
-import org.estatio.module.party.fixtures.PersonAndCommsAndRelationshipAbstract;
+import org.estatio.module.party.dom.role.PartyRole;
 import org.estatio.module.party.fixtures.person.builders.ApplicationUserBuilder;
 import org.estatio.module.party.fixtures.person.builders.PersonBuilder;
+import org.estatio.module.party.fixtures.person.builders.PersonPartyRolesBuilder;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
 @Accessors(chain = true)
-public class PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder extends PersonAndCommsAndRelationshipAbstract {
+public class PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder
+        extends BuilderScriptAbstract<PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder> {
 
+    PersonBuilder personBuilder = new PersonBuilder();
+    ApplicationUserBuilder applicationUserBuilder = new ApplicationUserBuilder();
+    PersonCommsBuilder personCommsBuilder = new PersonCommsBuilder();
+    PersonRelationshipBuilder personRelationshipBuilder = new PersonRelationshipBuilder();
+
+    PersonPartyRolesBuilder personPartyRolesBuilder = new PersonPartyRolesBuilder();
+    PersonFixedAssetRolesBuilder fixedAssetRolesBuilder = new PersonFixedAssetRolesBuilder();
 
     @Getter @Setter
     private String atPath;
@@ -86,6 +96,15 @@ public class PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder extends Pers
     private String securityUserAccountCloneFrom;
 
     @Getter
+    private Person person;
+
+    @Getter
+    private ApplicationUser applicationUser;
+
+    @Getter
+    PartyRelationship partyRelationship;
+
+    @Getter
     private List<IPartyRoleType> partyRoleTypes = Lists.newArrayList();
     public PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder addPartyRoleType(IPartyRoleType partyRoleType) {
         partyRoleTypes.add(partyRoleType);
@@ -102,72 +121,75 @@ public class PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder extends Pers
     }
 
     @Getter
-    private Person person;
-
+    private List<PartyRole> partyRoles = Lists.newArrayList();
 
     @Override
     public void execute(ExecutionContext executionContext) {
 
-
-        PersonBuilder personBuilder = new PersonBuilder();
-        personBuilder.setAtPath(atPath)
+        person = personBuilder
+                .setAtPath(atPath)
                 .setFirstName(firstName)
                 .setInitials(initials)
                 .setLastName(lastName)
                 .setPersonGenderType(personGenderType)
                 .setReference(reference)
-                .defaultAndCheckParams(executionContext);
-
-        personBuilder.execute(executionContext);
-        person = personBuilder.getPerson();
-
-        ApplicationUserBuilder applicationUserBuilder = new ApplicationUserBuilder();
-        applicationUserBuilder.setSecurityUsername(securityUsername)
-                .setSecurityUserAccountCloneFrom(securityUserAccountCloneFrom)
-                .defaultAndCheckParams(executionContext);
-
-        PersonFixedAssetRolesBuilder fixedAssetRolesBuilder = new PersonFixedAssetRolesBuilder();
-
-
-        person = createPerson(getAtPath(), getReference(), getInitials(), getFirstName(), getLastName(), getPersonGenderType(), getPhoneNumber(), getEmailAddress(), getFromPartyStr(), getRelationshipType(), executionContext);
-
-        for (IPartyRoleType partyRoleType : partyRoleTypes) {
-            partyRoleTypeService.createRole(person, partyRoleType);
-        }
-
-        for (PersonFixedAssetRolesBuilder.FixedAssetRoleSpec spec : fixedAssetRoles) {
-            Property property = propertyRepository.findPropertyByReference(spec.getPropertyRef());
-            property.addRoleIfDoesNotExist(
-                    person, spec.roleType, null, null);
-            partyRoleTypeService.createRole(person, spec.roleType);
-        }
+                .build(executionContext)
+                .getPerson();
 
         if(securityUsername != null) {
-            ApplicationUser userToCloneFrom = applicationUserRepository.findByUsername(securityUserAccountCloneFrom);
-            if(userToCloneFrom == null) {
-                throw new IllegalArgumentException("Could not find any user with username: " + securityUserAccountCloneFrom);
-            }
-
-            ApplicationUser user = applicationUserRepository.newLocalUserBasedOn(
-                    securityUsername,
-                    new Password("pass"), new Password("pass"),
-                    userToCloneFrom, true, null);
-            user.setAtPath(getAtPath());
-            person.setUsername(securityUsername);
+            applicationUser = applicationUserBuilder
+                    .setPerson(person)
+                    .setSecurityUsername(securityUsername)
+                    .setSecurityUserAccountCloneFrom(securityUserAccountCloneFrom)
+                    .build(executionContext)
+                    .getApplicationUser();
         }
+
+
+        if(emailAddress != null || phoneNumber != null) {
+            personCommsBuilder
+                    .setPerson(person)
+                    .setEmailAddress(emailAddress)
+                    .setPhoneNumber(phoneNumber)
+                    .build(executionContext);
+        }
+
+        if(relationshipType != null) {
+            partyRelationship = personRelationshipBuilder
+                    .setPerson(person)
+                    .setFromPartyStr(fromPartyStr)
+                    .setRelationshipType(relationshipType)
+                    .build(executionContext)
+                    .getPartyRelationship();
+        }
+
+        partyRoles = personPartyRolesBuilder
+                .setPerson(person)
+                .addPartyRoleTypes(partyRoleTypes)
+                .build(executionContext)
+                .getPartyRoles();
+
+        fixedAssetRolesBuilder
+                .setPerson(person)
+                .addFixedAssetRoles(fixedAssetRoles)
+                .build(executionContext);
     }
 
     @Inject
-    EstatioFakeDataService fakeDataService;
+    protected PartyRepository partyRepository;
 
     @Inject
-    PartyRoleTypeService partyRoleTypeService;
+    protected PersonRepository personRepository;
 
     @Inject
-    PropertyRepository propertyRepository;
+    protected CommunicationChannelOwner_newChannelContributions communicationChannelContributedActions;
 
     @Inject
-    ApplicationUserRepository applicationUserRepository;
+    protected PartyRelationshipRepository partyRelationshipRepository;
+
+    @Inject
+    protected ApplicationTenancies applicationTenancies;
+
 
 }
 

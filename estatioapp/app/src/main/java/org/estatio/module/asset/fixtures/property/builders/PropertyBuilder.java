@@ -16,35 +16,29 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.estatio.module.asset.fixtures;
+package org.estatio.module.asset.fixtures.property.builders;
 
 import javax.inject.Inject;
 
 import org.joda.time.LocalDate;
 
-import org.apache.isis.applib.fixturescripts.FixtureScript;
-
-import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
-import org.isisaddons.module.security.dom.tenancy.ApplicationTenancyRepository;
+import org.isisaddons.wicket.gmap3.cpt.applib.Location;
 
 import org.incode.module.country.dom.impl.Country;
-import org.incode.module.country.dom.impl.CountryRepository;
-import org.incode.module.country.dom.impl.StateRepository;
 
 import org.estatio.module.asset.dom.Property;
 import org.estatio.module.asset.dom.PropertyRepository;
 import org.estatio.module.asset.dom.PropertyType;
-import org.estatio.module.asset.dom.UnitRepository;
-import org.estatio.module.asset.dom.UnitType;
-import org.estatio.module.asset.dom.role.FixedAssetRoleTypeEnum;
 import org.estatio.module.base.platform.fake.EstatioFakeDataService;
-import org.estatio.module.party.dom.Party;
-import org.estatio.module.party.dom.PartyRepository;
+import org.estatio.module.base.platform.fixturesupport.BuilderScriptAbstract;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
-public class PropertyBuilder extends FixtureScript {
+@Accessors(chain = true)
+public class PropertyBuilder
+        extends BuilderScriptAbstract<PropertyBuilder> {
 
     @Getter @Setter
     private String reference;
@@ -65,15 +59,12 @@ public class PropertyBuilder extends FixtureScript {
     private LocalDate acquireDate;
 
     @Getter @Setter
-    private Party owner;
+    private LocalDate openingDate;
 
     @Getter @Setter
-    private Party manager;
+    private String locationStr;
 
-    @Getter @Setter
-    private Integer numberOfUnits;
-
-    @Getter @Setter
+    @Getter
     private Property property;
 
     @Override
@@ -86,54 +77,19 @@ public class PropertyBuilder extends FixtureScript {
         defaultParam("country", executionContext, fakeDataService.collections().aBounded(Country.class));
         defaultParam("acquireDate", executionContext, fakeDataService.dates().before(fakeDataService.periods().days(100, 200)));
 
-        defaultParam("numberOfUnits", executionContext, fakeDataService.values().anInt(10,20));
-
-        final ApplicationTenancy countryApplicationTenancy = applicationTenancyRepository.findByPath("/" + getCountry().getReference());
 
         this.property = propertyRepository
                 .newProperty(getReference(), getName(), getPropertyType(), getCity(), getCountry(), getAcquireDate());
+        property.setOpeningDate(openingDate);
+        property.setLocation(Location.fromString(locationStr));
 
-        if(getOwner() != null) {
-            wrap(property).newRole(FixedAssetRoleTypeEnum.PROPERTY_OWNER, getOwner(), getAcquireDate(), null);
-        }
-        if(getManager() != null) {
-            wrap(property).newRole(FixedAssetRoleTypeEnum.ASSET_MANAGER, getManager(), getAcquireDate(), null);
-        }
 
-        for (int i = 0; i < getNumberOfUnits(); i++) {
-            final String unitRef = buildUnitReference(property.getReference(), i);
-            final UnitType unitType = fakeDataService.collections().anEnum(UnitType.class);
-            final String unitName = fakeDataService.name().firstName();
-            wrap(property).newUnit(unitRef, unitName, unitType);
-        }
     }
 
-    String buildUnitReference(final String propertyReference, final Integer unitNum) {
-        return String.format("%1$s-%2$03d", propertyReference, unitNum);
-    }
-
-    // //////////////////////////////////////
-
     @Inject
-    protected StateRepository stateRepository;
-
-    @Inject
-    protected CountryRepository countryRepository;
-
-    @Inject
-    protected PropertyRepository propertyRepository;
-
-    @Inject
-    protected UnitRepository unitRepository;
-
-    @Inject
-    protected PartyRepository partyRepository;
-
-    @Inject
-    protected ApplicationTenancyRepository applicationTenancyRepository;
+    PropertyRepository propertyRepository;
 
     @Inject
     EstatioFakeDataService fakeDataService;
-
 
 }

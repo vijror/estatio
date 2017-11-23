@@ -18,16 +18,17 @@
  */
 package org.estatio.module.party.fixtures.person.builders;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import com.google.common.collect.Lists;
 
-import org.apache.isis.applib.fixturescripts.FixtureScript;
-
+import org.estatio.module.base.platform.fixturesupport.BuilderScriptAbstract;
 import org.estatio.module.party.dom.Person;
 import org.estatio.module.party.dom.role.IPartyRoleType;
+import org.estatio.module.party.dom.role.PartyRole;
 import org.estatio.module.party.dom.role.PartyRoleTypeService;
 
 import lombok.Getter;
@@ -35,7 +36,8 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 @Accessors(chain = true)
-public class PersonPartyRolesBuilder extends FixtureScript {
+public class PersonPartyRolesBuilder
+        extends BuilderScriptAbstract<PersonPartyRolesBuilder> {
 
     @Getter @Setter
     private Person person;
@@ -46,27 +48,27 @@ public class PersonPartyRolesBuilder extends FixtureScript {
         partyRoleTypes.add(partyRoleType);
         return this;
     }
+    public PersonPartyRolesBuilder addPartyRoleTypes(Collection<IPartyRoleType> partyRoleTypes) {
+        this.partyRoleTypes.addAll(partyRoleTypes);
+        return this;
+    }
 
+    @Getter
+    private List<PartyRole> partyRoles = Lists.newArrayList();
 
     @Override
     public void execute(ExecutionContext executionContext) {
 
-        defaultAndCheckParams(executionContext);
+        checkParam("person", executionContext, Person.class);
 
         for (IPartyRoleType partyRoleType : partyRoleTypes) {
-            partyRoleTypeService.createRole(person, partyRoleType);
+            final PartyRole partyRole = partyRoleTypeService.createRole(person, partyRoleType);
+            partyRoles.add(partyRole);
         }
-    }
-
-    public PersonPartyRolesBuilder defaultAndCheckParams(
-            final ExecutionContext executionContext) {
-        checkParam("person", executionContext, Person.class);
-        return this;
     }
 
     @Inject
     PartyRoleTypeService partyRoleTypeService;
-
 
 }
 
