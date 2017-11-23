@@ -20,8 +20,6 @@ package org.estatio.module.party.fixtures;
 
 import javax.inject.Inject;
 
-import org.apache.isis.applib.fixturescripts.FixtureScript;
-
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancies;
 
 import org.incode.module.communications.dom.impl.commchannel.CommunicationChannelOwner_newChannelContributions;
@@ -35,23 +33,10 @@ import org.estatio.module.party.dom.PersonGenderType;
 import org.estatio.module.party.dom.PersonRepository;
 import org.estatio.module.party.dom.relationship.PartyRelationshipRepository;
 
-public abstract class PersonAndRolesAbstract extends FixtureScript {
+public abstract class PersonAndCommsAndRelationshipAbstract extends PersonAbstract {
 
     @Override
     public abstract void execute(ExecutionContext executionContext);
-
-    protected Party createPerson(
-            final String atPath,
-            final String reference,
-            final String initials,
-            final String firstName,
-            final String lastName,
-            final PersonGenderType gender,
-            final ExecutionContext executionContext) {
-
-        Party party = personRepository.newPerson(reference, initials, firstName, lastName, gender, atPath);
-        return executionContext.addResult(this, party.getReference(), party);
-    }
 
     protected Person createPerson(
             final String atPath,
@@ -66,7 +51,9 @@ public abstract class PersonAndRolesAbstract extends FixtureScript {
             final String relationshipType,
             final ExecutionContext executionContext) {
 
-        Person person = personRepository.newPerson(reference, initials, firstName, lastName, gender, atPath);
+        // adds to executionContext
+        final Person person = createPerson(atPath, reference, initials, firstName, lastName, gender, executionContext);
+
         if(emailAddress != null) {
             communicationChannelContributedActions
                     .newEmail(person, CommunicationChannelType.EMAIL_ADDRESS, emailAddress);
@@ -82,7 +69,7 @@ public abstract class PersonAndRolesAbstract extends FixtureScript {
             partyRelationshipRepository.newRelationship(from, person, relationshipType, null);
         }
 
-        return executionContext.addResult(this, person.getReference(), person);
+        return person;
     }
 
 

@@ -21,7 +21,7 @@ package org.estatio.module.asset.fixtures.person.personas;
 import org.apache.isis.applib.fixturescripts.FixtureScript;
 
 import org.estatio.module.asset.dom.role.FixedAssetRoleTypeEnum;
-import org.estatio.module.asset.fixtures.person.builders.PersonAndRolesBuilder;
+import org.estatio.module.asset.fixtures.person.builders.PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder;
 import org.estatio.module.asset.fixtures.property.personas.PropertyAndOwnerAndManagerForOxfGb;
 import org.estatio.module.base.fixtures.security.apptenancy.personas.ApplicationTenancyForGb;
 import org.estatio.module.party.dom.PersonGenderType;
@@ -39,7 +39,7 @@ public class PersonAndRolesForFloellaAssetManagerGb extends FixtureScript {
 
         executionContext.executeChild(this, new PropertyAndOwnerAndManagerForOxfGb());
 
-        getContainer().injectServicesInto(new PersonAndRolesBuilder())
+        getContainer().injectServicesInto(new PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder())
                     .setAtPath(AT_PATH)
                     .setReference(REF)
                     .setFirstName("Floella")

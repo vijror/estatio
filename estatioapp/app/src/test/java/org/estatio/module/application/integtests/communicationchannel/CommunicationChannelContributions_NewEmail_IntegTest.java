@@ -16,7 +16,7 @@ import org.incode.module.communications.dom.impl.commchannel.CommunicationChanne
 import org.incode.module.communications.dom.impl.commchannel.EmailAddress;
 
 import org.estatio.module.application.integtests.ApplicationModuleIntegTestAbstract;
-import org.estatio.module.asset.fixtures.person.builders.PersonAndRolesBuilder;
+import org.estatio.module.asset.fixtures.person.builders.PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder;
 import org.estatio.module.party.dom.Party;
 import org.estatio.module.party.dom.PartyRepository;
 
@@ -30,11 +30,11 @@ public class CommunicationChannelContributions_NewEmail_IntegTest extends Applic
 
     Party party;
 
-    private PersonAndRolesBuilder fs;
+    private PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder fs;
 
     @Before
     public void setup() {
-        fs = new PersonAndRolesBuilder();
+        fs = new PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder();
 
         runFixtureScript(new FixtureScript() {
             @Override

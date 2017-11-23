@@ -22,7 +22,7 @@ import org.apache.isis.applib.fixturescripts.FixtureScript;
 
 import org.estatio.module.party.dom.PersonGenderType;
 import org.estatio.module.base.fixtures.security.apptenancy.personas.ApplicationTenancyForNl;
-import org.estatio.module.asset.fixtures.person.builders.PersonAndRolesBuilder;
+import org.estatio.module.asset.fixtures.person.builders.PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder;
 
 public class PersonAndRolesForLinusTorvaldsNl extends FixtureScript {
 
@@ -32,7 +32,7 @@ public class PersonAndRolesForLinusTorvaldsNl extends FixtureScript {
     @Override
     protected void execute(ExecutionContext executionContext) {
 
-        getContainer().injectServicesInto(new PersonAndRolesBuilder())
+        getContainer().injectServicesInto(new PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder())
                     .setAtPath(AT_PATH)
                     .setReference(REF)
                     .setInitials("L")

@@ -21,7 +21,7 @@ package org.estatio.module.asset.fixtures.person.personas;
 import org.apache.isis.applib.fixturescripts.FixtureScript;
 
 import org.estatio.module.asset.dom.role.FixedAssetRoleTypeEnum;
-import org.estatio.module.asset.fixtures.person.builders.PersonAndRolesBuilder;
+import org.estatio.module.asset.fixtures.person.builders.PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder;
 import org.estatio.module.asset.fixtures.property.personas.PropertyAndOwnerAndManagerForMnsFr;
 import org.estatio.module.asset.fixtures.property.personas.PropertyAndOwnerAndManagerForVivFr;
 import org.estatio.module.base.fixtures.security.apptenancy.personas.ApplicationTenancyForFr;
@@ -38,7 +38,7 @@ public class PersonAndRolesForFifineLacroixFr extends FixtureScript {
         executionContext.executeChild(this, new PropertyAndOwnerAndManagerForVivFr());
         executionContext.executeChild(this, new PropertyAndOwnerAndManagerForMnsFr());
 
-        getContainer().injectServicesInto(new PersonAndRolesBuilder())
+        getContainer().injectServicesInto(new PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder())
                     .setAtPath(AT_PATH)
                     .setReference(REF)
                     .setFirstName("Fifine")

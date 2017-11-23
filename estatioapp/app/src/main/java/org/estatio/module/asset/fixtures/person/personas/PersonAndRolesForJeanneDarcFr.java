@@ -23,7 +23,7 @@ import org.apache.isis.applib.fixturescripts.FixtureScript;
 import org.estatio.module.party.dom.PersonGenderType;
 import org.estatio.module.party.dom.relationship.PartyRelationshipTypeEnum;
 import org.estatio.module.base.fixtures.security.apptenancy.personas.ApplicationTenancyForFr;
-import org.estatio.module.asset.fixtures.person.builders.PersonAndRolesBuilder;
+import org.estatio.module.asset.fixtures.person.builders.PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder;
 import org.estatio.module.party.fixtures.organisation.personas.OrganisationForPerdantFr;
 
 public class PersonAndRolesForJeanneDarcFr extends FixtureScript {
@@ -38,7 +38,7 @@ public class PersonAndRolesForJeanneDarcFr extends FixtureScript {
         // prereqs
         executionContext.executeChild(this, new OrganisationForPerdantFr());
 
-        getContainer().injectServicesInto(new PersonAndRolesBuilder())
+        getContainer().injectServicesInto(new PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder())
                     .setAtPath(AT_PATH)
                     .setReference(REF)
                     .setInitials("J")

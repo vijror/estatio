@@ -23,7 +23,7 @@ import org.apache.isis.applib.fixturescripts.FixtureScript;
 import org.estatio.module.party.dom.role.PartyRoleTypeEnum;
 import org.estatio.module.party.dom.PersonGenderType;
 import org.estatio.module.base.fixtures.security.apptenancy.personas.ApplicationTenancyForGb;
-import org.estatio.module.asset.fixtures.person.builders.PersonAndRolesBuilder;
+import org.estatio.module.asset.fixtures.person.builders.PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder;
 import org.estatio.module.party.fixtures.organisation.personas.OrganisationForYoukeaSe;
 
 public class PersonAndRolesForOscarCountryDirectorGb extends FixtureScript {
@@ -36,7 +36,7 @@ public class PersonAndRolesForOscarCountryDirectorGb extends FixtureScript {
 
         executionContext.executeChild(this, new OrganisationForYoukeaSe());
 
-        getContainer().injectServicesInto(new PersonAndRolesBuilder())
+        getContainer().injectServicesInto(new PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder())
                     .setAtPath(AT_PATH)
                     .setReference(REF)
                     .setFirstName("Oscar")

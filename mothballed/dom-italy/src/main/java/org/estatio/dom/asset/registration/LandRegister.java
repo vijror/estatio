@@ -20,7 +20,7 @@ import org.apache.isis.applib.annotation.Optional;
 @javax.jdo.annotations.Inheritance(
         strategy = InheritanceStrategy.NEW_TABLE)
 @javax.jdo.annotations.Discriminator(
-        "org.estatio.dom.asset.registration.LandRegister")
+        "org.estatio.communications.asset.registration.LandRegister")
 public class LandRegister extends FixedAssetRegistration {
 
     public String title() {

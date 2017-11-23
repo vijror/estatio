@@ -32,21 +32,22 @@ import org.isisaddons.module.security.dom.user.ApplicationUserRepository;
 import org.estatio.module.asset.dom.Property;
 import org.estatio.module.asset.dom.PropertyRepository;
 import org.estatio.module.asset.dom.role.FixedAssetRoleTypeEnum;
-import org.estatio.module.base.fixtures.security.apptenancy.personas.ApplicationTenancyForGlobal;
 import org.estatio.module.base.platform.fake.EstatioFakeDataService;
 import org.estatio.module.party.dom.Person;
 import org.estatio.module.party.dom.PersonGenderType;
 import org.estatio.module.party.dom.role.IPartyRoleType;
 import org.estatio.module.party.dom.role.PartyRoleTypeService;
-import org.estatio.module.party.fixtures.PersonAndRolesAbstract;
+import org.estatio.module.party.fixtures.PersonAndCommsAndRelationshipAbstract;
+import org.estatio.module.party.fixtures.person.builders.ApplicationUserBuilder;
+import org.estatio.module.party.fixtures.person.builders.PersonBuilder;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
 @Accessors(chain = true)
-public class PersonAndRolesBuilder extends PersonAndRolesAbstract {
+public class PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder extends PersonAndCommsAndRelationshipAbstract {
+
 
     @Getter @Setter
     private String atPath;
@@ -86,23 +87,17 @@ public class PersonAndRolesBuilder extends PersonAndRolesAbstract {
 
     @Getter
     private List<IPartyRoleType> partyRoleTypes = Lists.newArrayList();
-    public PersonAndRolesBuilder addPartyRoleType(IPartyRoleType partyRoleType) {
+    public PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder addPartyRoleType(IPartyRoleType partyRoleType) {
         partyRoleTypes.add(partyRoleType);
         return this;
     }
 
-    @Data
-    static class FixedAssetRoleSpec {
-        final FixedAssetRoleTypeEnum roleType;
-        final String propertyRef;
-    }
-
     @Getter
-    private List<FixedAssetRoleSpec> fixedAssetRoles = Lists.newArrayList();
-    public PersonAndRolesBuilder addFixedAssetRole(
+    private List<PersonFixedAssetRolesBuilder.FixedAssetRoleSpec> fixedAssetRoles = Lists.newArrayList();
+    public PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder addFixedAssetRole(
             final FixedAssetRoleTypeEnum fixedAssetRoleType,
             final String propertyRef) {
-        fixedAssetRoles.add(new FixedAssetRoleSpec(fixedAssetRoleType, propertyRef));
+        fixedAssetRoles.add(new PersonFixedAssetRolesBuilder.FixedAssetRoleSpec(fixedAssetRoleType, propertyRef));
         return this;
     }
 
@@ -113,13 +108,26 @@ public class PersonAndRolesBuilder extends PersonAndRolesAbstract {
     @Override
     public void execute(ExecutionContext executionContext) {
 
-        defaultParam("atPath", executionContext, ApplicationTenancyForGlobal.PATH);
-        defaultParam("reference", executionContext, fakeDataService.lorem().fixedString(6));
-        defaultParam("firstName", executionContext, fakeDataService.name().firstName());
-        defaultParam("lastName", executionContext, fakeDataService.name().fullName());
-        defaultParam("personGenderType", executionContext, fakeDataService.collections().anEnum(PersonGenderType.class));
-        defaultParam("initials", executionContext, firstName.substring(0,1));
-        defaultParam("securityUserAccountCloneFrom", executionContext, "estatio-admin");
+
+        PersonBuilder personBuilder = new PersonBuilder();
+        personBuilder.setAtPath(atPath)
+                .setFirstName(firstName)
+                .setInitials(initials)
+                .setLastName(lastName)
+                .setPersonGenderType(personGenderType)
+                .setReference(reference)
+                .defaultAndCheckParams(executionContext);
+
+        personBuilder.execute(executionContext);
+        person = personBuilder.getPerson();
+
+        ApplicationUserBuilder applicationUserBuilder = new ApplicationUserBuilder();
+        applicationUserBuilder.setSecurityUsername(securityUsername)
+                .setSecurityUserAccountCloneFrom(securityUserAccountCloneFrom)
+                .defaultAndCheckParams(executionContext);
+
+        PersonFixedAssetRolesBuilder fixedAssetRolesBuilder = new PersonFixedAssetRolesBuilder();
+
 
         person = createPerson(getAtPath(), getReference(), getInitials(), getFirstName(), getLastName(), getPersonGenderType(), getPhoneNumber(), getEmailAddress(), getFromPartyStr(), getRelationshipType(), executionContext);
 
@@ -127,7 +135,7 @@ public class PersonAndRolesBuilder extends PersonAndRolesAbstract {
             partyRoleTypeService.createRole(person, partyRoleType);
         }
 
-        for (FixedAssetRoleSpec spec : fixedAssetRoles) {
+        for (PersonFixedAssetRolesBuilder.FixedAssetRoleSpec spec : fixedAssetRoles) {
             Property property = propertyRepository.findPropertyByReference(spec.getPropertyRef());
             property.addRoleIfDoesNotExist(
                     person, spec.roleType, null, null);

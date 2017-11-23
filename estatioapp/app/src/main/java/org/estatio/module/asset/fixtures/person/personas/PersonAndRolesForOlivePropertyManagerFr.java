@@ -21,7 +21,7 @@ package org.estatio.module.asset.fixtures.person.personas;
 import org.apache.isis.applib.fixturescripts.FixtureScript;
 
 import org.estatio.module.asset.dom.role.FixedAssetRoleTypeEnum;
-import org.estatio.module.asset.fixtures.person.builders.PersonAndRolesBuilder;
+import org.estatio.module.asset.fixtures.person.builders.PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder;
 import org.estatio.module.asset.fixtures.property.personas.PropertyAndOwnerAndManagerForMacFr;
 import org.estatio.module.base.fixtures.security.apptenancy.personas.ApplicationTenancyForFr;
 import org.estatio.module.party.dom.PersonGenderType;
@@ -36,7 +36,7 @@ public class PersonAndRolesForOlivePropertyManagerFr extends FixtureScript {
 
         executionContext.executeChild(this, new PropertyAndOwnerAndManagerForMacFr());
 
-        getContainer().injectServicesInto(new PersonAndRolesBuilder())
+        getContainer().injectServicesInto(new PersonAndCommsAndRelationshipAndFixedAssetRolesBuilder())
                     .setAtPath(AT_PATH)
                     .setReference(REF)
                     .setFirstName("Olive")
