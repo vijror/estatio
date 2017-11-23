@@ -1,4 +1,4 @@
-package org.estatio.module.base.fixtures.security.apptenancy.builder;
+package org.estatio.module.base.fixtures.security.apptenancy.builders;
 
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
 

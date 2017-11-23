@@ -51,8 +51,6 @@ public class PropertyOwnerBuilder
         checkParam("property", executionContext, Property.class);
         checkParam("owner", executionContext, Party.class);
 
-        defaultParam("startDate", executionContext, property.getAcquireDate());
-
         wrap(property).newRole(FixedAssetRoleTypeEnum.PROPERTY_OWNER, owner, startDate, endDate);
     }
 

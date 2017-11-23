@@ -70,7 +70,7 @@ public abstract class PropertyAndUnitsAndOwnerAndManagerAbstract extends Fixture
             final String name,
             final String city,
             final Country country,
-            final PropertyType type,
+            final PropertyType propertyType,
             final int numberOfUnits,
             final LocalDate openingDate,
             final LocalDate acquireDate,
@@ -85,6 +85,7 @@ public abstract class PropertyAndUnitsAndOwnerAndManagerAbstract extends Fixture
                 .setAcquireDate(acquireDate)
                 .setCity(city)
                 .setCountry(country)
+                .setPropertyType(propertyType)
                 .setOpeningDate(openingDate)
                 .setLocationStr(locationStr)
                 .build(this, executionContext)

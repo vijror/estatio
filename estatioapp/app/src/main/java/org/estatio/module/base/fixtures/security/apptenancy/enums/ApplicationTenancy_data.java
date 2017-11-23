@@ -2,12 +2,11 @@ package org.estatio.module.base.fixtures.security.apptenancy.enums;
 
 import org.apache.isis.applib.services.registry.ServiceRegistry2;
 
-import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
-import org.isisaddons.module.security.dom.tenancy.ApplicationTenancyRepository;
-
 import org.isisaddons.module.base.platform.fixturesupport.DemoData2;
 import org.isisaddons.module.base.platform.fixturesupport.DemoData2Persist;
 import org.isisaddons.module.base.platform.fixturesupport.DemoData2Teardown;
+import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
+import org.isisaddons.module.security.dom.tenancy.ApplicationTenancyRepository;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
