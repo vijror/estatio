@@ -77,7 +77,7 @@ public class BudgetCalculationRepository_IntegTest extends BudgetModuleIntegTest
             Budget budget = budgetRepository.findByPropertyAndStartDate(property,
                     Budget_enum.OxfBudget2015.getStartDate());
             PartitionItem partitionItem = budget.getItems().first().getPartitionItems().get(0);
-            budgetCalculationService.calculatePersistedCalculations(budget);
+            budgetCalculationService.calculate(budget, BudgetCalculationType.BUDGETED);
 
             // when
             List<BudgetCalculation> budgetCalculations = budgetCalculationRepository.findByBudgetAndUnitAndInvoiceChargeAndType(budget, property.getUnits().first(), partitionItem.getCharge(), BudgetCalculationType.BUDGETED);
@@ -99,7 +99,7 @@ public class BudgetCalculationRepository_IntegTest extends BudgetModuleIntegTest
             Budget budget = budgetRepository.findByPropertyAndStartDate(property,
                     Budget_enum.OxfBudget2015.getStartDate());
             PartitionItem partitionItem = budget.getItems().first().getPartitionItems().get(0);
-            budgetCalculationService.calculatePersistedCalculations(budget);
+            budgetCalculationService.calculate(budget, BudgetCalculationType.BUDGETED);
 
             // when
             List<BudgetCalculation> budgetCalculations = budgetCalculationRepository.findByBudgetAndUnitAndInvoiceChargeAndIncomingChargeAndType(budget, property.getUnits().first(), partitionItem.getCharge(), partitionItem.getBudgetItem().getCharge(), BudgetCalculationType.BUDGETED);

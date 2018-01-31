@@ -68,7 +68,12 @@ import lombok.Setter;
                 name = "findByBudgetAndTypeAndStatus", language = "JDOQL",
                 value = "SELECT " +
                         "FROM org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun " +
-                        "WHERE budget == :budget && type == :type && status == :status")
+                        "WHERE budget == :budget && type == :type && status == :status"),
+        @Query(
+                name = "findByLeaseAndBudgetAndTypeAndStatus", language = "JDOQL",
+                value = "SELECT " +
+                        "FROM org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun " +
+                        "WHERE lease == :lease && budget == :budget && type == :type && status == :status")
 })
 @Unique(name = "BudgetCalculationRun_lease_budget_type_UNQ", members = { "lease", "budget", "type" })
 

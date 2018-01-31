@@ -10,6 +10,7 @@ import org.joda.time.LocalDate;
 
 import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.NatureOfService;
+import org.apache.isis.applib.services.message.MessageService;
 
 import org.incode.module.base.dom.valuetypes.LocalDateInterval;
 
@@ -21,6 +22,7 @@ import org.estatio.module.budget.dom.budgetitem.BudgetItem;
 import org.estatio.module.budget.dom.partioning.PartitionItem;
 import org.estatio.module.budget.dom.partioning.Partitioning;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult;
+import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultLink;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultLinkRepository;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultRepository;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun;
@@ -108,7 +110,18 @@ public class BudgetAssignmentService {
         }
     }
 
-    public void assign(final Budget budget){
+    public void assignForType(final Budget budget, final BudgetCalculationType budgetCalculationType){
+        switch (budgetCalculationType){
+        case BUDGETED:
+            assignForBudgeted(budget);
+            break;
+        case ACTUAL:
+            assignForActual(budget);
+            break;
+        }
+    }
+
+    void assignForBudgeted(final Budget budget){
         for (BudgetCalculationRun run : budgetCalculationRunRepository.findByBudgetAndTypeAndStatus(budget, BudgetCalculationType.BUDGETED, Status.NEW)){
             for (BudgetCalculationResult resultForLease : run.getBudgetCalculationResults()){
 
@@ -116,7 +129,7 @@ public class BudgetAssignmentService {
                         run.getLease().getStartDate() :
                         budget.getStartDate();
 
-                LeaseItem leaseItem = findOrCreateLeaseItemForServiceChargeBudgeted(run.getLease(), resultForLease, termStartDate);
+                LeaseItem leaseItem = findOrCreateLeaseItemForServiceCharge(run.getLease(), resultForLease, termStartDate);
 
                 LeaseTermForServiceCharge leaseTerm = (LeaseTermForServiceCharge) leaseTermRepository.findOrCreateWithStartDate(leaseItem, new LocalDateInterval(termStartDate, budget.getEndDate()));
 
@@ -129,7 +142,42 @@ public class BudgetAssignmentService {
         }
     }
 
-    LeaseItem findOrCreateLeaseItemForServiceChargeBudgeted(final Lease lease, final BudgetCalculationResult calculationResult, final LocalDate startDate){
+    void assignForActual(final Budget budget){
+        for (BudgetCalculationRun run : budgetCalculationRunRepository.findByBudgetAndTypeAndStatus(budget, BudgetCalculationType.ACTUAL, Status.NEW)){
+            final List<BudgetCalculationRun> assignedRunsForLeaseBudgeted = budgetCalculationRunRepository.findByLeaseAndBudgetAndTypeAndStatus(run.getLease(), budget, BudgetCalculationType.BUDGETED, Status.ASSIGNED);
+            // TODO: for the moment we know there will be only one at most - this will change when we allow for more assigned runs on a lease
+            if (assignedRunsForLeaseBudgeted.size()==1) {
+                BudgetCalculationRun runForBudgeted = assignedRunsForLeaseBudgeted.get(0);
+                for (BudgetCalculationResult result : run.getBudgetCalculationResults()){
+                    // only a term that is controlled by this budget should be updated with an audited value when the audited value is empty
+                    // so there should be a 'corresponding budgeted result' linked
+                    BudgetCalculationResult correspondingBudgetedResult = budgetCalculationResultRepository.findUnique(runForBudgeted, result.getInvoiceCharge());
+                    final List<BudgetCalculationResultLink> linksForCorrespondingBudgetedResult = budgetCalculationResultLinkRepository.findByCalculationResult(correspondingBudgetedResult);
+                    if (linksForCorrespondingBudgetedResult.size()==1){
+                        // this should always be the case
+                        LeaseTermForServiceCharge termToBeUpdated = linksForCorrespondingBudgetedResult.get(0).getLeaseTermForServiceCharge();
+                        if (termToBeUpdated.getAuditedValue()==null) {
+                            termToBeUpdated.setAuditedValue(result.getValue());
+                            budgetCalculationResultLinkRepository.findOrCreateLink(result, termToBeUpdated);
+                            result.finalizeCalculationResult();
+                        } else {
+                            // this should not happen
+                            final String message = String.format("Could not update term with id %s because an audited value was found", termToBeUpdated.getId()) ;
+                            messageService.warnUser(message);
+                        }
+                    } else {
+                        // this should not happen
+                        final String message = String.format("No or more than 1 calculation result links were found for %s", run.getLease().getReference()) ;
+                        messageService.warnUser(message);
+                    }
+                }
+            }
+            // TODO: for a run of type actual 'assigned' does not mean that all results were assigned - it just means that it tried to reconcile and assign at the time is was executed
+            run.setStatus(Status.ASSIGNED);
+        }
+    }
+
+    LeaseItem findOrCreateLeaseItemForServiceCharge(final Lease lease, final BudgetCalculationResult calculationResult, final LocalDate startDate){
 
         LeaseItem leaseItem = lease.findFirstActiveItemOfTypeAndChargeOnDate(LeaseItemType.SERVICE_CHARGE, calculationResult.getInvoiceCharge(), startDate);
 
@@ -268,12 +316,15 @@ public class BudgetAssignmentService {
     private BudgetOverrideRepository budgetOverrideRepository;
 
     @Inject
-    private BudgetCalculationRunRepository budgetCalculationRunRepository;
+    BudgetCalculationRunRepository budgetCalculationRunRepository;
 
     @Inject
-    private BudgetCalculationResultRepository budgetCalculationResultRepository;
+    BudgetCalculationResultRepository budgetCalculationResultRepository;
 
     @Inject
-    private BudgetCalculationResultLinkRepository budgetCalculationResultLinkRepository;
+    BudgetCalculationResultLinkRepository budgetCalculationResultLinkRepository;
+
+    @Inject
+    MessageService messageService;
 
 }

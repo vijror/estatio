@@ -61,6 +61,7 @@ public enum BudgetOverrideForMax_enum implements PersonaWithBuilderScript<Budget
                 .setPrereq((f,ec) -> f.setInvoiceCharge(f.objectFor(invoiceCharge_d, ec)))
                 .setPrereq((f,ec) -> f.setIncomingCharge(f.objectFor(incomingCharge_d, ec)))
                 .setMaxValue(maxValue)
+                .setBudgetCalculationType(null)
                 ;
     }
 }

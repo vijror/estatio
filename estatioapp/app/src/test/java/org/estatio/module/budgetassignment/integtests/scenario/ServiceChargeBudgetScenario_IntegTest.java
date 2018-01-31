@@ -3,6 +3,7 @@ package org.estatio.module.budgetassignment.integtests.scenario;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.SortedSet;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -19,9 +20,12 @@ import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationReposito
 import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationService;
 import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationType;
 import org.estatio.module.budget.dom.budgetcalculation.Status;
+import org.estatio.module.budget.dom.budgetitem.BudgetItem;
 import org.estatio.module.budget.dom.keytable.KeyTable;
 import org.estatio.module.budget.fixtures.budgets.enums.Budget_enum;
 import org.estatio.module.budget.fixtures.partitioning.enums.Partitioning_enum;
+import org.estatio.module.budgetassignment.contributions.Budget_Calculate;
+import org.estatio.module.budgetassignment.contributions.Budget_Reconcile;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultLink;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultLinkRepository;
@@ -45,6 +49,7 @@ import org.estatio.module.charge.fixtures.charges.enums.Charge_enum;
 import org.estatio.module.invoice.dom.PaymentMethod;
 import org.estatio.module.lease.dom.InvoicingFrequency;
 import org.estatio.module.lease.dom.Lease;
+import org.estatio.module.lease.dom.LeaseItem;
 import org.estatio.module.lease.dom.LeaseItemRepository;
 import org.estatio.module.lease.dom.LeaseItemStatus;
 import org.estatio.module.lease.dom.LeaseItemType;
@@ -98,6 +103,8 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
                 executionContext.executeChildT(this, Lease_enum.BudHello006Nl.builder());
                 executionContext.executeChildT(this, BudgetOverrideForFlatRate_enum.BudMiracle002Nl_2015.builder());
                 executionContext.executeChildT(this, BudgetOverrideForMax_enum.BudPoison001Nl_2015.builder());
+                executionContext.executeChildT(this, Charge_enum.NlMarketingIncoming.builder());
+                executionContext.executeChildT(this, Charge_enum.NlMarketing.builder());
           }
         });
     }
@@ -107,6 +114,8 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
 
         Budget budget;
         List<BudgetCalculation> calculations;
+        List<BudgetCalculation> newCalculations;
+        List<BudgetCalculation> assignedCalculations;
         List<BudgetCalculationRun> calculationRuns;
         List<CalculationResultViewModel> calculationResultViewModels;
         List<DetailedCalculationResultViewmodel> detailedCalculationResultViewmodels;
@@ -118,9 +127,16 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
         Lease leaseNlBank;
         Lease leaseHyper;
         Lease leaseHello6;
+        BudgetOverrideForMax overrideForPoisonBudgetedAndActual;
+        BudgetOverrideForFlatRate overrideForMiracleBudgeted;
         Charge invoiceCharge1;
         Charge invoiceCharge2;
-        Charge incomingCharge;
+        Charge invoiceChargeForMarketing;
+        Charge incomingCharge1;
+        Charge incomingCharge2;
+        Charge incomingCharge3;
+        Charge incomingChargeForMarketing;
+        KeyTable keyTable2Truncated;
 
         @Before
         public void setup() {
@@ -128,8 +144,8 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
             budget = Budget_enum.BudBudget2015.findUsing(serviceRegistry);
 
             //**IMPORTANT!** truncate keytable
-            KeyTable key2 = budget.getKeyTables().last();
-            key2.getItems().last().deleteBudgetKeyItem();
+            keyTable2Truncated = budget.getKeyTables().last();
+            keyTable2Truncated.getItems().last().deleteBudgetKeyItem();
 
             leasePoison = Lease_enum.BudPoison001Nl.findUsing(serviceRegistry);
             leaseMiracle = Lease_enum.BudMiracle002Nl.findUsing(serviceRegistry);
@@ -140,19 +156,24 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
             leaseHello6 = Lease_enum.BudHello006Nl.findUsing(serviceRegistry);
             invoiceCharge1 = Charge_enum.NlServiceCharge.findUsing(serviceRegistry);
             invoiceCharge2 = Charge_enum.NlServiceCharge2.findUsing(serviceRegistry);
-            incomingCharge = Charge_enum.NlIncomingCharge1.findUsing(serviceRegistry);
+            invoiceChargeForMarketing = Charge_enum.NlMarketing.findUsing(serviceRegistry);
+            incomingCharge1 = Charge_enum.NlIncomingCharge1.findUsing(serviceRegistry);
+            incomingCharge2 = Charge_enum.NlIncomingCharge2.findUsing(serviceRegistry);
+            incomingCharge3 = Charge_enum.NlIncomingCharge3.findUsing(serviceRegistry);
+            incomingChargeForMarketing = Charge_enum.NlMarketingIncoming.findUsing(serviceRegistry);
         }
 
         @Test
         public void fullScenarioTest() throws Exception {
             calculate();
-            detailedCalculation();
-            calculateResultsForLeases();
-            assignResults();
-            finalCalculationIsIdemPotent();
-//            assignBudgetWhenUpdated();
-//            assignBudgetWhenAudited();
-//            assignBudgetWhenAuditedAndUpdated();
+            detailed_calculation();
+            calculate_results_for_leases();
+            calculate_and_assign();
+            final_calculation_is_idempotent();
+            assign_budget_when_updated_with_new_item_creates_no_calculation_run_at_the_moment();
+            reconcile();
+//            reconcilation_does_not_create_lease_item_and_term();
+//            reconcile_when_audited_and_updated();
         }
 
         public static BigDecimal U1_BVAL_1 = new BigDecimal("1928.57");
@@ -179,11 +200,13 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
             // given
 
             // when
-            calculations = wrap(budgetCalculationService).calculatePersistedCalculations(budget);
-            calculationRuns = wrap(budgetAssignmentService).calculateResultsForLeases(budget, BudgetCalculationType.BUDGETED);
-            calculationResultViewModels = budgetAssignmentService.getCalculationResults(budget);
+            wrap(mixin(Budget_Calculate.class, budget)).calculate(false);
 
             // then
+            calculations = budgetCalculationRepository.findByBudget(budget);
+            calculationRuns = budgetCalculationRunRepository.findByBudget(budget);
+            calculationResultViewModels = budgetAssignmentService.getCalculationResults(budget);
+
             assertThat(calculationRuns.size()).isEqualTo(6);
             assertThat(calculationResultViewModels.size()).isEqualTo(12);
             assertThat(calculations.size()).isEqualTo(33);
@@ -221,7 +244,7 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
             return calculationResultViewModels.stream().filter(x ->x.getLeaseReference().equals(leaseReference) && x.getInvoiceCharge().equals(invoiceChargeReference)).collect(Collectors.toList());
         }
 
-        public void detailedCalculation() throws Exception {
+        public void detailed_calculation() throws Exception {
 
 
             // when
@@ -271,7 +294,7 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
 
         }
 
-        public void calculateResultsForLeases() throws Exception {
+        public void calculate_results_for_leases() throws Exception {
 
             assertThat(budgetCalculationRunRepository.findByLease(leasePoison).size()).isEqualTo(1);
             assertThat(budgetCalculationRunRepository.findByLease(leaseMiracle).size()).isEqualTo(1);
@@ -308,78 +331,89 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
             assertThat(cResMiracle2.getShortfall()).isEqualTo(new BigDecimal("0.00"));
 
             assertThat(budgetOverrideRepository.findByLease(leasePoison).size()).isEqualTo(1);
-            BudgetOverrideForMax oPoison = (BudgetOverrideForMax) budgetOverrideRepository.findByLease(leasePoison).get(0);
-            assertThat(oPoison.getType()).isEqualTo(BudgetCalculationType.BUDGETED);
-            assertThat(oPoison.getInvoiceCharge()).isEqualTo(invoiceCharge1);
-            assertThat(oPoison.getIncomingCharge()).isEqualTo(incomingCharge);
-            assertThat(oPoison.getStartDate()).isEqualTo(budget.getStartDate());
-            assertThat(oPoison.getEndDate()).isNull();
-            assertThat(oPoison.getReason()).isEqualTo(BudgetOverrideType.CEILING.reason);
-            assertThat(oPoison.getMaxValue()).isEqualTo(new BigDecimal("350.00"));
-            assertThat(oPoison.getValues().size()).isEqualTo(1);
-            assertThat(oPoison.getValues().first().getValue()).isEqualTo(new BigDecimal("350.00"));
-            assertThat(oPoison.getValues().first().getType()).isEqualTo(BudgetCalculationType.BUDGETED);
-            assertThat(oPoison.getValues().first().getStatus()).isEqualTo(Status.NEW);
+            overrideForPoisonBudgetedAndActual = (BudgetOverrideForMax) budgetOverrideRepository.findByLease(leasePoison).get(0);
+            assertThat(overrideForPoisonBudgetedAndActual.getType()).isEqualTo(null);
+            assertThat(overrideForPoisonBudgetedAndActual.getInvoiceCharge()).isEqualTo(invoiceCharge1);
+            assertThat(overrideForPoisonBudgetedAndActual.getIncomingCharge()).isEqualTo(incomingCharge1);
+            assertThat(overrideForPoisonBudgetedAndActual.getStartDate()).isEqualTo(budget.getStartDate());
+            assertThat(overrideForPoisonBudgetedAndActual.getEndDate()).isNull();
+            assertThat(overrideForPoisonBudgetedAndActual.getReason()).isEqualTo(BudgetOverrideType.CEILING.reason);
+            assertThat(overrideForPoisonBudgetedAndActual.getMaxValue()).isEqualTo(new BigDecimal("350.00"));
+            assertThat(overrideForPoisonBudgetedAndActual.getValues().size()).isEqualTo(1);
+            assertThat(overrideForPoisonBudgetedAndActual.getValues().first().getValue()).isEqualTo(new BigDecimal("350.00"));
+            assertThat(overrideForPoisonBudgetedAndActual.getValues().first().getType()).isEqualTo(BudgetCalculationType.BUDGETED);
+            assertThat(overrideForPoisonBudgetedAndActual.getValues().first().getStatus()).isEqualTo(Status.NEW);
 
             assertThat(budgetOverrideRepository.findByLease(leaseMiracle).size()).isEqualTo(1);
-            BudgetOverrideForFlatRate oMiracle = (BudgetOverrideForFlatRate) budgetOverrideRepository.findByLease(leaseMiracle).get(0);
-            assertThat(oMiracle.getType()).isEqualTo(BudgetCalculationType.BUDGETED);
-            assertThat(oMiracle.getInvoiceCharge()).isEqualTo(invoiceCharge1);
-            assertThat(oMiracle.getIncomingCharge()).isNull();
-            assertThat(oMiracle.getStartDate()).isEqualTo(budget.getStartDate());
-            assertThat(oMiracle.getEndDate()).isNull();
-            assertThat(oMiracle.getReason()).isEqualTo(BudgetOverrideType.FLATRATE.reason);
-            assertThat(oMiracle.getValuePerM2()).isEqualTo(new BigDecimal("12.50"));
-            assertThat(oMiracle.getWeightedArea()).isEqualTo(new BigDecimal("90.00"));
-            assertThat(oMiracle.getValues().size()).isEqualTo(1);
-            assertThat(oMiracle.getValues().first().getValue()).isEqualTo(new BigDecimal("1125.0000"));
-            assertThat(oMiracle.getValues().first().getType()).isEqualTo(BudgetCalculationType.BUDGETED);
-            assertThat(oMiracle.getValues().first().getStatus()).isEqualTo(Status.NEW);
+            overrideForMiracleBudgeted = (BudgetOverrideForFlatRate) budgetOverrideRepository.findByLease(leaseMiracle).get(0);
+            assertThat(overrideForMiracleBudgeted.getType()).isEqualTo(BudgetCalculationType.BUDGETED);
+            assertThat(overrideForMiracleBudgeted.getInvoiceCharge()).isEqualTo(invoiceCharge1);
+            assertThat(overrideForMiracleBudgeted.getIncomingCharge()).isNull();
+            assertThat(overrideForMiracleBudgeted.getStartDate()).isEqualTo(budget.getStartDate());
+            assertThat(overrideForMiracleBudgeted.getEndDate()).isNull();
+            assertThat(overrideForMiracleBudgeted.getReason()).isEqualTo(BudgetOverrideType.FLATRATE.reason);
+            assertThat(overrideForMiracleBudgeted.getValuePerM2()).isEqualTo(new BigDecimal("12.50"));
+            assertThat(overrideForMiracleBudgeted.getWeightedArea()).isEqualTo(new BigDecimal("90.00"));
+            assertThat(overrideForMiracleBudgeted.getValues().size()).isEqualTo(1);
+            assertThat(overrideForMiracleBudgeted.getValues().first().getValue()).isEqualTo(new BigDecimal("1125.0000"));
+            assertThat(overrideForMiracleBudgeted.getValues().first().getType()).isEqualTo(BudgetCalculationType.BUDGETED);
+            assertThat(overrideForMiracleBudgeted.getValues().first().getStatus()).isEqualTo(Status.NEW);
 
         }
 
-        public void assignResults() throws Exception {
+        public void calculate_and_assign() throws Exception {
 
             // when
-            budgetAssignmentService.assign(budget);
+            wrap(mixin(Budget_Calculate.class, budget)).calculate(true);
 
             // then
             validateLeaseItemsAndTerms(
                     leasePoison,
+                    1,
                     Arrays.asList(BVAL_POISON_1, U1_BVAL_2.setScale(2, BigDecimal.ROUND_HALF_UP)),
-                    Budget_enum.BudBudget2015.getStartDate()
-            );
+                    Arrays.asList(null, null),
+                    Budget_enum.BudBudget2015.getStartDate());
             validateLeaseItemsAndTerms(
                     leaseMiracle,
+                    1,
                     Arrays.asList(BVAL_MIRACLE_1, U2_BVAL_2.setScale(2, BigDecimal.ROUND_HALF_UP)),
-                    Budget_enum.BudBudget2015.getStartDate()
-            );
+                    Arrays.asList(null, null),
+                    Budget_enum.BudBudget2015.getStartDate());
             validateLeaseItemsAndTerms(
                     leaseHello3,
+                    1,
                     Arrays.asList(U3_BVAL_1.setScale(2, BigDecimal.ROUND_HALF_UP), U3_BVAL_2.setScale(2, BigDecimal.ROUND_HALF_UP)),
-                    leaseHello3.getStartDate()
-            );
+                    Arrays.asList(null, null),
+                    leaseHello3.getStartDate());
             validateLeaseItemsAndTerms(
                     leaseDago,
+                    1,
                     Arrays.asList(U4_BVAL_1.add(U7_BVAL_1).setScale(2, BigDecimal.ROUND_HALF_UP), U4_BVAL_2.add(U7_BVAL_2).setScale(2, BigDecimal.ROUND_HALF_UP)),
-                    Budget_enum.BudBudget2015.getStartDate()
-            );
+                    Arrays.asList(null, null),
+                    Budget_enum.BudBudget2015.getStartDate());
             validateLeaseItemsAndTerms(
                     leaseNlBank,
+                    1,
                     Arrays.asList(U4_BVAL_1.setScale(2, BigDecimal.ROUND_HALF_UP), U4_BVAL_2.setScale(2, BigDecimal.ROUND_HALF_UP)),
-                    leaseNlBank.getStartDate()
-            );
+                    Arrays.asList(null, null),
+                    leaseNlBank.getStartDate());
             validateLeaseItemsAndTerms(
                     leaseHyper,
+                    1,
                     Arrays.asList(U5_BVAL_1.setScale(2, BigDecimal.ROUND_HALF_UP), U5_BVAL_2.setScale(2, BigDecimal.ROUND_HALF_UP)),
-                    leaseHyper.getStartDate()
-            );
+                    Arrays.asList(null, null),
+                    leaseHyper.getStartDate());
 
             assertThat(leaseItemRepository.findLeaseItemsByType(leaseHello6, LeaseItemType.SERVICE_CHARGE_BUDGETED).size()).isEqualTo(0);
 
-            List<BudgetCalculation> calculations = budgetCalculationRepository.findByBudget(budget);
+            calculations = budgetCalculationRepository.findByBudget(budget);
             calculations.stream().filter(x->!x.getUnit().getReference().equals("BUD-006")).forEach(x->assertThat(x.getStatus()).isEqualTo(Status.ASSIGNED));
             calculations.stream().filter(x->x.getUnit().getReference().equals("BUD-006")).forEach(x->assertThat(x.getStatus()).isEqualTo(Status.NEW));
+
+            newCalculations = calculations.stream().filter(x->x.getStatus()==Status.NEW).collect(Collectors.toList());
+            assignedCalculations = calculations.stream().filter(x->x.getStatus()==Status.ASSIGNED).collect(Collectors.toList());
+            assertThat(newCalculations.size()).isEqualTo(5);
+            assertThat(assignedCalculations.size()).isEqualTo(28);
 
             BudgetOverrideForMax oPoison = (BudgetOverrideForMax) budgetOverrideRepository.findByLease(leasePoison).get(0);
             BudgetOverrideForFlatRate oMiracle = (BudgetOverrideForFlatRate) budgetOverrideRepository.findByLease(leaseMiracle).get(0);
@@ -388,7 +422,7 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
 
         }
 
-        private void validateLeaseItemsAndTerms(final Lease lease, final List<BigDecimal> values, final LocalDate startDate) {
+        private void validateLeaseItemsAndTerms(final Lease lease, final int expectedNumberOfLinks, final List<BigDecimal> budgetedValues, final List<BigDecimal> auditedValues, final LocalDate startDate) {
 
             assertThat(leaseItemRepository.findLeaseItemsByType(lease, LeaseItemType.SERVICE_CHARGE).size()).isEqualTo(2);
 
@@ -400,9 +434,9 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
             assertThat(lease.getItems().first().getTerms().size()).isEqualTo(1);
 
             LeaseTermForServiceCharge term1 = (LeaseTermForServiceCharge) lease.getItems().first().getTerms().first();
-            assertThat(budgetCalculationResultLinkRepository.findByLeaseTerm(term1).size()).isEqualTo(1);
-            assertThat(term1.getBudgetedValue()).isEqualTo(values.get(0));
-            assertThat(term1.getAuditedValue()).isNull();
+            assertThat(budgetCalculationResultLinkRepository.findByLeaseTerm(term1).size()).isEqualTo(expectedNumberOfLinks);
+            assertThat(term1.getBudgetedValue()).isEqualTo(budgetedValues.get(0));
+            assertThat(term1.getAuditedValue()).isEqualTo(auditedValues.get(0));
             assertThat(term1.getStartDate()).isEqualTo(startDate);
             assertThat(term1.getEndDate()).isEqualTo(Budget_enum.BudBudget2015.getEndDate());
 
@@ -414,15 +448,15 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
             assertThat(lease.getItems().last().getTerms().size()).isEqualTo(1);
 
             LeaseTermForServiceCharge term2 = (LeaseTermForServiceCharge) lease.getItems().last().getTerms().first();
-            assertThat(budgetCalculationResultLinkRepository.findByLeaseTerm(term2).size()).isEqualTo(1);
-            assertThat(term2.getBudgetedValue()).isEqualTo(values.get(1));
-            assertThat(term2.getAuditedValue()).isNull();
+            assertThat(budgetCalculationResultLinkRepository.findByLeaseTerm(term2).size()).isEqualTo(expectedNumberOfLinks);
+            assertThat(term2.getBudgetedValue()).isEqualTo(budgetedValues.get(1));
+            assertThat(term2.getAuditedValue()).isEqualTo(auditedValues.get(1));
             assertThat(term2.getStartDate()).isEqualTo(startDate);
             assertThat(term2.getEndDate()).isEqualTo(Budget_enum.BudBudget2015.getEndDate());
 
         }
 
-        public void finalCalculationIsIdemPotent() throws Exception {
+        public void final_calculation_is_idempotent() throws Exception {
 
             BudgetCalculation c1Before;
             BudgetCalculation c1After;
@@ -456,9 +490,7 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
             assertThat(l1Before.getLeaseTermForServiceCharge().getLeaseItem().getStatus()).isEqualTo(LeaseItemStatus.ACTIVE);
 
             // when
-            budgetCalculationService.calculatePersistedCalculations(budget);
-            budgetAssignmentService.calculateResultsForLeases(budget, BudgetCalculationType.BUDGETED);
-            budgetAssignmentService.assign(budget);
+            mixin(Budget_Calculate.class, budget).calculate(true); // we do not wrap here on purpose
 
             // then nothing should be changed
             assertThat(budgetCalculationRepository.allBudgetCalculations().size()).isEqualTo(33);
@@ -484,15 +516,123 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
 
         }
 
-        public void assignBudgetWhenUpdated() throws Exception {
+        public void assign_budget_when_updated_with_new_item_creates_no_calculation_run_at_the_moment() throws Exception {
+
+            // given
+            final SortedSet<LeaseItem> leasePoisonItems = leasePoison.getItems();
+            assertThat(leasePoisonItems.size()).isEqualTo(2);
+            calculationRuns = budgetCalculationRunRepository.findByBudget(budget);
+            assertThat(calculationRuns.size()).isEqualTo(6);
+
+            // when
+            BudgetItem marketingItem = wrap(budget).newBudgetItem(new BigDecimal("7000.00"), incomingChargeForMarketing);
+            wrap(marketingItem).createPartitionItemForBudgeting(invoiceChargeForMarketing, keyTable2Truncated, new BigDecimal("100"));
+            wrap(mixin(Budget_Calculate.class, budget)).calculate(true);
+
+            // then
+            calculations = budgetCalculationRepository.allBudgetCalculations();
+            assertThat(calculations.size()).isEqualTo(39);
+
+            newCalculations = calculations.stream().filter(x->x.getStatus()==Status.NEW).collect(Collectors.toList());
+            assignedCalculations = calculations.stream().filter(x->x.getStatus()==Status.ASSIGNED).collect(Collectors.toList());
+            assertThat(newCalculations.size()).isEqualTo(11);
+            // and still
+            assertThat(assignedCalculations.size()).isEqualTo(28);
+            assertThat(calculationRuns.size()).isEqualTo(6);
+            // thus still
+            assertThat(leasePoisonItems.size()).isEqualTo(2);
 
         }
 
-        public void assignBudgetWhenAudited() throws Exception {
+        public void reconcile() throws Exception {
+
+            // given
+            BudgetItem budgetItem1 = budget.findByCharge(incomingCharge1);
+            BudgetItem budgetItem2 = budget.findByCharge(incomingCharge2);
+            BudgetItem budgetItem3 = budget.findByCharge(incomingCharge3);
+            BudgetItem budgetItem4 = budget.findByCharge(invoiceChargeForMarketing);
+            wrap(budgetItem1).newValue(new BigDecimal("10000.00"), budget.getStartDate());
+            wrap(budgetItem2).newValue(new BigDecimal("20000.00"), budget.getStartDate());
+            wrap(budgetItem3).newValue(new BigDecimal("30000.00"), budget.getStartDate());
+            wrap(budgetItem4).newValue(new BigDecimal("70000.00"), budget.getStartDate());
+
+            // when
+            wrap(mixin(Budget_Reconcile.class, budget)).reconcile(true);
+
+            // then
+            calculations = budgetCalculationRepository.allBudgetCalculations();
+            assertThat(calculations.size()).isEqualTo(67); // not 78 (2x39) minus 11 new calculations that were deleted
+
+            final List<BudgetCalculation> calcsForItem1 = budgetCalculationRepository.findByBudgetItemAndCalculationType(budgetItem1, BudgetCalculationType.ACTUAL);
+            assertThat(calcsForItem1.size()).isEqualTo(7);
+            final List<BudgetCalculation> calcsForItem2 = budgetCalculationRepository.findByBudgetItemAndCalculationType(budgetItem2, BudgetCalculationType.ACTUAL);
+            assertThat(calcsForItem2.size()).isEqualTo(13);
+            final List<BudgetCalculation> calcsForItem3 = budgetCalculationRepository.findByBudgetItemAndCalculationType(budgetItem3, BudgetCalculationType.ACTUAL);
+            assertThat(calcsForItem3.size()).isEqualTo(13);
+            final List<BudgetCalculation> calcsForItem4 = budgetCalculationRepository.findByBudgetItemAndCalculationType(budgetItem4, BudgetCalculationType.ACTUAL);
+            assertThat(calcsForItem4.size()).isEqualTo(6);
+            calcsForItem4.stream().forEach(x->assertThat(x.getStatus()).isEqualTo(Status.NEW)); // for the time being whilst assign_budget_when_updated_with_new_item_creates_no_calculation_run_at_the_moment() is passing
+
+            calculationRuns = budgetCalculationRunRepository.findByBudget(budget);
+            assertThat(calculationRuns.size()).isEqualTo(12);
+            assertThat(budgetCalculationRunRepository.findByLease(leasePoison).size()).isEqualTo(2);
+            assertThat(budgetCalculationRunRepository.findByLease(leaseMiracle).size()).isEqualTo(2);
+            assertThat(budgetCalculationRunRepository.findByLease(leaseHello3).size()).isEqualTo(2);
+            assertThat(budgetCalculationRunRepository.findByLease(leaseDago).size()).isEqualTo(2);
+            assertThat(budgetCalculationRunRepository.findByLease(leaseNlBank).size()).isEqualTo(2);
+            assertThat(budgetCalculationRunRepository.findByLease(leaseHyper).size()).isEqualTo(2);
+            assertThat(budgetCalculationRunRepository.findByLease(leaseHello6).size()).isEqualTo(0);
+
+            newCalculations = calculations.stream().filter(x->x.getStatus()==Status.NEW).collect(Collectors.toList());
+            assignedCalculations = calculations.stream().filter(x->x.getStatus()==Status.ASSIGNED).collect(Collectors.toList());
+            assertThat(newCalculations.size()).isEqualTo(11);
+            assertThat(assignedCalculations.size()).isEqualTo(56);
+
+            validateLeaseItemsAndTerms(
+                    leasePoison,
+                    2,
+                    Arrays.asList(BVAL_POISON_1, U1_BVAL_2.setScale(2, BigDecimal.ROUND_HALF_UP)),
+                    Arrays.asList(BVAL_POISON_1, U1_BVAL_2.setScale(2, BigDecimal.ROUND_HALF_UP)), // override also for type actual
+                    Budget_enum.BudBudget2015.getStartDate());
+            validateLeaseItemsAndTerms(
+                    leaseMiracle,
+                    2,
+                    Arrays.asList(BVAL_MIRACLE_1, U2_BVAL_2.setScale(2, BigDecimal.ROUND_HALF_UP)),
+                    Arrays.asList(U2_BVAL_1, U2_BVAL_2.setScale(2, BigDecimal.ROUND_HALF_UP)), // no override for type actual - just for type budgeted
+                    Budget_enum.BudBudget2015.getStartDate());
+            validateLeaseItemsAndTerms(
+                    leaseHello3,
+                    2,
+                    Arrays.asList(U3_BVAL_1.setScale(2, BigDecimal.ROUND_HALF_UP), U3_BVAL_2.setScale(2, BigDecimal.ROUND_HALF_UP)),
+                    Arrays.asList(U3_BVAL_1.setScale(2, BigDecimal.ROUND_HALF_UP), U3_BVAL_2.setScale(2, BigDecimal.ROUND_HALF_UP)),
+                    leaseHello3.getStartDate());
+            validateLeaseItemsAndTerms(
+                    leaseDago,
+                    2,
+                    Arrays.asList(U4_BVAL_1.add(U7_BVAL_1).setScale(2, BigDecimal.ROUND_HALF_UP), U4_BVAL_2.add(U7_BVAL_2).setScale(2, BigDecimal.ROUND_HALF_UP)),
+                    Arrays.asList(U4_BVAL_1.add(U7_BVAL_1).setScale(2, BigDecimal.ROUND_HALF_UP), U4_BVAL_2.add(U7_BVAL_2).setScale(2, BigDecimal.ROUND_HALF_UP)),
+                    Budget_enum.BudBudget2015.getStartDate());
+            validateLeaseItemsAndTerms(
+                    leaseNlBank,
+                    2,
+                    Arrays.asList(U4_BVAL_1.setScale(2, BigDecimal.ROUND_HALF_UP), U4_BVAL_2.setScale(2, BigDecimal.ROUND_HALF_UP)),
+                    Arrays.asList(U4_BVAL_1.setScale(2, BigDecimal.ROUND_HALF_UP), U4_BVAL_2.setScale(2, BigDecimal.ROUND_HALF_UP)),
+                    leaseNlBank.getStartDate());
+            validateLeaseItemsAndTerms(
+                    leaseHyper,
+                    2,
+                    Arrays.asList(U5_BVAL_1.setScale(2, BigDecimal.ROUND_HALF_UP), U5_BVAL_2.setScale(2, BigDecimal.ROUND_HALF_UP)),
+                    Arrays.asList(U5_BVAL_1.setScale(2, BigDecimal.ROUND_HALF_UP), U5_BVAL_2.setScale(2, BigDecimal.ROUND_HALF_UP)),
+                    leaseHyper.getStartDate());
+
+            assertThat(leaseItemRepository.findLeaseItemsByType(leaseHello6, LeaseItemType.SERVICE_CHARGE_BUDGETED).size()).isEqualTo(0);
+        }
+
+        public void reconcilation_does_not_create_lease_item_and_term() throws Exception {
 
         }
 
-        public void assignBudgetWhenAuditedAndUpdated() throws Exception {
+        public void reconcile_when_audited_and_updated() throws Exception {
 
         }
 

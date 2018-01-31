@@ -18,18 +18,19 @@
  */
 package org.estatio.module.charge.fixtures.charges.enums;
 
+import org.apache.isis.applib.fixturescripts.FixtureScript;
 import org.apache.isis.applib.fixturescripts.PersonaWithBuilderScript;
 import org.apache.isis.applib.fixturescripts.PersonaWithFinder;
-import org.apache.isis.applib.fixturescripts.FixtureScript;
 import org.apache.isis.applib.services.registry.ServiceRegistry2;
 
 import org.incode.module.apptenancy.fixtures.enums.ApplicationTenancy_enum;
+import org.incode.module.country.fixtures.enums.Country_enum;
+
 import org.estatio.module.charge.dom.Applicability;
 import org.estatio.module.charge.dom.Charge;
 import org.estatio.module.charge.dom.ChargeRepository;
 import org.estatio.module.charge.fixtures.chargegroups.enums.ChargeGroup_enum;
 import org.estatio.module.charge.fixtures.charges.builders.ChargeBuilder;
-import org.incode.module.country.fixtures.enums.Country_enum;
 import org.estatio.module.tax.fixtures.data.Tax_enum;
 
 import lombok.Getter;
@@ -68,6 +69,7 @@ public enum Charge_enum implements PersonaWithBuilderScript<Charge, ChargeBuilde
     NlTax ( Country_enum.NLD, ChargeNoCountry_enum.Tax, Tax_enum.NL_VATSTD),
     NlServiceChargeIndexable ( Country_enum.NLD, ChargeNoCountry_enum.ServiceChargeIndexable, Tax_enum.NL_VATSTD),
     NlMarketing ( Country_enum.NLD, ChargeNoCountry_enum.Marketing, Tax_enum.NL_VATSTD),
+    NlMarketingIncoming ( Country_enum.NLD, ChargeNoCountry_enum.MarketingIncoming, Tax_enum.NL_VATSTD),
 
     SeRent ( Country_enum.SWE, ChargeNoCountry_enum.Rent, Tax_enum.SW_VATSTD),
     SeServiceCharge ( Country_enum.SWE, ChargeNoCountry_enum.ServiceCharge, Tax_enum.SW_VATSTD),

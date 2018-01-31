@@ -18,12 +18,12 @@ import org.estatio.module.budget.dom.keyitem.KeyItem;
 @DomainService(nature = NatureOfService.DOMAIN)
 public class BudgetCalculationService {
 
-    public List<BudgetCalculation> calculatePersistedCalculations(final Budget budget) {
+    public List<BudgetCalculation> calculate(final Budget budget, final BudgetCalculationType budgetCalculationType) {
 
         removeNewCalculations(budget);
 
         List<BudgetCalculation> budgetCalculations = new ArrayList<>();
-        for (BudgetCalculationViewmodel result : getBudgetedCalculations(budget)){
+        for (BudgetCalculationViewmodel result : getCalculationsForType(budget, budgetCalculationType)){
             budgetCalculations.add(
                     budgetCalculationRepository.findOrCreateBudgetCalculation(
                     result.getPartitionItem(),
@@ -41,21 +41,11 @@ public class BudgetCalculationService {
         }
     }
 
-    public List<BudgetCalculationViewmodel> getBudgetedCalculations(final Budget budget){
+    public List<BudgetCalculationViewmodel> getCalculationsForType(final Budget budget, final BudgetCalculationType budgetCalculationType){
         List<BudgetCalculationViewmodel> budgetCalculationViewmodels = new ArrayList<>();
         for (BudgetItem budgetItem : budget.getItems()) {
 
-            budgetCalculationViewmodels.addAll(calculate(budgetItem, BudgetCalculationType.BUDGETED));
-
-        }
-        return budgetCalculationViewmodels;
-    }
-
-    public List<BudgetCalculationViewmodel> getAuditedCalculations(final Budget budget){
-        List<BudgetCalculationViewmodel> budgetCalculationViewmodels = new ArrayList<>();
-        for (BudgetItem budgetItem : budget.getItems()) {
-
-            budgetCalculationViewmodels.addAll(calculate(budgetItem, BudgetCalculationType.ACTUAL));
+            budgetCalculationViewmodels.addAll(calculate(budgetItem, budgetCalculationType));
 
         }
         return budgetCalculationViewmodels;
@@ -75,6 +65,8 @@ public class BudgetCalculationService {
     private List<BudgetCalculationViewmodel> calculate(final BudgetItem budgetItem, final BudgetCalculationType type) {
 
         List<BudgetCalculationViewmodel> result = new ArrayList<>();
+
+        // TODO: only use partition items from partitioning with budgetCalculationType set to type
         for (PartitionItem partitionItem : budgetItem.getPartitionItems()) {
 
             result.addAll(calculate(partitionItem, type));
