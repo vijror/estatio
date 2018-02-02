@@ -21,7 +21,7 @@ import org.junit.Test;
 
 import org.incode.module.unittestsupport.dom.bean.AbstractBeanPropertiesTest;
 
-import org.estatio.module.budget.dom.budget.Budget;
+import org.estatio.module.budget.dom.partioning.Partitioning;
 import org.estatio.module.lease.dom.Lease;
 
 public class BudgetCalculationRun_Test {
@@ -32,7 +32,7 @@ public class BudgetCalculationRun_Test {
         public void test() {
             final BudgetCalculationRun pojo = new BudgetCalculationRun();
             newPojoTester()
-                    .withFixture(pojos(Budget.class, Budget.class))
+                    .withFixture(pojos(Partitioning.class, Partitioning.class))
                     .withFixture(pojos(Lease.class, Lease.class))
                     .exercise(pojo);
         }

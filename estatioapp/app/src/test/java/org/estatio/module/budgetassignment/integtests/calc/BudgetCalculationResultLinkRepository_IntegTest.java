@@ -12,7 +12,6 @@ import org.estatio.module.asset.dom.PropertyRepository;
 import org.estatio.module.asset.fixtures.property.enums.Property_enum;
 import org.estatio.module.budget.dom.budget.Budget;
 import org.estatio.module.budget.dom.budget.BudgetRepository;
-import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationType;
 import org.estatio.module.budget.dom.budgetcalculation.Status;
 import org.estatio.module.budget.fixtures.budgets.enums.Budget_enum;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult;
@@ -76,9 +75,10 @@ public class BudgetCalculationResultLinkRepository_IntegTest extends BudgetAssig
         });
         propertyOxf = Property_enum.OxfGb.findUsing(serviceRegistry);
         budget2015 = budgetRepository.findByPropertyAndStartDate(propertyOxf, Budget_enum.OxfBudget2015.getStartDate());
+        budget2015.findOrCreatePartitioningForBudgeting();
         charge = Charge_enum.GbServiceCharge.findUsing(serviceRegistry);
         leaseTopModel = Lease_enum.OxfTopModel001Gb.findUsing(serviceRegistry);
-        run = budgetCalculationRunRepository.createBudgetCalculationRun(leaseTopModel, budget2015, BudgetCalculationType.BUDGETED, Status.NEW);
+        run = budgetCalculationRunRepository.createBudgetCalculationRun(leaseTopModel, budget2015.getPartitioningForBudgeting(), Status.NEW);
         leaseItem = leaseTopModel.newItem(LeaseItemType.SERVICE_CHARGE_BUDGETED, LeaseAgreementRoleTypeEnum.LANDLORD, charge, InvoicingFrequency.MONTHLY_IN_ADVANCE, PaymentMethod.DIRECT_DEBIT, leaseTopModel.getStartDate());
     }
 

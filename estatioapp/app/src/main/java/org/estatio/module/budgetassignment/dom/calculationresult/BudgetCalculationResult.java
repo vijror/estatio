@@ -30,6 +30,7 @@ import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
 import org.incode.module.base.dom.utils.TitleBuilder;
 
 import org.estatio.module.base.dom.UdoDomainObject2;
+import org.estatio.module.budget.dom.partioning.Partitioning;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverride;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverrideRepository;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverrideValue;
@@ -106,7 +107,12 @@ public class BudgetCalculationResult extends UdoDomainObject2<BudgetCalculationR
                         getBudgetCalculationRun().getLease(),
                         getInvoiceCharge())){
             for (BudgetOverrideValue value : override.getValues()){
-                if (value.getType() == getBudgetCalculationRun().getType()) {
+                if (value.getType() == getBudgetCalculationRun().getType()
+                    &&
+                    getPartitioning()!=null
+                    &&
+                    override.getInterval().contains(getPartitioning().getInterval())
+                        ) {
                     results.add(value);
                 }
             }
@@ -114,12 +120,16 @@ public class BudgetCalculationResult extends UdoDomainObject2<BudgetCalculationR
         return results;
     }
 
+    Partitioning getPartitioning(){
+        return getBudgetCalculations().isEmpty() ? null : getBudgetCalculations().get(0).getPartitionItem().getPartitioning();
+    }
+
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout(contributed = Contributed.AS_ASSOCIATION)
     public List<BudgetCalculation> getBudgetCalculations(){
         List<BudgetCalculation> results = new ArrayList<>();
         for (Occupancy occupancy : getBudgetCalculationRun().getLease().getOccupancies()) {
-            results.addAll(budgetCalculationRepository.findByBudgetAndUnitAndInvoiceChargeAndType(getBudgetCalculationRun().getBudget(), occupancy.getUnit(), getInvoiceCharge(), getBudgetCalculationRun().getType()));
+            results.addAll(budgetCalculationRepository.findByPartitioningAndUnitAndInvoiceChargeAndType(getBudgetCalculationRun().getPartitioning(), occupancy.getUnit(), getInvoiceCharge(), getBudgetCalculationRun().getType()));
         }
         return results;
     }
@@ -204,7 +214,7 @@ public class BudgetCalculationResult extends UdoDomainObject2<BudgetCalculationR
     }
 
     @Inject
-    private BudgetOverrideRepository budgetOverrideRepository;
+    BudgetOverrideRepository budgetOverrideRepository;
 
     @Inject
     private BudgetCalculationRepository budgetCalculationRepository;

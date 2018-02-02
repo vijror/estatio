@@ -58,6 +58,11 @@ public enum Partitioning_enum
                 new ItemSpec(OxfBudget2015, GbServiceCharge, Oxf2015Area, 1, bd(80)),
                 new ItemSpec(OxfBudget2015, GbServiceCharge, Oxf2015Count, 1, bd(20)),
             }),
+    OxfPartitioning2015Simple(
+            OxfBudget2015, BudgetCalculationType.BUDGETED,
+            new ItemSpec[]{
+                    new ItemSpec(OxfBudget2015, GbServiceCharge, Oxf2015Area, 0, bd(100))
+            }),
     BudPartitioning2015(
             BudBudget2015, BudgetCalculationType.BUDGETED,
             new ItemSpec[]{

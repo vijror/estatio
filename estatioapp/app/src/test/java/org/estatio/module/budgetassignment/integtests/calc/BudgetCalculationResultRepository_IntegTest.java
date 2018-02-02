@@ -14,7 +14,6 @@ import org.estatio.module.asset.dom.PropertyRepository;
 import org.estatio.module.asset.fixtures.property.enums.Property_enum;
 import org.estatio.module.budget.dom.budget.Budget;
 import org.estatio.module.budget.dom.budget.BudgetRepository;
-import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationType;
 import org.estatio.module.budget.fixtures.budgets.enums.Budget_enum;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultRepository;
@@ -70,8 +69,9 @@ public class BudgetCalculationResultRepository_IntegTest extends BudgetAssignmen
         propertyOxf = Property_enum.OxfGb.findUsing(serviceRegistry);
         budgetsForOxf = budgetRepository.findByProperty(propertyOxf);
         budget2015 = budgetRepository.findByPropertyAndStartDate(propertyOxf, Budget_enum.OxfBudget2015.getStartDate());
+        budget2015.findOrCreatePartitioningForBudgeting();
         leaseTopModel = Lease_enum.OxfTopModel001Gb.findUsing(serviceRegistry);
-        run = wrap(budgetCalculationRunRepository).findOrCreateNewBudgetCalculationRun(leaseTopModel, budget2015, BudgetCalculationType.BUDGETED);
+        run = wrap(budgetCalculationRunRepository).findOrCreateBudgetCalculationRun(leaseTopModel, budget2015.getPartitioningForBudgeting());
     }
 
     public static class FindOrCreate extends BudgetCalculationResultRepository_IntegTest {

@@ -127,7 +127,7 @@ public class BudgetOverride_Test {
             calculations = override.findOrCreateValues(startDate);
 
             // then
-            assertThat(calculations.size()).isEqualTo(0);
+            assertThat(calculations.size()).isEqualTo(2);
 
             // and when startdate after startDate
             override.setStartDate(startDate.plusDays(1));

@@ -1,5 +1,6 @@
 package org.estatio.module.budgetassignment.dom.calculationresult;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.isis.applib.annotation.DomainService;
@@ -7,8 +8,8 @@ import org.apache.isis.applib.annotation.NatureOfService;
 
 import org.estatio.module.base.dom.UdoDomainRepositoryAndFactory;
 import org.estatio.module.budget.dom.budget.Budget;
-import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationType;
 import org.estatio.module.budget.dom.budgetcalculation.Status;
+import org.estatio.module.budget.dom.partioning.Partitioning;
 import org.estatio.module.lease.dom.Lease;
 
 @DomainService(repositoryFor = BudgetCalculationRun.class, nature = NatureOfService.DOMAIN)
@@ -20,14 +21,12 @@ public class BudgetCalculationRunRepository extends UdoDomainRepositoryAndFactor
 
     public BudgetCalculationRun createBudgetCalculationRun(
             final Lease lease,
-            final Budget budget,
-            final BudgetCalculationType type,
+            final Partitioning partitioning,
             final Status status){
 
         BudgetCalculationRun budgetCalculationRun = newTransientInstance(BudgetCalculationRun.class);
         budgetCalculationRun.setLease(lease);
-        budgetCalculationRun.setBudget(budget);
-        budgetCalculationRun.setType(type);
+        budgetCalculationRun.setPartitioning(partitioning);
         budgetCalculationRun.setStatus(status);
 
         persist(budgetCalculationRun);
@@ -35,17 +34,16 @@ public class BudgetCalculationRunRepository extends UdoDomainRepositoryAndFactor
         return budgetCalculationRun;
     }
 
-    public BudgetCalculationRun findOrCreateNewBudgetCalculationRun(
+    public BudgetCalculationRun findOrCreateBudgetCalculationRun(
             final Lease lease,
-            final Budget budget,
-            final BudgetCalculationType type
+            final Partitioning partitioning
     ){
-        BudgetCalculationRun run = findUnique(lease, budget, type);
-        return run== null ? createBudgetCalculationRun(lease, budget, type, Status.NEW) : run;
+        BudgetCalculationRun run = findUnique(lease, partitioning);
+        return run== null ? createBudgetCalculationRun(lease, partitioning, Status.NEW) : run;
     }
 
-    public BudgetCalculationRun findUnique(final Lease lease, final Budget budget, final BudgetCalculationType type){
-        return uniqueMatch("findUnique", "lease", lease, "budget", budget, "type", type);
+    public BudgetCalculationRun findUnique(final Lease lease, final Partitioning partitioning){
+        return uniqueMatch("findUnique", "lease", lease, "partitioning", partitioning);
     }
 
     public List<BudgetCalculationRun> allBudgetCalculationRuns(){
@@ -56,20 +54,24 @@ public class BudgetCalculationRunRepository extends UdoDomainRepositoryAndFactor
         return allMatches("findByLease", "lease", lease);
     }
 
-    public List<BudgetCalculationRun> findByBudgetAndType(final Budget budget, final BudgetCalculationType type) {
-        return allMatches("findByBudgetAndType", "budget", budget, "type", type);
+    public List<BudgetCalculationRun> findByPartitioning(final Partitioning partitioning) {
+        return allMatches("findByPartitioning", "partitioning", partitioning);
     }
 
-    public List<BudgetCalculationRun> findByBudgetAndTypeAndStatus(final Budget budget, final BudgetCalculationType type, final Status status) {
-        return allMatches("findByBudgetAndTypeAndStatus", "budget", budget, "type", type, "status", status);
+    public List<BudgetCalculationRun> findByPartitioningAndStatus(final Partitioning partitioning, final Status status) {
+        return allMatches("findByPartitioningAndStatus", "partitioning", partitioning, "status", status);
     }
 
-    public List<BudgetCalculationRun> findByLeaseAndBudgetAndTypeAndStatus(final Lease lease, final Budget budget, final BudgetCalculationType type, final Status status) {
-        return allMatches("findByLeaseAndBudgetAndTypeAndStatus", "lease", lease, "budget", budget, "type", type, "status", status);
+    public List<BudgetCalculationRun> findByLeaseAndPartitioningAndStatus(final Lease lease, final Partitioning partitioning, final Status status) {
+        return allMatches("findByLeaseAndPartitioningAndStatus", "lease", lease, "partitioning", partitioning, "status", status);
     }
 
     public List<BudgetCalculationRun> findByBudget(final Budget budget) {
-        return allMatches("findByBudget", "budget", budget);
+        List<BudgetCalculationRun> result = new ArrayList<>();
+        for (Partitioning partitioning : budget.getPartitionings()){
+            result.addAll(findByPartitioning(partitioning));
+        }
+        return result;
     }
 }
 

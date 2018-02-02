@@ -73,7 +73,7 @@ import lombok.Setter;
                         "FROM org.estatio.module.budget.dom.partioning.Partitioning " +
                         "WHERE budget == :budget && type == :type && startDate == :startDate "),
         @Query(
-                name = "findByBudgetAndType", language = "JDOQL",
+                name = "findByPartitioning", language = "JDOQL",
                 value = "SELECT " +
                         "FROM org.estatio.module.budget.dom.partioning.Partitioning " +
                         "WHERE budget == :budget && type == :type ")

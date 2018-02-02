@@ -177,7 +177,7 @@ public abstract class BudgetOverride extends UdoDomainObject2<BudgetOverride> {
         if (getStartDate()!=null && calculationDate.isBefore(getStartDate())){
             return false;
         }
-        if (getEndDate()!=null && (calculationDate.equals(getEndDate()) || calculationDate.isAfter(getEndDate()))){
+        if (getEndDate()!=null && calculationDate.isAfter(getEndDate())){
             return false;
         }
         return true;
@@ -214,7 +214,7 @@ public abstract class BudgetOverride extends UdoDomainObject2<BudgetOverride> {
 
     @Programmatic
     public LocalDateInterval getInterval() {
-        return LocalDateInterval.excluding(getStartDate(), getEndDate());
+        return LocalDateInterval.including(getStartDate(), getEndDate());
     }
 
     // TODO: for prototyping purposes only; should be removed when in production

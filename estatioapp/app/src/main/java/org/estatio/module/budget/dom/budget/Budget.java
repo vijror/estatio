@@ -302,6 +302,11 @@ public class Budget extends UdoDomainObject2<Budget>
     }
 
     @Programmatic
+    public List<Partitioning> getPartitioningsOfType(final BudgetCalculationType type){
+        return partitioningRepository.findByBudgetAndType(this, type);
+    }
+
+    @Programmatic
     public void remove(){
         remove(this);
     }

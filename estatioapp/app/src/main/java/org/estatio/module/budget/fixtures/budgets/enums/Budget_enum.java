@@ -54,6 +54,12 @@ public enum Budget_enum implements PersonaWithBuilderScript<Budget, BudgetBuilde
                 new ItemSpec(Charge_enum.GbIncomingCharge2, bd("40000.35"))
             }
     ),
+    OxfBudget2015Simple(
+            PropertyAndUnitsAndOwnerAndManager_enum.OxfGb, ld(2015, 1, 1),
+            new ItemSpec[]{
+                    new ItemSpec(Charge_enum.GbIncomingCharge1, bd("10000.00"))
+            }
+    ),
     OxfBudget2016(
             PropertyAndUnitsAndOwnerAndManager_enum.OxfGb, ld(2016, 1, 1),
             new ItemSpec[]{

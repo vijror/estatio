@@ -140,7 +140,7 @@ public class BudgetOverrideRepositoryTest {
             BudgetOverrideDummy override = new BudgetOverrideDummy();
             override.setStartDate(date);
             BudgetOverrideDummy overrideToCompare = new BudgetOverrideDummy();
-            overrideToCompare.setEndDate(date);
+            overrideToCompare.setEndDate(date.minusDays(1));
             List<BudgetOverride> overrides = Arrays.asList(overrideToCompare);
 
             //expect nothing

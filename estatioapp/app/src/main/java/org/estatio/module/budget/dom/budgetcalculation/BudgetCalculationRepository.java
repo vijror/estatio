@@ -3,6 +3,7 @@ package org.estatio.module.budget.dom.budgetcalculation;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.NatureOfService;
@@ -13,6 +14,7 @@ import org.estatio.module.budget.dom.budget.Budget;
 import org.estatio.module.budget.dom.budgetitem.BudgetItem;
 import org.estatio.module.budget.dom.keyitem.KeyItem;
 import org.estatio.module.budget.dom.partioning.PartitionItem;
+import org.estatio.module.budget.dom.partioning.Partitioning;
 import org.estatio.module.charge.dom.Charge;
 
 @DomainService(repositoryFor = BudgetCalculation.class, nature = NatureOfService.DOMAIN)
@@ -97,6 +99,11 @@ public class BudgetCalculationRepository extends UdoDomainRepositoryAndFactory<B
 
     public List<BudgetCalculation> findByBudgetAndUnitAndInvoiceChargeAndType(final Budget budget, final Unit unit, final Charge invoiceCharge, final BudgetCalculationType type) {
         return allMatches("findByBudgetAndUnitAndInvoiceChargeAndType", "budget", budget, "unit", unit, "invoiceCharge", invoiceCharge, "type", type);
+    }
+
+    public List<BudgetCalculation> findByPartitioningAndUnitAndInvoiceChargeAndType(final Partitioning partitioning, final Unit unit, final Charge invoiceCharge, final BudgetCalculationType type) {
+        return allMatches("findByBudgetAndUnitAndInvoiceChargeAndType", "budget", partitioning.getBudget(), "unit", unit, "invoiceCharge", invoiceCharge, "type", type)
+                .stream().filter(x->x.getPartitionItem().getPartitioning()==partitioning).collect(Collectors.toList());
     }
 
     public List<BudgetCalculation> findByBudgetAndUnitAndInvoiceChargeAndIncomingChargeAndType(final Budget budget, final Unit unit, final Charge invoiceCharge, final Charge incomingCharge, final BudgetCalculationType type) {

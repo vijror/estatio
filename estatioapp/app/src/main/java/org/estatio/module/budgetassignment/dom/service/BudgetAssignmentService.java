@@ -52,7 +52,7 @@ public class BudgetAssignmentService {
         for (Lease lease : leasesWithActiveOccupations(budget)) {
             removeNewOverrideValues(lease);
             calculateOverrideValues(lease, budget);
-            results.add(executeCalculationRun(lease, budget, type));
+            results.addAll(executeCalculationRuns(lease, budget, type));
         }
 
         return results;
@@ -74,12 +74,16 @@ public class BudgetAssignmentService {
         return result;
     }
 
-    public BudgetCalculationRun executeCalculationRun(final Lease lease, final Budget budget, final BudgetCalculationType type){
-        BudgetCalculationRun run = budgetCalculationRunRepository.findOrCreateNewBudgetCalculationRun(lease, budget, type);
-        if (run.getStatus()==Status.NEW) {
-            createBudgetCalculationResults(run);
+    public List<BudgetCalculationRun> executeCalculationRuns(final Lease lease, final Budget budget, final BudgetCalculationType type){
+        List<BudgetCalculationRun> result = new ArrayList<>();
+        for (Partitioning partitioning : budget.getPartitioningsOfType(type)) {
+            BudgetCalculationRun run = budgetCalculationRunRepository.findOrCreateBudgetCalculationRun(lease, partitioning);
+            if (run.getStatus() == Status.NEW) {
+                createBudgetCalculationResults(run);
+            }
+            result.add(run);
         }
-        return run;
+        return result;
     }
 
     public void createBudgetCalculationResults(final BudgetCalculationRun run){
@@ -113,25 +117,29 @@ public class BudgetAssignmentService {
     public void assignForType(final Budget budget, final BudgetCalculationType budgetCalculationType){
         switch (budgetCalculationType){
         case BUDGETED:
-            assignForBudgeted(budget);
+            for (Partitioning partitioning : budget.getPartitioningsOfType(BudgetCalculationType.BUDGETED)) {
+                assignForBudgeted(partitioning);
+            }
             break;
         case ACTUAL:
-            assignForActual(budget);
+            for (Partitioning partitioning : budget.getPartitioningsOfType(BudgetCalculationType.ACTUAL)) {
+                assignForActual(partitioning);
+            }
             break;
         }
     }
 
-    void assignForBudgeted(final Budget budget){
-        for (BudgetCalculationRun run : budgetCalculationRunRepository.findByBudgetAndTypeAndStatus(budget, BudgetCalculationType.BUDGETED, Status.NEW)){
+    void assignForBudgeted(final Partitioning partitioning){
+        for (BudgetCalculationRun run : budgetCalculationRunRepository.findByPartitioningAndStatus(partitioning, Status.NEW)){
             for (BudgetCalculationResult resultForLease : run.getBudgetCalculationResults()){
 
-                LocalDate termStartDate = run.getLease().getStartDate().isAfter(budget.getStartDate()) ?
+                LocalDate termStartDate = run.getLease().getStartDate().isAfter(partitioning.getStartDate()) ?
                         run.getLease().getStartDate() :
-                        budget.getStartDate();
+                        partitioning.getStartDate();
 
                 LeaseItem leaseItem = findOrCreateLeaseItemForServiceCharge(run.getLease(), resultForLease, termStartDate);
 
-                LeaseTermForServiceCharge leaseTerm = (LeaseTermForServiceCharge) leaseTermRepository.findOrCreateWithStartDate(leaseItem, new LocalDateInterval(termStartDate, budget.getEndDate()));
+                LeaseTermForServiceCharge leaseTerm = (LeaseTermForServiceCharge) leaseTermRepository.findOrCreateWithStartDate(leaseItem, new LocalDateInterval(termStartDate, partitioning.getEndDate()));
 
                 budgetCalculationResultLinkRepository.findOrCreateLink(resultForLease, leaseTerm);
 
@@ -142,9 +150,11 @@ public class BudgetAssignmentService {
         }
     }
 
-    void assignForActual(final Budget budget){
-        for (BudgetCalculationRun run : budgetCalculationRunRepository.findByBudgetAndTypeAndStatus(budget, BudgetCalculationType.ACTUAL, Status.NEW)){
-            final List<BudgetCalculationRun> assignedRunsForLeaseBudgeted = budgetCalculationRunRepository.findByLeaseAndBudgetAndTypeAndStatus(run.getLease(), budget, BudgetCalculationType.BUDGETED, Status.ASSIGNED);
+    void assignForActual(final Partitioning partitioning){
+        for (BudgetCalculationRun run : budgetCalculationRunRepository.findByPartitioningAndStatus(partitioning, Status.NEW)){
+            // TODO: for the moment we have just one partition for budgeted. This may change
+            final Partitioning partitioningForBudgeting = partitioning.getBudget().getPartitioningForBudgeting();
+            final List<BudgetCalculationRun> assignedRunsForLeaseBudgeted = budgetCalculationRunRepository.findByLeaseAndPartitioningAndStatus(run.getLease(), partitioningForBudgeting, Status.ASSIGNED);
             // TODO: for the moment we know there will be only one at most - this will change when we allow for more assigned runs on a lease
             if (assignedRunsForLeaseBudgeted.size()==1) {
                 BudgetCalculationRun runForBudgeted = assignedRunsForLeaseBudgeted.get(0);
@@ -208,8 +218,11 @@ public class BudgetAssignmentService {
     }
 
     public List<CalculationResultViewModel> getCalculationResults(final Budget budget){
+
         List<CalculationResultViewModel> results = new ArrayList<>();
-        for (BudgetCalculationRun run : budgetCalculationRunRepository.findByBudgetAndType(budget, BudgetCalculationType.BUDGETED)){
+        // TODO: for the moment we have just one partition for budgeted. This may change
+        final Partitioning partitioningForBudgeting = budget.getPartitioningForBudgeting();
+        for (BudgetCalculationRun run : budgetCalculationRunRepository.findByPartitioning(partitioningForBudgeting)){
             for (BudgetCalculationResult result : run.getBudgetCalculationResults()){
                 CalculationResultViewModel vm = new CalculationResultViewModel(
                         run.getLease(),
@@ -239,11 +252,26 @@ public class BudgetAssignmentService {
         return results;
     }
 
+
     public List<DetailedCalculationResultViewmodel> getDetailedCalculationResults(final Lease lease, final Budget budget, final BudgetCalculationType type){
 
         List<DetailedCalculationResultViewmodel> results = new ArrayList<>();
 
-        BudgetCalculationRun runForLease = budgetCalculationRunRepository.findUnique(lease, budget, type);
+        for (Partitioning partitioning : budget.getPartitioningsOfType(type)) {
+
+            results.addAll(getDetailedCalculationResults(lease, partitioning));
+
+        }
+
+        return results;
+    }
+
+
+    List<DetailedCalculationResultViewmodel> getDetailedCalculationResults(final Lease lease, final Partitioning partitioning){
+
+        List<DetailedCalculationResultViewmodel> results = new ArrayList<>();
+
+        BudgetCalculationRun runForLease = budgetCalculationRunRepository.findUnique(lease, partitioning);
         if (runForLease==null){return results;}
 
         for (BudgetCalculationResult result : runForLease.getBudgetCalculationResults()){
@@ -282,13 +310,13 @@ public class BudgetAssignmentService {
                     // set value in Budget
                     PartitionItem partitionItem = calculation.getPartitionItem();
                     BudgetItem budgetItem = calculation.getBudgetItem();
-                    BigDecimal valueForBudgetItem = type == BudgetCalculationType.BUDGETED ? budgetItem.getBudgetedValue() : budgetItem.getAuditedValue();
+                    BigDecimal valueForBudgetItem = partitioning.getType() == BudgetCalculationType.BUDGETED ? budgetItem.getBudgetedValue() : budgetItem.getAuditedValue();
                     valueInBudget = valueForBudgetItem;
                     vm.setTotalValueInBudget(valueInBudget);
 
                     // set possible overrides for incoming charge
                     for (BudgetOverrideValue overrideValue : result.getOverrideValues()) {
-                        if (overrideValue.getBudgetOverride().getIncomingCharge() == calculation.getIncomingCharge() && overrideValue.getType() == type) {
+                        if (overrideValue.getBudgetOverride().getIncomingCharge() == calculation.getIncomingCharge() && overrideValue.getType() == partitioning.getType()) {
                             effectiveValueForIncomingCharge = overrideValue.getValue().multiply(calculation.getPartitionItem().getPartitioning().getFractionOfYear());
                             shortFallForIncomingCharge = calculation.getEffectiveValue().subtract(effectiveValueForIncomingCharge);
                         }
@@ -303,6 +331,7 @@ public class BudgetAssignmentService {
             }
 
         }
+
         return results;
     }
 

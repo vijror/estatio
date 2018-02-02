@@ -16,6 +16,7 @@ import org.estatio.module.budget.dom.budget.Budget;
 import org.estatio.module.budget.dom.budget.BudgetRepository;
 import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationType;
 import org.estatio.module.budget.dom.budgetcalculation.Status;
+import org.estatio.module.budget.dom.partioning.Partitioning;
 import org.estatio.module.budget.fixtures.budgets.enums.Budget_enum;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRunRepository;
@@ -58,6 +59,7 @@ public class BudgetCalculationRunRepository_IntegTest extends BudgetAssignmentMo
         propertyOxf = Property_enum.OxfGb.findUsing(serviceRegistry);
         budgetsForOxf = budgetRepository.findByProperty(propertyOxf);
         budget2015 = budgetRepository.findByPropertyAndStartDate(propertyOxf, Budget_enum.OxfBudget2015.getStartDate());
+        budget2015.findOrCreatePartitioningForBudgeting();
     }
 
     public static class FindOrCreate extends BudgetCalculationRunRepository_IntegTest {
@@ -72,7 +74,7 @@ public class BudgetCalculationRunRepository_IntegTest extends BudgetAssignmentMo
             assertThat(budgetCalculationRunRepository.allBudgetCalculationRuns().size()).isEqualTo(0);
 
             // when
-            BudgetCalculationRun run = wrap(budgetCalculationRunRepository).findOrCreateNewBudgetCalculationRun(leaseTopModel, budget2015, BudgetCalculationType.BUDGETED);
+            BudgetCalculationRun run = wrap(budgetCalculationRunRepository).findOrCreateBudgetCalculationRun(leaseTopModel, budget2015.getPartitioningForBudgeting());
 
             // then
             assertThat(budgetCalculationRunRepository.allBudgetCalculationRuns().size()).isEqualTo(1);
@@ -83,13 +85,15 @@ public class BudgetCalculationRunRepository_IntegTest extends BudgetAssignmentMo
             assertThat(run.getStatus()).isEqualTo(Status.NEW);
 
             // and when again
-            wrap(budgetCalculationRunRepository).findOrCreateNewBudgetCalculationRun(leaseTopModel, budget2015, BudgetCalculationType.BUDGETED);
+            wrap(budgetCalculationRunRepository).findOrCreateBudgetCalculationRun(leaseTopModel, budget2015.getPartitioningForBudgeting());
 
             // then is idemPotent
             assertThat(budgetCalculationRunRepository.allBudgetCalculationRuns().size()).isEqualTo(1);
 
-            // and when again
-            run = wrap(budgetCalculationRunRepository).findOrCreateNewBudgetCalculationRun(leaseTopModel, budget2015, BudgetCalculationType.ACTUAL);
+            // and when
+            budget2015.newPartitioning();
+            Partitioning partitioningForActual = budget2015.getPartitioningsOfType(BudgetCalculationType.ACTUAL).get(0);
+            run = wrap(budgetCalculationRunRepository).findOrCreateBudgetCalculationRun(leaseTopModel, partitioningForActual);
 
             // then
             assertThat(budgetCalculationRunRepository.allBudgetCalculationRuns().size()).isEqualTo(2);
@@ -110,7 +114,7 @@ public class BudgetCalculationRunRepository_IntegTest extends BudgetAssignmentMo
             assertThat(budgetCalculationRunRepository.findByLease(leaseTopModel).size()).isEqualTo(0);
 
             // when
-            wrap(budgetCalculationRunRepository).findOrCreateNewBudgetCalculationRun(leaseTopModel, budget2015, BudgetCalculationType.BUDGETED);
+            wrap(budgetCalculationRunRepository).findOrCreateBudgetCalculationRun(leaseTopModel, budget2015.getPartitioningForBudgeting());
 
             // then
             assertThat(budgetCalculationRunRepository.findByLease(leaseTopModel).size()).isEqualTo(1);
@@ -128,7 +132,7 @@ public class BudgetCalculationRunRepository_IntegTest extends BudgetAssignmentMo
             Lease leaseTopModel = Lease_enum.OxfTopModel001Gb.findUsing(serviceRegistry);
 
             // when
-            wrap(budgetCalculationRunRepository).findOrCreateNewBudgetCalculationRun(leaseTopModel, budget2015, BudgetCalculationType.BUDGETED);
+            wrap(budgetCalculationRunRepository).findOrCreateBudgetCalculationRun(leaseTopModel, budget2015.getPartitioningForBudgeting());
 
             // then
             assertThat(budgetCalculationRunRepository.findByBudget(budget2015).size()).isEqualTo(1);
@@ -137,39 +141,38 @@ public class BudgetCalculationRunRepository_IntegTest extends BudgetAssignmentMo
 
     }
 
-    public static class FindByBudgetAndType extends BudgetCalculationRunRepository_IntegTest {
+    public static class FindByPartitioning extends BudgetCalculationRunRepository_IntegTest {
 
         @Test
-        public void findByBudgetAndType() {
+        public void findByPartitioning() {
 
             // given
             Lease leaseTopModel = Lease_enum.OxfTopModel001Gb.findUsing(serviceRegistry);
 
             // when
-            wrap(budgetCalculationRunRepository).findOrCreateNewBudgetCalculationRun(leaseTopModel, budget2015, BudgetCalculationType.BUDGETED);
+            wrap(budgetCalculationRunRepository).findOrCreateBudgetCalculationRun(leaseTopModel, budget2015.getPartitioningForBudgeting());
 
             // then
-            assertThat(budgetCalculationRunRepository.findByBudgetAndType(budget2015, BudgetCalculationType.BUDGETED).size()).isEqualTo(1);
-            assertThat(budgetCalculationRunRepository.findByBudgetAndType(budget2015, BudgetCalculationType.ACTUAL).size()).isEqualTo(0);
+            assertThat(budgetCalculationRunRepository.findByPartitioning(budget2015.getPartitioningForBudgeting()).size()).isEqualTo(1);
 
         }
 
     }
 
-    public static class FindByBudgetAndTypeAndStatus extends BudgetCalculationRunRepository_IntegTest {
+    public static class FindByPartitioningAndStatus extends BudgetCalculationRunRepository_IntegTest {
 
         @Test
-        public void findByBudgetAndTypeStatus() {
+        public void findByPartitioningAndStatus() {
 
             // given
             Lease leaseTopModel = Lease_enum.OxfTopModel001Gb.findUsing(serviceRegistry);
 
             // when
-            wrap(budgetCalculationRunRepository).findOrCreateNewBudgetCalculationRun(leaseTopModel, budget2015, BudgetCalculationType.BUDGETED);
+            wrap(budgetCalculationRunRepository).findOrCreateBudgetCalculationRun(leaseTopModel, budget2015.getPartitioningForBudgeting());
 
             // then
-            assertThat(budgetCalculationRunRepository.findByBudgetAndTypeAndStatus(budget2015, BudgetCalculationType.BUDGETED, Status.NEW).size()).isEqualTo(1);
-            assertThat(budgetCalculationRunRepository.findByBudgetAndTypeAndStatus(budget2015, BudgetCalculationType.BUDGETED, Status.ASSIGNED).size()).isEqualTo(0);
+            assertThat(budgetCalculationRunRepository.findByPartitioningAndStatus(budget2015.getPartitioningForBudgeting(), Status.NEW).size()).isEqualTo(1);
+            assertThat(budgetCalculationRunRepository.findByPartitioningAndStatus(budget2015.getPartitioningForBudgeting(), Status.ASSIGNED).size()).isEqualTo(0);
 
         }
 

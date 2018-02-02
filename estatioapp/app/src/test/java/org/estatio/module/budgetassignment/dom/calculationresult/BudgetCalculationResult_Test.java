@@ -19,20 +19,31 @@ package org.estatio.module.budgetassignment.dom.calculationresult;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.jmock.Expectations;
+import org.jmock.auto.Mock;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import org.apache.isis.core.unittestsupport.jmocking.JUnitRuleMockery2;
+
 import org.incode.module.unittestsupport.dom.bean.AbstractBeanPropertiesTest;
 
+import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculation;
+import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationType;
+import org.estatio.module.budget.dom.partioning.Partitioning;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverride;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverrideDummy;
+import org.estatio.module.budgetassignment.dom.override.BudgetOverrideForFixed;
+import org.estatio.module.budgetassignment.dom.override.BudgetOverrideRepository;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverrideValue;
-import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculation;
 import org.estatio.module.charge.dom.Charge;
+import org.estatio.module.lease.dom.Lease;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -164,5 +175,81 @@ public class BudgetCalculationResult_Test {
         }
 
     }
+
+    @Rule
+    public JUnitRuleMockery2 context = JUnitRuleMockery2.createFor(JUnitRuleMockery2.Mode.INTERFACES_AND_CLASSES);
+
+    public static class GetOverrideValuesForResult extends BudgetCalculationResult_Test {
+
+        @Mock BudgetOverrideRepository mockBudgetOverrideRepository;
+
+        @Test
+        public void get_override_values_takes_override_interval_into_account() throws Exception {
+
+            // given
+            final LocalDate partitioningStartDate = new LocalDate(2017, 1, 1);
+            final LocalDate partitioningEndDate = new LocalDate(2017, 12, 31);
+            Partitioning partitioning = new Partitioning();
+            partitioning.setStartDate(partitioningStartDate);
+            partitioning.setEndDate(partitioningEndDate);
+            partitioning.setType(BudgetCalculationType.BUDGETED);
+
+            BudgetCalculationResult budgetCalculationResult = new BudgetCalculationResult(){
+                @Override
+                Partitioning getPartitioning(){
+                    return partitioning;
+                }
+            };
+            budgetCalculationResult.budgetOverrideRepository = mockBudgetOverrideRepository;
+
+            BudgetCalculationRun run = new BudgetCalculationRun();
+            Lease lease = new Lease();
+            run.setLease(lease);
+            run.setPartitioning(partitioning);
+
+            Charge invoiceCharge = new Charge();
+            budgetCalculationResult.setInvoiceCharge(invoiceCharge);
+
+            budgetCalculationResult.setBudgetCalculationRun(run);
+
+            BudgetOverride override1 = new BudgetOverrideForFixed();
+            override1.setStartDate(partitioningStartDate);
+            override1.setEndDate(partitioningEndDate);
+            BudgetOverrideValue value1 = new BudgetOverrideValue();
+            value1.setType(BudgetCalculationType.BUDGETED);
+            override1.getValues().add(value1);
+
+            BudgetOverrideForFixed override2 = new BudgetOverrideForFixed();
+            override2.setStartDate(partitioningStartDate.plusDays(1));
+            override2.setEndDate(partitioningEndDate);
+            BudgetOverrideValue value2 = new BudgetOverrideValue();
+            value2.setType(BudgetCalculationType.BUDGETED);
+            override2.getValues().add(value2);
+
+            BudgetOverrideForFixed override3 = new BudgetOverrideForFixed();
+            override3.setStartDate(partitioningStartDate);
+            override3.setEndDate(partitioningEndDate.minusDays(1));
+            BudgetOverrideValue value3 = new BudgetOverrideValue();
+            value3.setType(BudgetCalculationType.BUDGETED);
+            override3.getValues().add(value3);
+
+            // expect
+            context.checking(new Expectations(){{
+                oneOf(mockBudgetOverrideRepository).findByLeaseAndInvoiceCharge(lease, invoiceCharge);
+                will(returnValue(Arrays.asList(override1, override2, override3)));
+            }});
+
+            // when
+            List<BudgetOverrideValue> result = budgetCalculationResult.getOverrideValues();
+
+            // then
+            assertThat(result.size()).isEqualTo(1);
+            assertThat(result).contains(value1);
+
+        }
+
+    }
+
+
 
 }

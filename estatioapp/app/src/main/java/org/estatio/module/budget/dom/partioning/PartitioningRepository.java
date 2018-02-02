@@ -71,7 +71,7 @@ public class PartitioningRepository extends UdoDomainRepositoryAndFactory<Partit
     }
 
     public List<Partitioning> findByBudgetAndType(final Budget budget, final BudgetCalculationType type){
-        return allMatches("findByBudgetAndType", "budget", budget, "type", type);
+        return allMatches("findByPartitioning", "budget", budget, "type", type);
     }
 
     public List<Partitioning> allPartitionings() {

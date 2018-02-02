@@ -12,9 +12,11 @@ import javax.jdo.annotations.Query;
 import javax.jdo.annotations.Unique;
 import javax.jdo.annotations.VersionStrategy;
 
+import org.apache.isis.applib.annotation.Action;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.annotation.PropertyLayout;
+import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.annotation.Where;
 
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
@@ -25,6 +27,7 @@ import org.estatio.module.base.dom.UdoDomainObject2;
 import org.estatio.module.budget.dom.budget.Budget;
 import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationType;
 import org.estatio.module.budget.dom.budgetcalculation.Status;
+import org.estatio.module.budget.dom.partioning.Partitioning;
 import org.estatio.module.charge.dom.Charge;
 import org.estatio.module.lease.dom.Lease;
 
@@ -47,35 +50,29 @@ import lombok.Setter;
                 value = "SELECT " +
                         "FROM org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun " +
                         "WHERE lease == :lease && "
-                        + "budget == :budget && "
-                        + "type == :type"),
+                        + "partitioning == :partitioning"),
         @Query(
                 name = "findByLease", language = "JDOQL",
                 value = "SELECT " +
                         "FROM org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun " +
                         "WHERE lease == :lease"),
         @Query(
-                name = "findByBudget", language = "JDOQL",
+                name = "findByPartitioning", language = "JDOQL",
                 value = "SELECT " +
                         "FROM org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun " +
-                        "WHERE budget == :budget"),
+                        "WHERE partitioning == :partitioning"),
         @Query(
-                name = "findByBudgetAndType", language = "JDOQL",
+                name = "findByPartitioningAndStatus", language = "JDOQL",
                 value = "SELECT " +
                         "FROM org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun " +
-                        "WHERE budget == :budget && type == :type"),
+                        "WHERE partitioning == :partitioning && status == :status"),
         @Query(
-                name = "findByBudgetAndTypeAndStatus", language = "JDOQL",
+                name = "findByLeaseAndPartitioningAndStatus", language = "JDOQL",
                 value = "SELECT " +
                         "FROM org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun " +
-                        "WHERE budget == :budget && type == :type && status == :status"),
-        @Query(
-                name = "findByLeaseAndBudgetAndTypeAndStatus", language = "JDOQL",
-                value = "SELECT " +
-                        "FROM org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun " +
-                        "WHERE lease == :lease && budget == :budget && type == :type && status == :status")
+                        "WHERE lease == :lease && partitioning == :partitioning && status == :status")
 })
-@Unique(name = "BudgetCalculationRun_lease_budget_type_UNQ", members = { "lease", "budget", "type" })
+@Unique(name = "BudgetCalculationRun_lease_partitioning_UNQ", members = { "lease", "partitioning" })
 
 @DomainObject(
         objectType = "org.estatio.dom.budgetassignment.calculationresult.BudgetCalculationRun"
@@ -83,7 +80,7 @@ import lombok.Setter;
 public class BudgetCalculationRun extends UdoDomainObject2<BudgetCalculationRun> {
 
     public BudgetCalculationRun() {
-        super("lease, budget, type");
+        super("lease, partitioning");
     }
 
     public String title(){
@@ -91,9 +88,7 @@ public class BudgetCalculationRun extends UdoDomainObject2<BudgetCalculationRun>
                 .start()
                 .withName(getLease())
                 .withName(" - ")
-                .withName(getBudget())
-                .withName(" - ")
-                .withName(getType())
+                .withName(getPartitioning())
                 .toString();
     }
 
@@ -102,13 +97,9 @@ public class BudgetCalculationRun extends UdoDomainObject2<BudgetCalculationRun>
     private Lease lease;
 
     @Getter @Setter
-    @Column(name = "budgetId", allowsNull = "false")
+    @Column(name = "partitioningId", allowsNull = "false")
     @PropertyLayout(hidden = Where.REFERENCES_PARENT)
-    private Budget budget;
-
-    @Getter @Setter
-    @Column(allowsNull = "false")
-    private BudgetCalculationType type;
+    private Partitioning partitioning;
 
     @Getter @Setter
     @Column(allowsNull = "false")
@@ -120,6 +111,16 @@ public class BudgetCalculationRun extends UdoDomainObject2<BudgetCalculationRun>
 
     @Override public ApplicationTenancy getApplicationTenancy() {
         return getLease().getApplicationTenancy();
+    }
+
+    @Action(semantics = SemanticsOf.SAFE)
+    public Budget getBudget(){
+        return partitioning.getBudget();
+    }
+
+    @Action(semantics = SemanticsOf.SAFE)
+    public BudgetCalculationType getType(){
+        return partitioning.getType();
     }
 
     @Programmatic

@@ -107,7 +107,7 @@ public class PartitioningRepository_Test {
 
             assertThat(finderInteraction.getFinderMethod()).isEqualTo(FinderInteraction.FinderMethod.ALL_MATCHES);
             assertThat(finderInteraction.getResultType()).isEqualTo(Partitioning.class);
-            assertThat(finderInteraction.getQueryName()).isEqualTo("findByBudgetAndType");
+            assertThat(finderInteraction.getQueryName()).isEqualTo("findByPartitioning");
             assertThat(finderInteraction.getArgumentsByParameterName().get("budget")).isEqualTo((Object) budget);
             assertThat(finderInteraction.getArgumentsByParameterName().get("type")).isEqualTo((Object) type);
             assertThat(finderInteraction.getArgumentsByParameterName()).hasSize(2);
