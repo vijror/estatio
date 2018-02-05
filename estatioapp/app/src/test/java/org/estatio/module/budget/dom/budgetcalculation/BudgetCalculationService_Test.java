@@ -31,6 +31,7 @@ import org.estatio.module.budget.dom.budgetitem.BudgetItemValue;
 import org.estatio.module.budget.dom.keyitem.KeyItem;
 import org.estatio.module.budget.dom.keytable.KeyTable;
 import org.estatio.module.budget.dom.keytable.KeyValueMethod;
+import org.estatio.module.budget.dom.partioning.Partitioning;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -82,9 +83,13 @@ public class BudgetCalculationService_Test {
             keyItem2.setKeyTable(keyTable);
             keyTable.getItems().add(keyItem2);
 
+            Partitioning partitioning = new Partitioning();
+            partitioning.setType(BudgetCalculationType.BUDGETED);
+
             partitionItem = new PartitionItem();
             partitionItem.setBudgetItem(budgetItem);
             partitionItem.setKeyTable(keyTable);
+            partitionItem.setPartitioning(partitioning);
 
             budget.getItems().add(budgetItem);
 

@@ -66,8 +66,7 @@ public class BudgetCalculationService {
 
         List<BudgetCalculationViewmodel> result = new ArrayList<>();
 
-        // TODO: only use partition items from partitioning with budgetCalculationType set to type
-        for (PartitionItem partitionItem : budgetItem.getPartitionItems()) {
+        for (PartitionItem partitionItem : budgetItem.getPartitionItemsOfType(type)) {
 
             result.addAll(calculate(partitionItem, type));
 

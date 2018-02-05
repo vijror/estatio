@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.inject.Inject;
 import javax.jdo.annotations.Column;
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
@@ -35,9 +36,11 @@ import javax.jdo.annotations.VersionStrategy;
 
 import org.joda.time.LocalDate;
 
+import org.apache.isis.applib.annotation.Action;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.annotation.PropertyLayout;
+import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.annotation.Where;
 
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
@@ -51,6 +54,8 @@ import org.estatio.module.base.dom.UdoDomainObject2;
 import org.estatio.module.base.dom.apptenancy.WithApplicationTenancyProperty;
 import org.estatio.module.budget.dom.budget.Budget;
 import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationType;
+import org.estatio.module.budget.dom.budgetitem.BudgetItem;
+import org.estatio.module.budget.dom.keytable.KeyTable;
 import org.estatio.module.charge.dom.Charge;
 
 import lombok.Getter;
@@ -126,6 +131,24 @@ public class Partitioning extends UdoDomainObject2<Partitioning>
         return getBudget().getApplicationTenancy();
     }
 
+    @Action(semantics = SemanticsOf.IDEMPOTENT)
+    public Partitioning copyToPartitioningForActual(){
+        Partitioning partitioningForActual = partitioningRepository.newPartitioning(getBudget(), getStartDate(), getEndDate(), BudgetCalculationType.ACTUAL);
+        for (PartitionItem itemForBudgeted : getItems()){
+            partitioningForActual.createItem(itemForBudgeted.getBudgetItem(), itemForBudgeted.getCharge(), itemForBudgeted.getKeyTable(), itemForBudgeted.getPercentage());
+        }
+        return partitioningForActual;
+    }
+
+    public String disableCopyToPartitioningForActual(){
+        return partitioningRepository.findUnique(getBudget(), BudgetCalculationType.ACTUAL, getStartDate())!=null ? "Partioning for actual exists already" : null;
+    }
+
+    @Programmatic
+    public PartitionItem createItem(final BudgetItem budgetItem, final Charge invoiceCharge, final KeyTable keyTable, final BigDecimal percentage){
+        return partitionItemRepository.findOrCreatePartitionItem(this, budgetItem, invoiceCharge, keyTable, percentage);
+    }
+
     @Programmatic
     public List<Charge> getDistinctInvoiceCharges() {
         List<Charge> results = new ArrayList<>();
@@ -166,4 +189,10 @@ public class Partitioning extends UdoDomainObject2<Partitioning>
     private boolean isActiveOn(final LocalDate date) {
         return getInterval().contains(date);
     }
+
+    @Inject
+    PartitioningRepository partitioningRepository;
+
+    @Inject
+    PartitionItemRepository partitionItemRepository;
 }

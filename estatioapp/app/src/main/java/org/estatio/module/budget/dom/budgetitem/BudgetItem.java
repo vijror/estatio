@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.jdo.annotations.Column;
@@ -32,6 +33,8 @@ import javax.jdo.annotations.Query;
 import javax.jdo.annotations.Unique;
 import javax.jdo.annotations.VersionStrategy;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import com.google.common.collect.Lists;
 
 import org.joda.time.LocalDate;
 
@@ -252,6 +255,11 @@ public class BudgetItem extends UdoDomainObject2<BudgetItem>
             }
         }
         return newBudgetItemCopy;
+    }
+
+    @Programmatic
+    public List<PartitionItem> getPartitionItemsOfType(final BudgetCalculationType type) {
+        return Lists.newArrayList(getPartitionItems()).stream().filter(x->x.getPartitioning().getType()==type).collect(Collectors.toList());
     }
 
     @Override

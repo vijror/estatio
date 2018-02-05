@@ -555,13 +555,14 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
             wrap(budgetItem2).newValue(new BigDecimal("20000.00"), budget.getStartDate());
             wrap(budgetItem3).newValue(new BigDecimal("30000.00"), budget.getStartDate());
             wrap(budgetItem4).newValue(new BigDecimal("70000.00"), budget.getStartDate());
+            wrap(budget.getPartitioningForBudgeting()).copyToPartitioningForActual();
 
             // when
             wrap(mixin(Budget_Reconcile.class, budget)).reconcile(true);
 
             // then
             calculations = budgetCalculationRepository.allBudgetCalculations();
-            assertThat(calculations.size()).isEqualTo(67); // not 78 (2x39) minus 11 new calculations that were deleted
+            assertThat(calculations.size()).isEqualTo(67); // 78 (2x39) minus 11 new calculations of type budgeted that were deleted
 
             final List<BudgetCalculation> calcsForItem1 = budgetCalculationRepository.findByBudgetItemAndCalculationType(budgetItem1, BudgetCalculationType.ACTUAL);
             assertThat(calcsForItem1.size()).isEqualTo(7);

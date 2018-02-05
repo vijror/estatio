@@ -91,7 +91,7 @@ public class BudgetCalculationRunRepository_IntegTest extends BudgetAssignmentMo
             assertThat(budgetCalculationRunRepository.allBudgetCalculationRuns().size()).isEqualTo(1);
 
             // and when
-            budget2015.newPartitioning();
+            budget2015.getPartitioningForBudgeting().copyToPartitioningForActual();
             Partitioning partitioningForActual = budget2015.getPartitioningsOfType(BudgetCalculationType.ACTUAL).get(0);
             run = wrap(budgetCalculationRunRepository).findOrCreateBudgetCalculationRun(leaseTopModel, partitioningForActual);
 

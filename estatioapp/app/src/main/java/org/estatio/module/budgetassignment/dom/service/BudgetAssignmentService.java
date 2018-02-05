@@ -79,21 +79,19 @@ public class BudgetAssignmentService {
         for (Partitioning partitioning : budget.getPartitioningsOfType(type)) {
             BudgetCalculationRun run = budgetCalculationRunRepository.findOrCreateBudgetCalculationRun(lease, partitioning);
             if (run.getStatus() == Status.NEW) {
-                createBudgetCalculationResults(run);
+                createBudgetCalculationResults(run, partitioning);
             }
             result.add(run);
         }
         return result;
     }
 
-    public void createBudgetCalculationResults(final BudgetCalculationRun run){
+    public void createBudgetCalculationResults(final BudgetCalculationRun run, final Partitioning partitioning){
 
         run.removeCalculationResults();
-        for (Partitioning partitioning : run.getBudget().getPartitionings()){
-            for (Charge invoiceCharge : partitioning.getDistinctInvoiceCharges()){
-                BudgetCalculationResult result = run.createCalculationResult(invoiceCharge);
-                result.calculate();
-            }
+        for (Charge invoiceCharge : partitioning.getDistinctInvoiceCharges()){
+            BudgetCalculationResult result = run.createCalculationResult(invoiceCharge);
+            result.calculate();
         }
 
     }
