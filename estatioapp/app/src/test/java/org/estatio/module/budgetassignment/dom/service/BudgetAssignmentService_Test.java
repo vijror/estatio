@@ -18,7 +18,7 @@ import org.apache.isis.core.unittestsupport.jmocking.JUnitRuleMockery2;
 
 import org.estatio.module.asset.dom.Property;
 import org.estatio.module.budget.dom.budget.Budget;
-import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculation;
+import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationType;
 import org.estatio.module.budget.dom.budgetcalculation.Status;
 import org.estatio.module.budget.dom.partioning.Partitioning;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult;
@@ -27,7 +27,6 @@ import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculati
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultRepository;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRunRepository;
-import org.estatio.module.budgetassignment.dom.override.BudgetOverrideValue;
 import org.estatio.module.charge.dom.Charge;
 import org.estatio.module.invoice.dom.PaymentMethod;
 import org.estatio.module.lease.dom.InvoicingFrequency;
@@ -303,26 +302,13 @@ public class BudgetAssignmentService_Test {
         // given
         budgetAssignmentService.budgetCalculationRunRepository = mockBudgetCalculationRunRepository;
 
-        Partitioning partitioningForBudgeted = new Partitioning();
         Partitioning partitioningForActual = new Partitioning();
-        budget = new Budget(){
-            @Override
-            public Partitioning getPartitioningForBudgeting(){
-                return partitioningForBudgeted;
-            };
-        };
-        partitioningForActual.setBudget(budget);
-
         BudgetCalculationRun run = new BudgetCalculationRun();
-        run.setStatus(Status.NEW);
-        Lease lease = new Lease();
-        run.setLease(lease);
 
         // expect
         context.checking(new Expectations(){{
             oneOf(mockBudgetCalculationRunRepository).findByPartitioningAndStatus(partitioningForActual, Status.NEW);
             will(returnValue(Arrays.asList(run)));
-            oneOf(mockBudgetCalculationRunRepository).findByLeaseAndPartitioningAndStatus(lease, partitioningForBudgeted, Status.ASSIGNED);
         }});
 
         // when
@@ -353,66 +339,31 @@ public class BudgetAssignmentService_Test {
 
         // given
         final String expectedMessage = String.format("Could not update term with id %s because an audited value was found", termToBeUpdated.getId()) ;
-        budgetAssignmentService.budgetCalculationRunRepository = mockBudgetCalculationRunRepository;
-        budgetAssignmentService.budgetCalculationResultRepository = mockBudgetCalculationResultRepository;
-        budgetAssignmentService.budgetCalculationResultLinkRepository = mockBudgetCalculationResultLinkRepository;
-        budgetAssignmentService.messageService = mockMessageService;
-
-        Partitioning partitioningForBudgeted = new Partitioning();
-        Partitioning partitioningForActual = new Partitioning();
-        budget = new Budget(){
+        budgetAssignmentService = new BudgetAssignmentService(){
             @Override
-            public Partitioning getPartitioningForBudgeting(){
-                return partitioningForBudgeted;
-            };
-        };
-        partitioningForActual.setBudget(budget);
-
-        BudgetCalculationRun runForActual = new BudgetCalculationRun();
-        runForActual.setStatus(Status.NEW);
-        Lease lease = new Lease();
-
-        BudgetCalculation calculationForActual = new BudgetCalculation();
-        calculationForActual.setStatus(Status.NEW);
-
-        BudgetCalculationResult resultForActual = new BudgetCalculationResult(){
-            @Override
-            public List<BudgetCalculation> getBudgetCalculations(){
-                return Arrays.asList(calculationForActual);
+            LeaseTermForServiceCharge findOrCreateLeaseTermToActualize(final BudgetCalculationResult resultForActual){
+                return termToBeUpdated;
             }
         };
-        Charge invoiceCharge = new Charge();
-        resultForActual.setInvoiceCharge(invoiceCharge);
+        budgetAssignmentService.budgetCalculationRunRepository = mockBudgetCalculationRunRepository;
+        budgetAssignmentService.messageService = mockMessageService;
 
+        Partitioning partitioningForActual = new Partitioning();
+        BudgetCalculationRun runForActual = new BudgetCalculationRun();
+
+        BudgetCalculationResult resultForActual = new BudgetCalculationResult();
         runForActual.getBudgetCalculationResults().add(resultForActual);
-
-        runForActual.setLease(lease);
-        BudgetCalculationRun runForBudgeted = new BudgetCalculationRun();
-
-        BudgetCalculationResult correspondingBudgetedResult = new BudgetCalculationResult();
-        BudgetCalculationResultLink linkForCorrespondingBudgetedResult = new BudgetCalculationResultLink();
-
-        linkForCorrespondingBudgetedResult.setLeaseTermForServiceCharge(termToBeUpdated);
 
         // expect
         context.checking(new Expectations(){{
             oneOf(mockBudgetCalculationRunRepository).findByPartitioningAndStatus(partitioningForActual, Status.NEW);
             will(returnValue(Arrays.asList(runForActual)));
-            oneOf(mockBudgetCalculationRunRepository).findByLeaseAndPartitioningAndStatus(lease, partitioningForBudgeted, Status.ASSIGNED);
-            will(returnValue(Arrays.asList(runForBudgeted)));
-            oneOf(mockBudgetCalculationResultRepository).findUnique(runForBudgeted, invoiceCharge);
-            will(returnValue(correspondingBudgetedResult));
-            oneOf(mockBudgetCalculationResultLinkRepository).findByCalculationResult(correspondingBudgetedResult);
-            will(returnValue(Arrays.asList(linkForCorrespondingBudgetedResult)));
             oneOf(mockMessageService).warnUser(expectedMessage);
         }});
 
         // when
         termToBeUpdated.setAuditedValue(BigDecimal.ZERO);
         budgetAssignmentService.assignForActual(partitioningForActual);
-
-        // then still
-        assertThat(calculationForActual.getStatus()).isEqualTo(Status.NEW);
 
     }
 
@@ -428,64 +379,30 @@ public class BudgetAssignmentService_Test {
         BigDecimal actualValue = new BigDecimal("12345.67");
 
         // given
+        budgetAssignmentService = new BudgetAssignmentService(){
+            @Override
+            LeaseTermForServiceCharge findOrCreateLeaseTermToActualize(final BudgetCalculationResult resultForActual){
+                return termToBeUpdated;
+            }
+        };
         budgetAssignmentService.budgetCalculationRunRepository = mockBudgetCalculationRunRepository;
-        budgetAssignmentService.budgetCalculationResultRepository = mockBudgetCalculationResultRepository;
         budgetAssignmentService.budgetCalculationResultLinkRepository = mockBudgetCalculationResultLinkRepository;
 
-        Partitioning partitioningForBudgeted = new Partitioning();
         Partitioning partitioningForActual = new Partitioning();
-        budget = new Budget(){
-            @Override
-            public Partitioning getPartitioningForBudgeting(){
-                return partitioningForBudgeted;
-            };
-        };
-        partitioningForActual.setBudget(budget);
 
         BudgetCalculationRun runForActual = new BudgetCalculationRun();
-        runForActual.setStatus(Status.NEW);
-        Lease lease = new Lease();
-
-        BudgetCalculation calculationForActual = new BudgetCalculation();
-        calculationForActual.setStatus(Status.NEW);
-
-        BudgetOverrideValue overrideValueForActual = new BudgetOverrideValue();
-        overrideValueForActual.setStatus(Status.NEW);
-
         BudgetCalculationResult resultForActual = new BudgetCalculationResult(){
             @Override
-            public List<BudgetCalculation> getBudgetCalculations(){
-                return Arrays.asList(calculationForActual);
-            }
-            @Override
-            public List<BudgetOverrideValue> getOverrideValues(){
-                return Arrays.asList(overrideValueForActual);
+            public void finalizeCalculationResult(){
             }
         };
-        Charge invoiceCharge = new Charge();
-        resultForActual.setInvoiceCharge(invoiceCharge);
         resultForActual.setValue(actualValue);
-
         runForActual.getBudgetCalculationResults().add(resultForActual);
-
-        runForActual.setLease(lease);
-        BudgetCalculationRun runForBudgeted = new BudgetCalculationRun();
-
-        BudgetCalculationResult correspondingBudgetedResult = new BudgetCalculationResult();
-        BudgetCalculationResultLink linkForCorrespondingBudgetedResult = new BudgetCalculationResultLink();
-
-        linkForCorrespondingBudgetedResult.setLeaseTermForServiceCharge(termToBeUpdated);
 
         // expect
         context.checking(new Expectations(){{
             oneOf(mockBudgetCalculationRunRepository).findByPartitioningAndStatus(partitioningForActual, Status.NEW);
             will(returnValue(Arrays.asList(runForActual)));
-            oneOf(mockBudgetCalculationRunRepository).findByLeaseAndPartitioningAndStatus(lease, partitioningForBudgeted, Status.ASSIGNED);
-            will(returnValue(Arrays.asList(runForBudgeted)));
-            oneOf(mockBudgetCalculationResultRepository).findUnique(runForBudgeted, invoiceCharge);
-            will(returnValue(correspondingBudgetedResult));
-            oneOf(mockBudgetCalculationResultLinkRepository).findByCalculationResult(correspondingBudgetedResult);
-            will(returnValue(Arrays.asList(linkForCorrespondingBudgetedResult)));
             oneOf(mockBudgetCalculationResultLinkRepository).findOrCreateLink(resultForActual, termToBeUpdated);
         }});
 
@@ -495,9 +412,188 @@ public class BudgetAssignmentService_Test {
 
         // then
         assertThat(termToBeUpdated.getAuditedValue()).isEqualTo(resultForActual.getValue());
-        assertThat(calculationForActual.getStatus()).isEqualTo(Status.ASSIGNED);
-        assertThat(overrideValueForActual.getStatus()).isEqualTo(Status.ASSIGNED);
         assertThat(runForActual.getStatus()).isEqualTo(Status.ASSIGNED);
+
+    }
+
+    @Test
+    public void find_candidate_terms_to_actualize_works() throws Exception {
+
+        // given
+        Partitioning partitioning = new Partitioning();
+        partitioning.setStartDate(new LocalDate(2018, 7,1));
+        partitioning.setEndDate(new LocalDate(2018, 11, 15));
+        LeaseTermForServiceCharge overlappingTerm1 = new LeaseTermForServiceCharge();
+        overlappingTerm1.setStartDate(new LocalDate(2018, 1, 1));
+        overlappingTerm1.setEndDate(new LocalDate(2018, 7, 1));
+        LeaseTermForServiceCharge overlappingTerm2 = new LeaseTermForServiceCharge();
+        overlappingTerm2.setStartDate(new LocalDate(2018, 11, 15));
+        overlappingTerm2.setEndDate(new LocalDate(2018, 12, 31));
+        LeaseTermForServiceCharge noOverlapTerm = new LeaseTermForServiceCharge();
+        noOverlapTerm.setStartDate(new LocalDate(2018, 1, 1));
+        noOverlapTerm.setEndDate(new LocalDate(2018, 6, 30));
+
+
+        BudgetCalculationResult resultForBudgeted1 = new BudgetCalculationResult();
+        BudgetCalculationResult resultForBudgeted2 = new BudgetCalculationResult();
+        BudgetCalculationResult resultForBudgeted3 = new BudgetCalculationResult();
+        BudgetCalculationResult resultForBudgeted4 = new BudgetCalculationResult();
+        BudgetAssignmentService budgetAssignmentService = new BudgetAssignmentService(){
+            @Override
+            List<BudgetCalculationResult> findByBudgetAndLeaseAndChargeAndTypeAndStatus(final Budget budget, final Lease lease, final Charge invoiceCharge, final BudgetCalculationType type, final Status status) {
+                return Arrays.asList(resultForBudgeted1, resultForBudgeted2, resultForBudgeted3, resultForBudgeted4);
+            }
+        };
+        budgetAssignmentService.budgetCalculationResultLinkRepository = mockBudgetCalculationResultLinkRepository;
+        BudgetCalculationResultLink link1 = new BudgetCalculationResultLink();
+        link1.setLeaseTermForServiceCharge(overlappingTerm1);
+        BudgetCalculationResultLink link2 = new BudgetCalculationResultLink();
+        link2.setLeaseTermForServiceCharge(overlappingTerm2);
+        BudgetCalculationResultLink link3 = new BudgetCalculationResultLink();
+        link3.setLeaseTermForServiceCharge(noOverlapTerm);
+
+        Lease lease = new Lease();
+        Budget budget = new Budget();
+        partitioning.setBudget(budget);
+        BudgetCalculationRun run = new BudgetCalculationRun();
+        run.setLease(lease);
+        run.setPartitioning(partitioning);
+        BudgetCalculationResult resultForActual = new BudgetCalculationResult();
+        resultForActual.setBudgetCalculationRun(run);
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockBudgetCalculationResultLinkRepository).findByCalculationResult(resultForBudgeted1);
+            will(returnValue(Arrays.asList(link1)));
+            oneOf(mockBudgetCalculationResultLinkRepository).findByCalculationResult(resultForBudgeted2);
+            will(returnValue(Arrays.asList(link2)));
+            oneOf(mockBudgetCalculationResultLinkRepository).findByCalculationResult(resultForBudgeted3);
+            will(returnValue(Arrays.asList(link3)));
+            oneOf(mockBudgetCalculationResultLinkRepository).findByCalculationResult(resultForBudgeted4);
+            will(returnValue(Arrays.asList()));
+        }});
+
+        // when
+        List<LeaseTermForServiceCharge> result = budgetAssignmentService.findCandidateTermsToActualize(resultForActual);
+
+        // then
+        assertThat(result.size()).isEqualTo(2);
+        assertThat(result).contains(overlappingTerm1);
+        assertThat(result).contains(overlappingTerm2);
+        assertThat(result).doesNotContain(noOverlapTerm);
+    }
+
+    @Mock
+    LeaseTermForServiceCharge mockLeaseTerm;
+
+    @Test
+    public void findOrCreateLeaseTermToActualize_works_with_term_split() throws Exception {
+
+        LocalDate partitioningEndDate;
+
+        // given
+        Partitioning partitioning = new Partitioning();
+        partitioningEndDate = new LocalDate(2018, 10, 15);
+        partitioning.setEndDate(partitioningEndDate);
+        BudgetAssignmentService budgetAssignmentService = new BudgetAssignmentService(){
+            @Override
+            List<LeaseTermForServiceCharge> findCandidateTermsToActualize(final BudgetCalculationResult resultForActual){
+                return Arrays.asList(mockLeaseTerm);
+            }
+        };
+
+        Lease lease = new Lease();
+        Budget budget = new Budget();
+        partitioning.setBudget(budget);
+        BudgetCalculationRun run = new BudgetCalculationRun();
+        run.setLease(lease);
+        run.setPartitioning(partitioning);
+        BudgetCalculationResult resultForActual = new BudgetCalculationResult();
+        resultForActual.setBudgetCalculationRun(run);
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockLeaseTerm).getEndDate();
+            will(returnValue(partitioningEndDate.plusDays(1))); // splitting needed
+            oneOf(mockLeaseTerm).split(partitioning.getEndDate().plusDays(1));
+        }});
+
+        // when
+        LeaseTermForServiceCharge termToActualize = budgetAssignmentService.findOrCreateLeaseTermToActualize(resultForActual);
+
+        // then
+        assertThat(termToActualize).isEqualTo(mockLeaseTerm);
+    }
+
+    @Test
+    public void findOrCreateLeaseTermToActualize_works_without_term_split() throws Exception {
+
+        LocalDate partitioningEndDate;
+
+        // given
+        Partitioning partitioning = new Partitioning();
+        partitioningEndDate = new LocalDate(2018, 10, 15);
+        partitioning.setEndDate(partitioningEndDate);
+        BudgetAssignmentService budgetAssignmentService = new BudgetAssignmentService(){
+            @Override
+            List<LeaseTermForServiceCharge> findCandidateTermsToActualize(final BudgetCalculationResult resultForActual){
+                return Arrays.asList(mockLeaseTerm);
+            }
+        };
+
+        Lease lease = new Lease();
+        Budget budget = new Budget();
+        partitioning.setBudget(budget);
+        BudgetCalculationRun run = new BudgetCalculationRun();
+        run.setLease(lease);
+        run.setPartitioning(partitioning);
+        BudgetCalculationResult resultForActual = new BudgetCalculationResult();
+        resultForActual.setBudgetCalculationRun(run);
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockLeaseTerm).getEndDate(); // no splitting needed
+            will(returnValue(partitioningEndDate));
+        }});
+
+        // when
+        LeaseTermForServiceCharge termToActualize = budgetAssignmentService.findOrCreateLeaseTermToActualize(resultForActual);
+
+        // then
+        assertThat(termToActualize).isEqualTo(mockLeaseTerm);
+    }
+
+    @Test
+    public void findOrCreateLeaseTermToActualize_works_when_ambiguous() throws Exception {
+
+        // given
+
+        LeaseTermForServiceCharge term1 = new LeaseTermForServiceCharge();
+        LeaseTermForServiceCharge term2 = new LeaseTermForServiceCharge();
+        BudgetAssignmentService budgetAssignmentService = new BudgetAssignmentService(){
+            @Override
+            List<LeaseTermForServiceCharge> findCandidateTermsToActualize(final BudgetCalculationResult resultForActual){
+                return Arrays.asList(term1, term2);
+            }
+        };
+        budgetAssignmentService.messageService = mockMessageService;
+        Lease lease = new Lease();
+        lease.setReference("LREF-1234");
+        BudgetCalculationRun run = new BudgetCalculationRun();
+        run.setLease(lease);
+        BudgetCalculationResult resultForActual = new BudgetCalculationResult();
+        resultForActual.setBudgetCalculationRun(run);
+        Charge charge = new Charge();
+        charge.setReference("CHREF-456");
+        resultForActual.setInvoiceCharge(charge);
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockMessageService).warnUser("More than 1 term to update found for lease with reference LREF-1234 and charge CHREF-456");
+        }});
+
+        // when
+        budgetAssignmentService.findOrCreateLeaseTermToActualize(resultForActual);
 
     }
 

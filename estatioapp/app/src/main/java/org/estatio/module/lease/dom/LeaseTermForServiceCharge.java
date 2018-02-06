@@ -58,6 +58,11 @@ public class LeaseTermForServiceCharge extends LeaseTerm {
     @Getter @Setter
     private BigDecimal auditedValue;
 
+    @Programmatic
+    public LeaseTermForServiceCharge split(final LocalDate date) {
+        return (LeaseTermForServiceCharge) getLeaseItem().newTerm(date, getEndDate());
+    }
+
     // //////////////////////////////////////
 
     public static class changeValuesEvent extends IsisApplibModule.ActionDomainEvent<LeaseTermForServiceCharge> {

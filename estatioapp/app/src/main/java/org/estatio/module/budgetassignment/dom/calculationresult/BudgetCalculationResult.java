@@ -140,27 +140,26 @@ public class BudgetCalculationResult extends UdoDomainObject2<BudgetCalculationR
         validateOverrides();
 
         BigDecimal valueCalculatedByBudget = valueAsCalculatedByBudget();
-        BigDecimal annualOverrideValue = BigDecimal.ZERO;
+        BigDecimal overrideValue = BigDecimal.ZERO;
         List<Charge> incomingChargesOnOverrides = new ArrayList<>();
 
         if (overrideValueForInvoiceCharge()!=null){
             // SCENARIO: one override for all
-            annualOverrideValue = annualOverrideValue.add(overrideValueForInvoiceCharge().getValue());
+            overrideValue = overrideValue.add(overrideValueForInvoiceCharge().getValue());
         } else {
             // SCENARIO: overrides on incoming charge level
             BigDecimal valueToSubtract = BigDecimal.ZERO;
             for (BudgetOverrideValue value : getOverrideValues()) {
                 incomingChargesOnOverrides.add(value.getBudgetOverride().getIncomingCharge());
-                annualOverrideValue = annualOverrideValue.add(value.getValue());
+                overrideValue = overrideValue.add(value.getValue());
             }
             for (Charge charge : incomingChargesOnOverrides){
                 for (BudgetCalculation calculation : getBudgetCalculations().stream().filter(x->x.getIncomingCharge().equals(charge)).collect(Collectors.toList())){
                     valueToSubtract = valueToSubtract.add(calculation.getValue());
                 }
             }
-            annualOverrideValue = annualOverrideValue.add(valueCalculatedByBudget).subtract(valueToSubtract);
+            overrideValue = overrideValue.add(valueCalculatedByBudget).subtract(valueToSubtract);
         }
-        BigDecimal overrideValue = annualOverrideValue.multiply(getFractionOfYear());
         setValue(overrideValue.setScale(2, BigDecimal.ROUND_HALF_UP));
         setShortfall(valueCalculatedByBudget.subtract(overrideValue).setScale(2, BigDecimal.ROUND_HALF_UP));
     }
@@ -178,17 +177,11 @@ public class BudgetCalculationResult extends UdoDomainObject2<BudgetCalculationR
                 null;
     }
 
-
-    @Programmatic
-    BigDecimal getFractionOfYear(){
-        return getBudgetCalculationRun().getBudget().getPartitioningForBudgeting().getFractionOfYear();
-    }
-
     @Programmatic
     public BigDecimal valueAsCalculatedByBudget(){
         BigDecimal valueCalculatedByBudget = BigDecimal.ZERO;
         for (BudgetCalculation calculation : getBudgetCalculations()){
-            valueCalculatedByBudget = valueCalculatedByBudget.add(calculation.getEffectiveValue());
+            valueCalculatedByBudget = valueCalculatedByBudget.add(calculation.getValue());
         }
         return valueCalculatedByBudget;
     }

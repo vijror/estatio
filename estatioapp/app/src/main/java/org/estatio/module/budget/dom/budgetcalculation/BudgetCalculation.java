@@ -192,13 +192,6 @@ public class BudgetCalculation extends UdoDomainObject2<BudgetCalculation>
         return this.getPartitionItem().getBudgetItem();
     }
 
-    @Action(semantics = SemanticsOf.SAFE)
-    @ActionLayout(contributed = Contributed.AS_ASSOCIATION, hidden = Where.ALL_TABLES)
-    // TODO: revisit when working on multiple partitions for auditing
-    public BigDecimal getEffectiveValue() {
-        return getValue().multiply(getPartitionItem().getPartitioning().getFractionOfYear());
-    }
-
     @Programmatic
     public void removeWithStatusNew() {
         if (getStatus() == Status.NEW) {

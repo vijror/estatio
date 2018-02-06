@@ -3,8 +3,11 @@ package org.estatio.module.budgetassignment.dom.service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+
+import com.google.common.collect.Lists;
 
 import org.joda.time.LocalDate;
 
@@ -150,39 +153,81 @@ public class BudgetAssignmentService {
 
     void assignForActual(final Partitioning partitioning){
         for (BudgetCalculationRun run : budgetCalculationRunRepository.findByPartitioningAndStatus(partitioning, Status.NEW)){
-            // TODO: for the moment we have just one partition for budgeted. This may change
-            final Partitioning partitioningForBudgeting = partitioning.getBudget().getPartitioningForBudgeting();
-            final List<BudgetCalculationRun> assignedRunsForLeaseBudgeted = budgetCalculationRunRepository.findByLeaseAndPartitioningAndStatus(run.getLease(), partitioningForBudgeting, Status.ASSIGNED);
-            // TODO: for the moment we know there will be only one at most - this will change when we allow for more assigned runs on a lease
-            if (assignedRunsForLeaseBudgeted.size()==1) {
-                BudgetCalculationRun runForBudgeted = assignedRunsForLeaseBudgeted.get(0);
-                for (BudgetCalculationResult result : run.getBudgetCalculationResults()){
-                    // only a term that is controlled by this budget should be updated with an audited value when the audited value is empty
-                    // so there should be a 'corresponding budgeted result' linked
-                    BudgetCalculationResult correspondingBudgetedResult = budgetCalculationResultRepository.findUnique(runForBudgeted, result.getInvoiceCharge());
-                    final List<BudgetCalculationResultLink> linksForCorrespondingBudgetedResult = budgetCalculationResultLinkRepository.findByCalculationResult(correspondingBudgetedResult);
-                    if (linksForCorrespondingBudgetedResult.size()==1){
-                        // this should always be the case
-                        LeaseTermForServiceCharge termToBeUpdated = linksForCorrespondingBudgetedResult.get(0).getLeaseTermForServiceCharge();
-                        if (termToBeUpdated.getAuditedValue()==null) {
-                            termToBeUpdated.setAuditedValue(result.getValue());
-                            budgetCalculationResultLinkRepository.findOrCreateLink(result, termToBeUpdated);
-                            result.finalizeCalculationResult();
-                        } else {
-                            // this should not happen
-                            final String message = String.format("Could not update term with id %s because an audited value was found", termToBeUpdated.getId()) ;
-                            messageService.warnUser(message);
-                        }
+            for (BudgetCalculationResult result : run.getBudgetCalculationResults()) {
+                LeaseTermForServiceCharge termToBeUpdated = findOrCreateLeaseTermToActualize(result);
+                if (termToBeUpdated != null) {
+                    if (termToBeUpdated.getAuditedValue() == null) {
+                        termToBeUpdated.setAuditedValue(result.getValue());
+                        budgetCalculationResultLinkRepository.findOrCreateLink(result, termToBeUpdated);
+                        result.finalizeCalculationResult();
                     } else {
                         // this should not happen
-                        final String message = String.format("No or more than 1 calculation result links were found for %s", run.getLease().getReference()) ;
+                        final String message = String.format("Could not update term with id %s because an audited value was found", termToBeUpdated.getId());
                         messageService.warnUser(message);
                     }
+
+                } else {
+                    final String message = String.format("No term to update found for lease with reference %s", run.getLease().getReference()) ;
+                    messageService.warnUser(message);
                 }
             }
             // TODO: for a run of type actual 'assigned' does not mean that all results were assigned - it just means that it tried to reconcile and assign at the time is was executed
             run.setStatus(Status.ASSIGNED);
         }
+    }
+
+    LeaseTermForServiceCharge findOrCreateLeaseTermToActualize(final BudgetCalculationResult resultForActual){
+
+        if (findCandidateTermsToActualize(resultForActual).isEmpty()) return null;
+
+        if (findCandidateTermsToActualize(resultForActual).size()>1) {
+            final String message = String.format("More than 1 term to update found for lease with reference %s and charge %s", resultForActual.getBudgetCalculationRun().getLease().getReference(), resultForActual.getInvoiceCharge().getReference()) ;
+            messageService.warnUser(message);
+            return null;
+        }
+
+        LeaseTermForServiceCharge termToActualize = findCandidateTermsToActualize(resultForActual).get(0);
+
+        // split if needed
+        Partitioning partitioningForActual = resultForActual.getBudgetCalculationRun().getPartitioning();
+        if (partitioningForActual.getEndDate().isBefore(termToActualize.getEndDate())){
+            termToActualize.split(partitioningForActual.getEndDate().plusDays(1));
+        }
+
+        return termToActualize;
+    }
+
+    List<LeaseTermForServiceCharge> findCandidateTermsToActualize(final BudgetCalculationResult resultForActual){
+
+        List<LeaseTermForServiceCharge> candidateTermsToActualize = new ArrayList<>();
+
+        Lease leaseToUpdate = resultForActual.getBudgetCalculationRun().getLease();
+        List<BudgetCalculationResult> budgetedResultsForCharge = findByBudgetAndLeaseAndChargeAndTypeAndStatus(resultForActual.getBudgetCalculationRun().getBudget(), leaseToUpdate, resultForActual.getInvoiceCharge(), BudgetCalculationType.BUDGETED, Status.ASSIGNED);
+        if (budgetedResultsForCharge.isEmpty()) return candidateTermsToActualize; // fail fast
+
+        for (BudgetCalculationResult result : budgetedResultsForCharge){
+            for (BudgetCalculationResultLink link : budgetCalculationResultLinkRepository.findByCalculationResult(result)){
+                LeaseTermForServiceCharge linkedTerm = link.getLeaseTermForServiceCharge();
+                if (linkedTerm.getInterval().overlaps(resultForActual.getBudgetCalculationRun().getPartitioning().getInterval())) {
+                    candidateTermsToActualize.add(linkedTerm);
+                }
+            }
+        }
+        return candidateTermsToActualize;
+    }
+
+    List<BudgetCalculationResult> findByBudgetAndLeaseAndChargeAndTypeAndStatus(final Budget budget, final Lease lease, final Charge invoiceCharge, final BudgetCalculationType type, final Status status) {
+        List<BudgetCalculationResult> result = new ArrayList<>();
+        List<BudgetCalculationRun> runsForLeaseAndTypeAndStatus = budgetCalculationRunRepository.findByBudget(budget)
+                .stream()
+                .filter(x->x.getLease()==lease)
+                .filter(x->x.getType()==type)
+                .filter(x->x.getStatus()==status)
+                .collect(Collectors.toList());
+        for (BudgetCalculationRun run : runsForLeaseAndTypeAndStatus){
+            result.addAll(Lists.newArrayList(run.getBudgetCalculationResults()).stream().filter(x->x.getInvoiceCharge()==invoiceCharge).collect(Collectors.toList()));
+        }
+        return result;
     }
 
     LeaseItem findOrCreateLeaseItemForServiceCharge(final Lease lease, final BudgetCalculationResult calculationResult, final LocalDate startDate){
@@ -291,14 +336,14 @@ public class BudgetAssignmentService {
 
                 for (BudgetCalculation calculation : result.getBudgetCalculations()) {
 
-                    BigDecimal effectiveValueForIncomingCharge = calculation.getEffectiveValue();
+                    BigDecimal effectiveValueForIncomingCharge = calculation.getValue();
                     BigDecimal shortFallForIncomingCharge = BigDecimal.ZERO;
                     BigDecimal valueInBudget = BigDecimal.ZERO;
 
                     DetailedCalculationResultViewmodel vm = new DetailedCalculationResultViewmodel(
                             calculation.getUnit(),
                             calculation.getIncomingCharge().getDescription(),
-                            calculation.getEffectiveValue(),
+                            calculation.getValue(),
                             valueInBudget,
                             effectiveValueForIncomingCharge,
                             shortFallForIncomingCharge,
@@ -316,7 +361,7 @@ public class BudgetAssignmentService {
                     for (BudgetOverrideValue overrideValue : result.getOverrideValues()) {
                         if (overrideValue.getBudgetOverride().getIncomingCharge() == calculation.getIncomingCharge() && overrideValue.getType() == partitioning.getType()) {
                             effectiveValueForIncomingCharge = overrideValue.getValue().multiply(calculation.getPartitionItem().getPartitioning().getFractionOfYear());
-                            shortFallForIncomingCharge = calculation.getEffectiveValue().subtract(effectiveValueForIncomingCharge);
+                            shortFallForIncomingCharge = calculation.getValue().subtract(effectiveValueForIncomingCharge);
                         }
                     }
                     if (effectiveValueForIncomingCharge != BigDecimal.ZERO) {

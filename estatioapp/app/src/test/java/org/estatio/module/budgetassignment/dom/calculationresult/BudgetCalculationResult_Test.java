@@ -68,18 +68,8 @@ public class BudgetCalculationResult_Test {
     public static class CalculateTest extends BudgetCalculationResult_Test {
 
         BudgetCalculationResult budgetCalculationResult;
-        BudgetCalculation bc1 = new BudgetCalculation(){
-            @Override
-            public BigDecimal getEffectiveValue(){
-                return getValue();
-            }
-        };
-        BudgetCalculation bc2 = new BudgetCalculation(){
-            @Override
-            public BigDecimal getEffectiveValue(){
-                return getValue();
-            }
-        };
+        BudgetCalculation bc1 = new BudgetCalculation();
+        BudgetCalculation bc2 = new BudgetCalculation();
         Charge incomingCharge1 = new Charge();
         Charge incomingCharge2 = new Charge();
         BudgetOverrideValue bOvVal1 = new BudgetOverrideValue();
@@ -120,10 +110,6 @@ public class BudgetCalculationResult_Test {
                 }
                 @Override
                 void validateOverrides(){}
-                @Override
-                public BigDecimal getFractionOfYear(){
-                    return BigDecimal.ONE;
-                }
             };
 
             // when
@@ -158,10 +144,6 @@ public class BudgetCalculationResult_Test {
                 }
                 @Override
                 void validateOverrides(){}
-                @Override
-                public BigDecimal getFractionOfYear(){
-                    return BigDecimal.ONE;
-                }
             };
 
             // when
