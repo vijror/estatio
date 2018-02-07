@@ -19,10 +19,12 @@
 package org.estatio.module.capex.dom.project;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.jdo.annotations.Column;
@@ -42,6 +44,7 @@ import com.google.common.collect.Lists;
 
 import org.joda.time.LocalDate;
 
+import org.apache.isis.applib.annotation.Action;
 import org.apache.isis.applib.annotation.BookmarkPolicy;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.DomainObjectLayout;
@@ -51,7 +54,9 @@ import org.apache.isis.applib.annotation.Optionality;
 import org.apache.isis.applib.annotation.Parameter;
 import org.apache.isis.applib.annotation.Property;
 import org.apache.isis.applib.annotation.PropertyLayout;
+import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.annotation.Where;
+import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.schema.utils.jaxbadapters.PersistentEntityAdapter;
 
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
@@ -151,6 +156,45 @@ public class Project extends UdoDomainObject<Project> implements
 	@Getter @Setter
 	private Project parent;
 
+	@Action(semantics = SemanticsOf.NON_IDEMPOTENT)
+	public Project createParentProject(
+			final String reference,
+			final String name,
+			@Parameter(optionality = Optionality.OPTIONAL)
+			final LocalDate startDate,
+			@Parameter(optionality = Optionality.OPTIONAL)
+			final LocalDate endDate){
+			Project parent = projectRepository.create(reference, name, startDate, endDate, getAtPath(), null);
+		    wrapperFactory.wrap(parent).addChildProject(this);
+			return parent;
+	}
+
+	public String disableCreateParentProject(){
+			return parent!=null ? "The project has a parent already" : null;
+	}
+
+	@Action(semantics = SemanticsOf.IDEMPOTENT)
+	@MemberOrder(sequence = "1", name = "children")
+	public Project addChildProject(final Project child){
+			child.setParent(this);
+			return this;
+	}
+
+	public String validateAddChildProject(final Project child){
+		if (child.getParent()!=null) return "The child project is linked to a parent already";
+		if (child==this) return "A project cannot have itself as a child";
+		return null;
+	}
+
+	public List<Project> autoComplete0AddChildProject(final String search){
+		return projectRepository.findProject(search)
+				.stream()
+				.filter(x->x!=this)
+				.filter(x->!getChildren().contains(x))
+				.filter(x->x.getAtPath().equals(getAtPath()))
+				.collect(Collectors.toList());
+	}
+
 	@MemberOrder(name="items", sequence = "1")
 	public Project addItem(
 			final Charge charge,
@@ -206,5 +250,11 @@ public class Project extends UdoDomainObject<Project> implements
 
 	@Inject
 	private ProjectRoleRepository projectRoleRepository;
+
+	@Inject
+	ProjectRepository projectRepository;
+
+	@Inject
+	WrapperFactory wrapperFactory;
 
 }
