@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -546,11 +547,21 @@ public class IncomingInvoiceItem extends InvoiceItem<IncomingInvoice,IncomingInv
     }
 
     public List<Project> choices0EditProject(){
-        return getFixedAsset()!=null ? projectRepository.findByFixedAsset(getFixedAsset()) : null;
+        return getFixedAsset()!=null ?
+                projectRepository.findByFixedAsset(getFixedAsset())
+                        .stream()
+                        .filter(x->!x.isParentProject())
+                        .collect(Collectors.toList())
+                : null;
     }
 
     public String disableEditProject(){
         return projectIsImmutableReason();
+    }
+
+    public String validateEditProject(final Project project){
+        if (project.isParentProject()) return "Parent project is not allowed";
+        return null;
     }
 
 

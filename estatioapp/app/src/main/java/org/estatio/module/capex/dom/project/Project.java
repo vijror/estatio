@@ -52,6 +52,7 @@ import org.apache.isis.applib.annotation.Editing;
 import org.apache.isis.applib.annotation.MemberOrder;
 import org.apache.isis.applib.annotation.Optionality;
 import org.apache.isis.applib.annotation.Parameter;
+import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.annotation.Property;
 import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.annotation.SemanticsOf;
@@ -240,6 +241,11 @@ public class Project extends UdoDomainObject<Project> implements
 				.map(x)
 				.filter(Objects::nonNull)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	@Programmatic
+	public boolean isParentProject(){
+		return getChildren().isEmpty() ? false : true;
 	}
 
 	@Inject
