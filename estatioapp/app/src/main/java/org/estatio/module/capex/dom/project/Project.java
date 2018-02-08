@@ -57,6 +57,7 @@ import org.apache.isis.applib.annotation.Property;
 import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.annotation.Where;
+import org.apache.isis.applib.services.scratchpad.Scratchpad;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.schema.utils.jaxbadapters.PersistentEntityAdapter;
 
@@ -71,6 +72,8 @@ import org.incode.module.docfragment.dom.types.AtPathType;
 
 import org.estatio.module.base.dom.UdoDomainObject;
 import org.estatio.module.base.dom.apptenancy.WithApplicationTenancyGlobalAndCountry;
+import org.estatio.module.capex.dom.invoice.IncomingInvoiceItemRepository;
+import org.estatio.module.capex.dom.order.OrderItemRepository;
 import org.estatio.module.charge.dom.Charge;
 import org.estatio.module.party.dom.Party;
 import org.estatio.module.tax.dom.Tax;
@@ -91,7 +94,11 @@ import lombok.Setter;
 				+ "WHERE reference == :reference "),
 		@Query(name = "matchByReferenceOrName", language = "JDOQL", value = "SELECT "
 				+ "FROM org.estatio.module.capex.dom.project.Project "
-				+ "WHERE reference.matches(:matcher) || name.matches(:matcher) ") })
+				+ "WHERE reference.matches(:matcher) || name.matches(:matcher) "),
+		@Query(name = "findByParent", language = "JDOQL", value = "SELECT "
+				+ "FROM org.estatio.module.capex.dom.project.Project "
+				+ "WHERE parent == :parent ")
+})
 @DomainObject(
 		editing = Editing.DISABLED,
 		objectType = "org.estatio.capex.dom.project.Project",
@@ -262,5 +269,14 @@ public class Project extends UdoDomainObject<Project> implements
 
 	@Inject
 	WrapperFactory wrapperFactory;
+
+	@Inject
+	OrderItemRepository orderItemRepository;
+
+	@Inject
+	IncomingInvoiceItemRepository incomingInvoiceItemRepository;
+
+	@Inject
+	Scratchpad scratchpad;
 
 }
