@@ -57,7 +57,6 @@ import org.apache.isis.applib.annotation.Property;
 import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.annotation.Where;
-import org.apache.isis.applib.services.scratchpad.Scratchpad;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.schema.utils.jaxbadapters.PersistentEntityAdapter;
 
@@ -72,8 +71,6 @@ import org.incode.module.docfragment.dom.types.AtPathType;
 
 import org.estatio.module.base.dom.UdoDomainObject;
 import org.estatio.module.base.dom.apptenancy.WithApplicationTenancyGlobalAndCountry;
-import org.estatio.module.capex.dom.invoice.IncomingInvoiceItemRepository;
-import org.estatio.module.capex.dom.order.OrderItemRepository;
 import org.estatio.module.charge.dom.Charge;
 import org.estatio.module.party.dom.Party;
 import org.estatio.module.tax.dom.Tax;
@@ -250,7 +247,7 @@ public class Project extends UdoDomainObject<Project> implements
 
 	@Property(notPersisted = true)
 	public BigDecimal getBudgetedAmount(){
-		return sum(ProjectItem::getBudgetedAmount);
+		return isParentProject()? budgetedAmountWhenParentProject() : sum(ProjectItem::getBudgetedAmount);
 	}
 
 	private BigDecimal sum(final Function<ProjectItem, BigDecimal> x) {
@@ -258,6 +255,14 @@ public class Project extends UdoDomainObject<Project> implements
 				.map(x)
 				.filter(Objects::nonNull)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	private BigDecimal budgetedAmountWhenParentProject(){
+		BigDecimal result = BigDecimal.ZERO;
+		for (Project child : getChildren()){
+			result = result.add(child.getBudgetedAmount());
+		}
+		return result;
 	}
 
 	@Programmatic
@@ -279,14 +284,5 @@ public class Project extends UdoDomainObject<Project> implements
 
 	@Inject
 	WrapperFactory wrapperFactory;
-
-	@Inject
-	OrderItemRepository orderItemRepository;
-
-	@Inject
-	IncomingInvoiceItemRepository incomingInvoiceItemRepository;
-
-	@Inject
-	Scratchpad scratchpad;
 
 }
