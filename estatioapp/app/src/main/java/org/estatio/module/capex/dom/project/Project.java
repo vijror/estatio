@@ -203,6 +203,11 @@ public class Project extends UdoDomainObject<Project> implements
 				.collect(Collectors.toList());
 	}
 
+	// TODO: (ECP-438) until we find out more about the process
+	public String disableAddChildProject(){
+		return isParentProject() ? "This project is a parent" : null;
+	}
+
 	@MemberOrder(name="items", sequence = "1")
 	public Project addItem(
 			final Charge charge,
