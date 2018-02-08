@@ -222,6 +222,11 @@ public class Project extends UdoDomainObject<Project> implements
 		return this;
 	}
 
+	// TODO: (ECP-438) until we find out more about the process
+	public String disableAddItem(){
+		return isParentProject() ? "This project is a parent" : null;
+	}
+
 	@Persistent(mappedBy = "project")
 	@Getter @Setter
 	private SortedSet<ProjectRole> roles = new TreeSet<>();
