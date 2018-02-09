@@ -251,33 +251,34 @@ public class BudgetAssignmentService {
     public List<CalculationResultViewModel> getCalculationResults(final Budget budget){
 
         List<CalculationResultViewModel> results = new ArrayList<>();
-        // TODO: for the moment we have just one partition for budgeted. This may change
-        final Partitioning partitioningForBudgeting = budget.getPartitioningForBudgeting();
+        for (Partitioning partitioning : budget.getPartitionings()) {
 
-        for (BudgetCalculationResult result : budgetCalculationResultRepository.findByPartitioning(partitioningForBudgeting)){
-            CalculationResultViewModel vm = new CalculationResultViewModel(
-                    result.getLease(),
-                    result.getInvoiceCharge(),
-                    result.getPartitioning().getType()==BudgetCalculationType.BUDGETED ? result.getValue().add(result.getShortfall()) : BigDecimal.ZERO,
-                    result.getPartitioning().getType()==BudgetCalculationType.BUDGETED ? result.getValue() :BigDecimal.ZERO ,
-                    result.getPartitioning().getType()==BudgetCalculationType.BUDGETED ? result.getShortfall() : BigDecimal.ZERO,
-                    result.getPartitioning().getType()==BudgetCalculationType.ACTUAL ? result.getValue().add(result.getShortfall()) : BigDecimal.ZERO,
-                    result.getPartitioning().getType()==BudgetCalculationType.ACTUAL ? result.getValue() :BigDecimal.ZERO ,
-                    result.getPartitioning().getType()==BudgetCalculationType.ACTUAL ? result.getShortfall(): BigDecimal.ZERO
-            );
-            String unitString = result.getLease().getOccupancies().first().getUnit().getReference();
-            if (result.getLease().getOccupancies().size()>1) {
-                boolean skip = true;
-                for (Occupancy occupancy : result.getLease().getOccupancies()){
-                    if (skip){
-                        skip = false;
-                    } else {
-                        unitString = unitString.concat(" | ").concat(occupancy.getUnit().getReference());
+            for (BudgetCalculationResult result : budgetCalculationResultRepository.findByPartitioning(partitioning)) {
+                CalculationResultViewModel vm = new CalculationResultViewModel(
+                        result.getLease(),
+                        result.getInvoiceCharge(),
+                        result.getPartitioning().getType() == BudgetCalculationType.BUDGETED ? result.getValue().add(result.getShortfall()) : BigDecimal.ZERO,
+                        result.getPartitioning().getType() == BudgetCalculationType.BUDGETED ? result.getValue() : BigDecimal.ZERO,
+                        result.getPartitioning().getType() == BudgetCalculationType.BUDGETED ? result.getShortfall() : BigDecimal.ZERO,
+                        result.getPartitioning().getType() == BudgetCalculationType.ACTUAL ? result.getValue().add(result.getShortfall()) : BigDecimal.ZERO,
+                        result.getPartitioning().getType() == BudgetCalculationType.ACTUAL ? result.getValue() : BigDecimal.ZERO,
+                        result.getPartitioning().getType() == BudgetCalculationType.ACTUAL ? result.getShortfall() : BigDecimal.ZERO
+                );
+                String unitString = result.getLease().getOccupancies().first().getUnit().getReference();
+                if (result.getLease().getOccupancies().size() > 1) {
+                    boolean skip = true;
+                    for (Occupancy occupancy : result.getLease().getOccupancies()) {
+                        if (skip) {
+                            skip = false;
+                        } else {
+                            unitString = unitString.concat(" | ").concat(occupancy.getUnit().getReference());
+                        }
                     }
                 }
+                vm.setUnit(unitString);
+                results.add(vm);
             }
-            vm.setUnit(unitString);
-            results.add(vm);
+
         }
 
         return results;
