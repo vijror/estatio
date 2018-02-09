@@ -55,7 +55,8 @@ public class BudgetCalculationResult_Test {
         public void test() {
             final BudgetCalculationResult pojo = new BudgetCalculationResult();
             newPojoTester()
-                    .withFixture(pojos(BudgetCalculationRun.class, BudgetCalculationRun.class))
+                    .withFixture(pojos(Partitioning.class, Partitioning.class))
+                    .withFixture(pojos(Lease.class, Lease.class))
                     .withFixture(pojos(Charge.class, Charge.class))
                     .exercise(pojo);
         }
@@ -178,21 +179,17 @@ public class BudgetCalculationResult_Test {
 
             BudgetCalculationResult budgetCalculationResult = new BudgetCalculationResult(){
                 @Override
-                Partitioning getPartitioning(){
+                public Partitioning getPartitioning(){
                     return partitioning;
                 }
             };
             budgetCalculationResult.budgetOverrideRepository = mockBudgetOverrideRepository;
 
-            BudgetCalculationRun run = new BudgetCalculationRun();
             Lease lease = new Lease();
-            run.setLease(lease);
-            run.setPartitioning(partitioning);
-
             Charge invoiceCharge = new Charge();
             budgetCalculationResult.setInvoiceCharge(invoiceCharge);
-
-            budgetCalculationResult.setBudgetCalculationRun(run);
+            budgetCalculationResult.setPartitioning(partitioning);
+            budgetCalculationResult.setLease(lease);
 
             BudgetOverride override1 = new BudgetOverrideForFixed();
             override1.setStartDate(partitioningStartDate);

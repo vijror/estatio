@@ -19,10 +19,8 @@ import org.apache.isis.applib.annotation.Auditing;
 import org.apache.isis.applib.annotation.Contributed;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.Programmatic;
-import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.annotation.Publishing;
 import org.apache.isis.applib.annotation.SemanticsOf;
-import org.apache.isis.applib.annotation.Where;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
@@ -30,13 +28,15 @@ import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
 import org.incode.module.base.dom.utils.TitleBuilder;
 
 import org.estatio.module.base.dom.UdoDomainObject2;
+import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculation;
+import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationRepository;
+import org.estatio.module.budget.dom.budgetcalculation.Status;
 import org.estatio.module.budget.dom.partioning.Partitioning;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverride;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverrideRepository;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverrideValue;
-import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculation;
-import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationRepository;
 import org.estatio.module.charge.dom.Charge;
+import org.estatio.module.lease.dom.Lease;
 import org.estatio.module.lease.dom.occupancy.Occupancy;
 
 import lombok.Getter;
@@ -52,14 +52,30 @@ import lombok.Setter;
 @javax.jdo.annotations.Version(
         strategy = VersionStrategy.VERSION_NUMBER,
         column = "version")
-@Unique(name = "BudgetCalculationResult_budgetCalculationRun_invoiceCharge_UNQ", members = { "budgetCalculationRun", "invoiceCharge" })
+@Unique(name = "BudgetCalculationResult_partitioning_lease_invoiceCharge_UNQ", members = { "partitioning", "lease", "invoiceCharge" })
 @javax.jdo.annotations.Queries({
         @Query(
                 name = "findUnique", language = "JDOQL",
                 value = "SELECT " +
                         "FROM org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult " +
-                        "WHERE budgetCalculationRun == :budgetCalculationRun && "
-                        + "invoiceCharge == :invoiceCharge")
+                        "WHERE partitioning == :partitioning && "
+                        + "lease == :lease && "
+                        + "invoiceCharge == :invoiceCharge"),
+        @Query(
+                name = "findByPartitioning", language = "JDOQL",
+                value = "SELECT " +
+                        "FROM org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult " +
+                        "WHERE partitioning == :partitioning "),
+        @Query(
+                name = "findByLease", language = "JDOQL",
+                value = "SELECT " +
+                        "FROM org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult " +
+                        "WHERE lease == :lease "),
+        @Query(
+                name = "findByLeaseAndPartitioning", language = "JDOQL",
+                value = "SELECT " +
+                        "FROM org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult " +
+                        "WHERE lease == :lease && partitioning == :partitioning ")
 })
 
 @DomainObject(
@@ -70,21 +86,26 @@ import lombok.Setter;
 public class BudgetCalculationResult extends UdoDomainObject2<BudgetCalculationResult> {
 
     public BudgetCalculationResult() {
-        super("budgetCalculationRun, invoiceCharge");
+        super("partitioning, lease, invoiceCharge");
     }
 
     public String title(){
         return TitleBuilder.start()
-                .withParent(getBudgetCalculationRun())
+                .withName(getPartitioning())
+                .withName(" ")
+                .withName(getLease())
                 .withName(" ")
                 .withName(getInvoiceCharge())
                 .toString();
     }
 
     @Getter @Setter
-    @Column(name = "budgetCalculationRunId", allowsNull = "false")
-    @PropertyLayout(hidden = Where.REFERENCES_PARENT)
-    private BudgetCalculationRun budgetCalculationRun;
+    @Column(name = "partitioningId", allowsNull = "false")
+    private Partitioning partitioning;
+
+    @Getter @Setter
+    @Column(name = "leaseId", allowsNull = "false")
+    private Lease lease;
 
     @Getter @Setter
     @Column(name = "chargeId", allowsNull = "false")
@@ -98,16 +119,20 @@ public class BudgetCalculationResult extends UdoDomainObject2<BudgetCalculationR
     @Column(allowsNull = "true", scale = 2)
     private BigDecimal shortfall;
 
+    @Getter @Setter
+    @Column(allowsNull = "false")
+    private Status status;
+
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout(contributed = Contributed.AS_ASSOCIATION)
     public List<BudgetOverrideValue> getOverrideValues(){
         List<BudgetOverrideValue> results = new ArrayList<>();
         for (BudgetOverride override : budgetOverrideRepository
                 .findByLeaseAndInvoiceCharge(
-                        getBudgetCalculationRun().getLease(),
+                        getLease(),
                         getInvoiceCharge())){
             for (BudgetOverrideValue value : override.getValues()){
-                if (value.getType() == getBudgetCalculationRun().getType()
+                if (value.getType() == getPartitioning().getType()
                     &&
                     getPartitioning()!=null
                     &&
@@ -120,16 +145,12 @@ public class BudgetCalculationResult extends UdoDomainObject2<BudgetCalculationR
         return results;
     }
 
-    Partitioning getPartitioning(){
-        return getBudgetCalculations().isEmpty() ? null : getBudgetCalculations().get(0).getPartitionItem().getPartitioning();
-    }
-
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout(contributed = Contributed.AS_ASSOCIATION)
     public List<BudgetCalculation> getBudgetCalculations(){
         List<BudgetCalculation> results = new ArrayList<>();
-        for (Occupancy occupancy : getBudgetCalculationRun().getLease().getOccupancies()) {
-            results.addAll(budgetCalculationRepository.findByPartitioningAndUnitAndInvoiceChargeAndType(getBudgetCalculationRun().getPartitioning(), occupancy.getUnit(), getInvoiceCharge(), getBudgetCalculationRun().getType()));
+        for (Occupancy occupancy : getLease().getOccupancies()) {
+            results.addAll(budgetCalculationRepository.findByPartitioningAndUnitAndInvoiceChargeAndType(getPartitioning(), occupancy.getUnit(), getInvoiceCharge(), getPartitioning().getType()));
         }
         return results;
     }
@@ -165,7 +186,7 @@ public class BudgetCalculationResult extends UdoDomainObject2<BudgetCalculationR
     }
 
     void validateOverrides() throws IllegalArgumentException {
-        budgetOverrideRepository.validateBudgetOverridesForLease(getBudgetCalculationRun().getLease(), getInvoiceCharge());
+        budgetOverrideRepository.validateBudgetOverridesForLease(getLease(), getInvoiceCharge());
     }
 
     @Programmatic
@@ -194,6 +215,7 @@ public class BudgetCalculationResult extends UdoDomainObject2<BudgetCalculationR
         for (BudgetOverrideValue overrideValue : getOverrideValues()){
             overrideValue.finalizeOverrideValue();
         }
+        setStatus(Status.ASSIGNED);
     }
 
     @Programmatic
@@ -203,7 +225,7 @@ public class BudgetCalculationResult extends UdoDomainObject2<BudgetCalculationR
 
     @Override
     public ApplicationTenancy getApplicationTenancy() {
-        return getBudgetCalculationRun().getApplicationTenancy();
+        return getPartitioning().getApplicationTenancy();
     }
 
     @Inject

@@ -13,7 +13,6 @@ import org.isisaddons.module.excel.dom.WorksheetContent;
 import org.isisaddons.module.excel.dom.WorksheetSpec;
 
 import org.estatio.module.budgetassignment.dom.service.BudgetAssignmentService;
-import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRunRepository;
 import org.estatio.module.budgetassignment.dom.service.CalculationResultViewModel;
 import org.estatio.module.budget.dom.budget.Budget;
 
@@ -36,9 +35,6 @@ public class Budget_DownloadCalculations {
         WorksheetContent worksheetContent = new WorksheetContent(budgetAssignmentService.getCalculationResults(budget), spec);
         return excelService.toExcelPivot(worksheetContent, fileName);
     }
-
-    @Inject
-    private BudgetCalculationRunRepository budgetCalculationRunRepository;
 
     @Inject
     private BudgetAssignmentService budgetAssignmentService;

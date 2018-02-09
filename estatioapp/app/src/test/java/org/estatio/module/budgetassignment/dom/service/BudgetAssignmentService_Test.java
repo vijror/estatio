@@ -25,8 +25,6 @@ import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculati
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultLink;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultLinkRepository;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultRepository;
-import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun;
-import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRunRepository;
 import org.estatio.module.charge.dom.Charge;
 import org.estatio.module.invoice.dom.PaymentMethod;
 import org.estatio.module.lease.dom.InvoicingFrequency;
@@ -294,35 +292,9 @@ public class BudgetAssignmentService_Test {
     }
 
     @Mock
-    BudgetCalculationRunRepository mockBudgetCalculationRunRepository;
-    
-    @Test
-    public void assignForActual_always_sets_run_status_to_assigned() throws Exception {
-
-        // given
-        budgetAssignmentService.budgetCalculationRunRepository = mockBudgetCalculationRunRepository;
-
-        Partitioning partitioningForActual = new Partitioning();
-        BudgetCalculationRun run = new BudgetCalculationRun();
-
-        // expect
-        context.checking(new Expectations(){{
-            oneOf(mockBudgetCalculationRunRepository).findByPartitioningAndStatus(partitioningForActual, Status.NEW);
-            will(returnValue(Arrays.asList(run)));
-        }});
-
-        // when
-        budgetAssignmentService.assignForActual(partitioningForActual);
-        // then
-        assertThat(run.getStatus()).isEqualTo(Status.ASSIGNED);
-
-    }
-
-    @Mock
-    BudgetCalculationResultRepository mockBudgetCalculationResultRepository;
-
-    @Mock
     BudgetCalculationResultLinkRepository mockBudgetCalculationResultLinkRepository;
+
+    @Mock BudgetCalculationResultRepository mockBudgetCalculationResultRepository;
 
     @Mock
     MessageService mockMessageService;
@@ -345,19 +317,17 @@ public class BudgetAssignmentService_Test {
                 return termToBeUpdated;
             }
         };
-        budgetAssignmentService.budgetCalculationRunRepository = mockBudgetCalculationRunRepository;
         budgetAssignmentService.messageService = mockMessageService;
+        budgetAssignmentService.budgetCalculationResultRepository = mockBudgetCalculationResultRepository;
 
         Partitioning partitioningForActual = new Partitioning();
-        BudgetCalculationRun runForActual = new BudgetCalculationRun();
-
         BudgetCalculationResult resultForActual = new BudgetCalculationResult();
-        runForActual.getBudgetCalculationResults().add(resultForActual);
+        resultForActual.setStatus(Status.NEW);
 
         // expect
         context.checking(new Expectations(){{
-            oneOf(mockBudgetCalculationRunRepository).findByPartitioningAndStatus(partitioningForActual, Status.NEW);
-            will(returnValue(Arrays.asList(runForActual)));
+            oneOf(mockBudgetCalculationResultRepository).findByPartitioning(partitioningForActual);
+            will(returnValue(Arrays.asList(resultForActual)));
             oneOf(mockMessageService).warnUser(expectedMessage);
         }});
 
@@ -385,24 +355,23 @@ public class BudgetAssignmentService_Test {
                 return termToBeUpdated;
             }
         };
-        budgetAssignmentService.budgetCalculationRunRepository = mockBudgetCalculationRunRepository;
+        budgetAssignmentService.budgetCalculationResultRepository = mockBudgetCalculationResultRepository;
         budgetAssignmentService.budgetCalculationResultLinkRepository = mockBudgetCalculationResultLinkRepository;
 
         Partitioning partitioningForActual = new Partitioning();
 
-        BudgetCalculationRun runForActual = new BudgetCalculationRun();
         BudgetCalculationResult resultForActual = new BudgetCalculationResult(){
             @Override
             public void finalizeCalculationResult(){
             }
         };
         resultForActual.setValue(actualValue);
-        runForActual.getBudgetCalculationResults().add(resultForActual);
+        resultForActual.setStatus(Status.NEW);
 
         // expect
         context.checking(new Expectations(){{
-            oneOf(mockBudgetCalculationRunRepository).findByPartitioningAndStatus(partitioningForActual, Status.NEW);
-            will(returnValue(Arrays.asList(runForActual)));
+            oneOf(mockBudgetCalculationResultRepository).findByPartitioning(partitioningForActual);
+            will(returnValue(Arrays.asList(resultForActual)));
             oneOf(mockBudgetCalculationResultLinkRepository).findOrCreateLink(resultForActual, termToBeUpdated);
         }});
 
@@ -412,7 +381,6 @@ public class BudgetAssignmentService_Test {
 
         // then
         assertThat(termToBeUpdated.getAuditedValue()).isEqualTo(resultForActual.getValue());
-        assertThat(runForActual.getStatus()).isEqualTo(Status.ASSIGNED);
 
     }
 
@@ -461,11 +429,9 @@ public class BudgetAssignmentService_Test {
         Lease lease = new Lease();
         Budget budget = new Budget();
         partitioning.setBudget(budget);
-        BudgetCalculationRun run = new BudgetCalculationRun();
-        run.setLease(lease);
-        run.setPartitioning(partitioning);
         BudgetCalculationResult resultForActual = new BudgetCalculationResult();
-        resultForActual.setBudgetCalculationRun(run);
+        resultForActual.setLease(lease);
+        resultForActual.setPartitioning(partitioning);
 
         // expect
         context.checking(new Expectations(){{
@@ -509,11 +475,9 @@ public class BudgetAssignmentService_Test {
         Lease lease = new Lease();
         Budget budget = new Budget();
         partitioning.setBudget(budget);
-        BudgetCalculationRun run = new BudgetCalculationRun();
-        run.setLease(lease);
-        run.setPartitioning(partitioning);
         BudgetCalculationResult resultForActual = new BudgetCalculationResult();
-        resultForActual.setBudgetCalculationRun(run);
+        resultForActual.setLease(lease);
+        resultForActual.setPartitioning(partitioning);
 
         // expect
         context.checking(new Expectations(){{
@@ -548,11 +512,9 @@ public class BudgetAssignmentService_Test {
         Lease lease = new Lease();
         Budget budget = new Budget();
         partitioning.setBudget(budget);
-        BudgetCalculationRun run = new BudgetCalculationRun();
-        run.setLease(lease);
-        run.setPartitioning(partitioning);
         BudgetCalculationResult resultForActual = new BudgetCalculationResult();
-        resultForActual.setBudgetCalculationRun(run);
+        resultForActual.setLease(lease);
+        resultForActual.setPartitioning(partitioning);
 
         // expect
         context.checking(new Expectations(){{
@@ -583,10 +545,8 @@ public class BudgetAssignmentService_Test {
         budgetAssignmentService.messageService = mockMessageService;
         Lease lease = new Lease();
         lease.setReference("LREF-1234");
-        BudgetCalculationRun run = new BudgetCalculationRun();
-        run.setLease(lease);
         BudgetCalculationResult resultForActual = new BudgetCalculationResult();
-        resultForActual.setBudgetCalculationRun(run);
+        resultForActual.setLease(lease);
         Charge charge = new Charge();
         charge.setReference("CHREF-456");
         resultForActual.setInvoiceCharge(charge);

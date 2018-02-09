@@ -17,10 +17,9 @@ import org.estatio.module.budget.dom.partioning.Partitioning;
 import org.estatio.module.budget.fixtures.budgets.enums.Budget_enum;
 import org.estatio.module.budget.fixtures.partitioning.enums.Partitioning_enum;
 import org.estatio.module.budgetassignment.contributions.Budget_Calculate;
-import org.estatio.module.budgetassignment.contributions.Lease_BudgetCalculationRuns;
+import org.estatio.module.budgetassignment.contributions.Lease_BudgetCalculationResults;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultRepository;
-import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverride;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverrideRepository;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverrideValue;
@@ -75,8 +74,7 @@ public class BudgetCalculationResult_IntegTest extends BudgetAssignmentModuleInt
         createOverrideForLeaseTopmModel(overrideStartDate, overrideEndDate);
 
         wrap(mixin(Budget_Calculate.class, budget)).calculate(false);
-        BudgetCalculationRun run = wrap(mixin(Lease_BudgetCalculationRuns.class, leaseTopModel)).budgetCalculationRuns().get(0);
-        calculationResultForLeaseTopmodel = run.getBudgetCalculationResults().first();
+        calculationResultForLeaseTopmodel = wrap(mixin(Lease_BudgetCalculationResults.class, leaseTopModel)).budgetCalculationResults().get(0);
 
         // then
         assertThat(calculationResultForLeaseTopmodel.getOverrideValues().size()).isEqualTo(1);
@@ -104,8 +102,7 @@ public class BudgetCalculationResult_IntegTest extends BudgetAssignmentModuleInt
         createOverrideForLeaseTopmModel(overrideStartDate, overrideEndDate);
 
         wrap(mixin(Budget_Calculate.class, budget)).calculate(false);
-        BudgetCalculationRun run = wrap(mixin(Lease_BudgetCalculationRuns.class, leaseTopModel)).budgetCalculationRuns().get(0);
-        calculationResultForLeaseTopmodel = run.getBudgetCalculationResults().first();
+        calculationResultForLeaseTopmodel = wrap(mixin(Lease_BudgetCalculationResults.class, leaseTopModel)).budgetCalculationResults().get(0);
 
         // then
         assertThat(calculationResultForLeaseTopmodel.getOverrideValues().size()).isEqualTo(0);

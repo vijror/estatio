@@ -24,16 +24,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.google.common.collect.Sets;
 
+import org.apache.isis.applib.Module;
+import org.apache.isis.applib.ModuleAbstract;
 import org.apache.isis.applib.fixturescripts.FixtureScript;
 
 import org.incode.module.fixturesupport.dom.scripts.TeardownFixtureAbstract;
 
-import org.apache.isis.applib.Module;
-import org.apache.isis.applib.ModuleAbstract;
 import org.estatio.module.budget.EstatioBudgetModule;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultLink;
-import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverride;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverrideValue;
 import org.estatio.module.lease.EstatioLeaseModule;
@@ -58,7 +57,6 @@ public final class EstatioBudgetAssignmentModule extends ModuleAbstract {
             protected void execute(final FixtureScript.ExecutionContext executionContext) {
                 deleteFrom(BudgetCalculationResultLink.class);
                 deleteFrom(BudgetCalculationResult.class);
-                deleteFrom(BudgetCalculationRun.class);
                 deleteFrom(BudgetOverrideValue.class);
                 deleteFrom(BudgetOverride.class);
             }

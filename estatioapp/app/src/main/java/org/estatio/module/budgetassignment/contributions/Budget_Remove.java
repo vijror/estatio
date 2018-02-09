@@ -1,7 +1,5 @@
 package org.estatio.module.budgetassignment.contributions;
 
-import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import org.apache.isis.applib.annotation.Action;
@@ -22,8 +20,7 @@ import org.estatio.module.budget.dom.partioning.PartitionItemRepository;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultLink;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultLinkRepository;
-import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun;
-import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRunRepository;
+import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultRepository;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverride;
 import org.estatio.module.budgetassignment.dom.override.BudgetOverrideRepository;
 import org.estatio.module.lease.dom.Lease;
@@ -48,23 +45,22 @@ public class Budget_Remove {
             final boolean areYouSure
     ) {
 
-        // delete results and runs
-        for (BudgetCalculationRun run : budgetCalculationRunRepository.allBudgetCalculationRuns().stream().filter(x->x.getBudget().equals(budget)).collect(Collectors.toList())){
-            for (BudgetCalculationResult result : run.getBudgetCalculationResults()){
-                // delete links and lease terms
-                for (BudgetCalculationResultLink link : budgetCalculationResultLinkRepository.findByCalculationResult(result)){
-                    LeaseTermForServiceCharge leaseTermToRemove = null;
-                    if (link.getLeaseTermForServiceCharge()!=null) {
-                        leaseTermToRemove = link.getLeaseTermForServiceCharge();
-                    }
-                    link.remove();
-                    if (leaseTermToRemove!=null) {
-                        leaseTermToRemove.remove();
-                    }
+        // delete results
+
+        for (BudgetCalculationResult result : budgetCalculationResultRepository.findByBudget(budget)){
+            // delete links and lease terms
+            for (BudgetCalculationResultLink link : budgetCalculationResultLinkRepository.findByCalculationResult(result)){
+                LeaseTermForServiceCharge leaseTermToRemove = null;
+                if (link.getLeaseTermForServiceCharge()!=null) {
+                    leaseTermToRemove = link.getLeaseTermForServiceCharge();
+                }
+                link.remove();
+                if (leaseTermToRemove!=null) {
+                    leaseTermToRemove.remove();
                 }
             }
-            run.remove();
         }
+
 
         // delete overrides and values
         for (Lease lease : leaseRepository.findByAssetAndActiveOnDate(budget.getProperty(), budget.getStartDate())){
@@ -99,13 +95,13 @@ public class Budget_Remove {
     private PartitionItemRepository partitionItemRepository;
 
     @Inject
-    private BudgetCalculationRunRepository budgetCalculationRunRepository;
-
-    @Inject
     private LeaseRepository leaseRepository;
 
     @Inject
     private BudgetOverrideRepository budgetOverrideRepository;
+
+    @Inject
+    private BudgetCalculationResultRepository budgetCalculationResultRepository;
 
     @Inject
     private BudgetCalculationResultLinkRepository budgetCalculationResultLinkRepository;

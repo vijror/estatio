@@ -16,7 +16,6 @@ import org.isisaddons.module.excel.dom.WorksheetContent;
 import org.isisaddons.module.excel.dom.WorksheetSpec;
 
 import org.estatio.module.budgetassignment.dom.service.BudgetAssignmentService;
-import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRunRepository;
 import org.estatio.module.budgetassignment.dom.service.DetailedCalculationResultViewmodel;
 import org.estatio.module.budget.dom.budget.Budget;
 import org.estatio.module.budget.dom.budget.BudgetRepository;
@@ -36,7 +35,7 @@ public class Lease_DownloadBudgetCalculationsForLease {
 
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout(cssClassFa = "fa-download")
-    @MemberOrder(name="budgetCalculationRuns", sequence = "1")
+    @MemberOrder(name="budgetCalculationResults", sequence = "1")
     public Blob downloadBudgetCalculationsForLease(Budget budget, BudgetCalculationType type) {
         final String fileName =  lease.getReference() + " - budget details" + ".xlsx";
         WorksheetSpec spec = new WorksheetSpec(DetailedCalculationResultViewmodel.class, "values for lease");
@@ -50,9 +49,6 @@ public class Lease_DownloadBudgetCalculationsForLease {
 
     @Inject
     private BudgetAssignmentService budgetAssignmentService;
-
-    @Inject
-    private BudgetCalculationRunRepository budgetCalculationRunRepository;
 
     @Inject
     private BudgetRepository budgetRepository;

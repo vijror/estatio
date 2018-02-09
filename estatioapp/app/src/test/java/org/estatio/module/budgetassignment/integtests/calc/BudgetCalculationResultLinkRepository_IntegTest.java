@@ -12,13 +12,12 @@ import org.estatio.module.asset.dom.PropertyRepository;
 import org.estatio.module.asset.fixtures.property.enums.Property_enum;
 import org.estatio.module.budget.dom.budget.Budget;
 import org.estatio.module.budget.dom.budget.BudgetRepository;
-import org.estatio.module.budget.dom.budgetcalculation.Status;
+import org.estatio.module.budget.dom.partioning.Partitioning;
 import org.estatio.module.budget.fixtures.budgets.enums.Budget_enum;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultLink;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultLinkRepository;
-import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRun;
-import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRunRepository;
+import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultRepository;
 import org.estatio.module.budgetassignment.integtests.BudgetAssignmentModuleIntegTestAbstract;
 import org.estatio.module.charge.dom.Charge;
 import org.estatio.module.charge.dom.ChargeRepository;
@@ -44,7 +43,7 @@ public class BudgetCalculationResultLinkRepository_IntegTest extends BudgetAssig
     PropertyRepository propertyRepository;
 
     @Inject
-    BudgetCalculationRunRepository budgetCalculationRunRepository;
+    BudgetCalculationResultRepository budgetCalculationResultRepository;
 
     @Inject
     BudgetCalculationResultLinkRepository budgetCalculationResultLinkRepository;
@@ -57,9 +56,9 @@ public class BudgetCalculationResultLinkRepository_IntegTest extends BudgetAssig
 
     Property propertyOxf;
     Lease leaseTopModel;
+    Partitioning partitioningForBudgeted;
     Budget budget2015;
     Charge charge;
-    BudgetCalculationRun run;
     LeaseItem leaseItem;
 
     @Before
@@ -76,9 +75,9 @@ public class BudgetCalculationResultLinkRepository_IntegTest extends BudgetAssig
         propertyOxf = Property_enum.OxfGb.findUsing(serviceRegistry);
         budget2015 = budgetRepository.findByPropertyAndStartDate(propertyOxf, Budget_enum.OxfBudget2015.getStartDate());
         budget2015.findOrCreatePartitioningForBudgeting();
+        partitioningForBudgeted = budget2015.getPartitioningForBudgeting();
         charge = Charge_enum.GbServiceCharge.findUsing(serviceRegistry);
         leaseTopModel = Lease_enum.OxfTopModel001Gb.findUsing(serviceRegistry);
-        run = budgetCalculationRunRepository.createBudgetCalculationRun(leaseTopModel, budget2015.getPartitioningForBudgeting(), Status.NEW);
         leaseItem = leaseTopModel.newItem(LeaseItemType.SERVICE_CHARGE_BUDGETED, LeaseAgreementRoleTypeEnum.LANDLORD, charge, InvoicingFrequency.MONTHLY_IN_ADVANCE, PaymentMethod.DIRECT_DEBIT, leaseTopModel.getStartDate());
     }
 
@@ -88,7 +87,7 @@ public class BudgetCalculationResultLinkRepository_IntegTest extends BudgetAssig
         public void testNewLink() {
 
             // given
-            BudgetCalculationResult result = run.createCalculationResult(charge);
+            BudgetCalculationResult result = budgetCalculationResultRepository.findOrCreateBudgetCalculationResult(partitioningForBudgeted, leaseTopModel, charge);
             LeaseTermForServiceCharge leaseTerm = (LeaseTermForServiceCharge) leaseItem.newTerm(budget2015.getStartDate(), budget2015.getEndDate());
             assertThat(budgetCalculationResultLinkRepository.allBudgetCalculationResultLinks().size()).isEqualTo(0);
 
@@ -109,7 +108,7 @@ public class BudgetCalculationResultLinkRepository_IntegTest extends BudgetAssig
         public void findUnique() {
 
             // given
-            BudgetCalculationResult result = run.createCalculationResult(charge);
+            BudgetCalculationResult result = budgetCalculationResultRepository.findOrCreateBudgetCalculationResult(partitioningForBudgeted, leaseTopModel, charge);
             LeaseTermForServiceCharge leaseTerm = (LeaseTermForServiceCharge) leaseItem.newTerm(budget2015.getStartDate(), budget2015.getEndDate());
             assertThat(budgetCalculationResultLinkRepository.allBudgetCalculationResultLinks().size()).isEqualTo(0);
 
@@ -129,7 +128,7 @@ public class BudgetCalculationResultLinkRepository_IntegTest extends BudgetAssig
         public void findByCalculationResult() {
 
             // given
-            BudgetCalculationResult result = run.createCalculationResult(charge);
+            BudgetCalculationResult result = budgetCalculationResultRepository.findOrCreateBudgetCalculationResult(partitioningForBudgeted, leaseTopModel, charge);
             LeaseTermForServiceCharge leaseTerm = (LeaseTermForServiceCharge) leaseItem.newTerm(budget2015.getStartDate(), budget2015.getEndDate());
             assertThat(budgetCalculationResultLinkRepository.allBudgetCalculationResultLinks().size()).isEqualTo(0);
 
@@ -147,7 +146,7 @@ public class BudgetCalculationResultLinkRepository_IntegTest extends BudgetAssig
         @Test
         public void findByLeaseTerm() {
             // given
-            BudgetCalculationResult result = run.createCalculationResult(charge);
+            BudgetCalculationResult result = budgetCalculationResultRepository.findOrCreateBudgetCalculationResult(partitioningForBudgeted, leaseTopModel, charge);
             LeaseTermForServiceCharge leaseTerm = (LeaseTermForServiceCharge) leaseItem.newTerm(budget2015.getStartDate(), budget2015.getEndDate());
             assertThat(budgetCalculationResultLinkRepository.allBudgetCalculationResultLinks().size()).isEqualTo(0);
 
