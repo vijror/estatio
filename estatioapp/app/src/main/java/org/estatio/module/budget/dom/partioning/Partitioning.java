@@ -144,6 +144,26 @@ public class Partitioning extends UdoDomainObject2<Partitioning>
         return partitioningRepository.findUnique(getBudget(), BudgetCalculationType.ACTUAL, getStartDate())!=null ? "Partioning for actual exists already" : null;
     }
 
+    @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
+    public Partitioning split(final LocalDate startDate){
+        Partitioning next = partitioningRepository.newPartitioning(getBudget(), startDate, getEndDate(), getType());
+        for (PartitionItem item : getItems()){
+            next.createItem(item.getBudgetItem(), item.getCharge(), item.getKeyTable(), item.getPercentage());
+        }
+        setEndDate(startDate.minusDays(1));
+        return next;
+    }
+
+    public String disableSplit(){
+        if (getType()==BudgetCalculationType.BUDGETED) return "Split if budgeted partitioning is not supported";
+        return null;
+    }
+
+    public String validateSplit(final LocalDate startDate){
+        if (startDate.isAfter(getStartDate()) && startDate.isBefore(getEndDate())) return null;
+        return "The new start date should be after the current start date and before the end date";
+    }
+
     @Programmatic
     public PartitionItem createItem(final BudgetItem budgetItem, final Charge invoiceCharge, final KeyTable keyTable, final BigDecimal percentage){
         return partitionItemRepository.findOrCreatePartitionItem(this, budgetItem, invoiceCharge, keyTable, percentage);

@@ -42,6 +42,7 @@ import org.estatio.module.lease.dom.LeaseItem;
 import org.estatio.module.lease.dom.LeaseItemType;
 import org.estatio.module.lease.dom.LeaseRepository;
 import org.estatio.module.lease.dom.LeaseStatus;
+import org.estatio.module.lease.dom.LeaseTerm;
 import org.estatio.module.lease.dom.LeaseTermForServiceCharge;
 import org.estatio.module.lease.dom.LeaseTermRepository;
 import org.estatio.module.lease.dom.occupancy.Occupancy;
@@ -208,8 +209,11 @@ public class BudgetAssignmentService {
         for (BudgetCalculationResult result : budgetedResultsForCharge){
             for (BudgetCalculationResultLink link : budgetCalculationResultLinkRepository.findByCalculationResult(result)){
                 LeaseTermForServiceCharge linkedTerm = link.getLeaseTermForServiceCharge();
-                if (linkedTerm.getInterval().overlaps(resultForActual.getBudgetCalculationRun().getPartitioning().getInterval())) {
-                    candidateTermsToActualize.add(linkedTerm);
+                LeaseItem linkedItem = linkedTerm.getLeaseItem();
+                for (LeaseTerm candidate : linkedItem.getTerms()) {
+                    if (candidate.getInterval().overlaps(resultForActual.getBudgetCalculationRun().getPartitioning().getInterval())) {
+                        candidateTermsToActualize.add((LeaseTermForServiceCharge) candidate);
+                    }
                 }
             }
         }

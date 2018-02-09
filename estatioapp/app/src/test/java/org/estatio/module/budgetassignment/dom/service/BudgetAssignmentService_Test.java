@@ -426,22 +426,30 @@ public class BudgetAssignmentService_Test {
         LeaseTermForServiceCharge overlappingTerm1 = new LeaseTermForServiceCharge();
         overlappingTerm1.setStartDate(new LocalDate(2018, 1, 1));
         overlappingTerm1.setEndDate(new LocalDate(2018, 7, 1));
+        LeaseItem leaseItem1 = new LeaseItem();
+        overlappingTerm1.setLeaseItem(leaseItem1);
+        leaseItem1.getTerms().add(overlappingTerm1);
+
         LeaseTermForServiceCharge overlappingTerm2 = new LeaseTermForServiceCharge();
         overlappingTerm2.setStartDate(new LocalDate(2018, 11, 15));
         overlappingTerm2.setEndDate(new LocalDate(2018, 12, 31));
         LeaseTermForServiceCharge noOverlapTerm = new LeaseTermForServiceCharge();
         noOverlapTerm.setStartDate(new LocalDate(2018, 1, 1));
         noOverlapTerm.setEndDate(new LocalDate(2018, 6, 30));
+        LeaseItem leaseItem2 = new LeaseItem();
+        overlappingTerm2.setLeaseItem(leaseItem2);
+        noOverlapTerm.setLeaseItem(leaseItem2);
+        leaseItem2.getTerms().add(overlappingTerm2);
+        leaseItem2.getTerms().add(noOverlapTerm);
 
 
         BudgetCalculationResult resultForBudgeted1 = new BudgetCalculationResult();
         BudgetCalculationResult resultForBudgeted2 = new BudgetCalculationResult();
         BudgetCalculationResult resultForBudgeted3 = new BudgetCalculationResult();
-        BudgetCalculationResult resultForBudgeted4 = new BudgetCalculationResult();
         BudgetAssignmentService budgetAssignmentService = new BudgetAssignmentService(){
             @Override
             List<BudgetCalculationResult> findByBudgetAndLeaseAndChargeAndTypeAndStatus(final Budget budget, final Lease lease, final Charge invoiceCharge, final BudgetCalculationType type, final Status status) {
-                return Arrays.asList(resultForBudgeted1, resultForBudgeted2, resultForBudgeted3, resultForBudgeted4);
+                return Arrays.asList(resultForBudgeted1, resultForBudgeted2, resultForBudgeted3);
             }
         };
         budgetAssignmentService.budgetCalculationResultLinkRepository = mockBudgetCalculationResultLinkRepository;
@@ -449,8 +457,6 @@ public class BudgetAssignmentService_Test {
         link1.setLeaseTermForServiceCharge(overlappingTerm1);
         BudgetCalculationResultLink link2 = new BudgetCalculationResultLink();
         link2.setLeaseTermForServiceCharge(overlappingTerm2);
-        BudgetCalculationResultLink link3 = new BudgetCalculationResultLink();
-        link3.setLeaseTermForServiceCharge(noOverlapTerm);
 
         Lease lease = new Lease();
         Budget budget = new Budget();
@@ -468,8 +474,6 @@ public class BudgetAssignmentService_Test {
             oneOf(mockBudgetCalculationResultLinkRepository).findByCalculationResult(resultForBudgeted2);
             will(returnValue(Arrays.asList(link2)));
             oneOf(mockBudgetCalculationResultLinkRepository).findByCalculationResult(resultForBudgeted3);
-            will(returnValue(Arrays.asList(link3)));
-            oneOf(mockBudgetCalculationResultLinkRepository).findByCalculationResult(resultForBudgeted4);
             will(returnValue(Arrays.asList()));
         }});
 

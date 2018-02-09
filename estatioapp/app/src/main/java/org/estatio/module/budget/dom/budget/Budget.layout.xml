@@ -3,13 +3,9 @@
     <row>
         <col span="12" unreferencedActions="true">
             <ns2:domainObject/>
-            <ns2:action id="Calculate"/>
-            <ns2:action id="Reconcile"/>
-            <ns2:action id="createNextBudget" />
-            <ns2:action id="DownloadCalculations"/>
-            <ns2:action id="DownloadCalculationsForLease"/>
+            <ns2:action id="downloadCalculationsForLease"/>
             <ns2:action id="importExportBudget" />
-            <ns2:action id="Remove" />
+            <ns2:action id="remove" />
         </col>
     </row>
     <row>
@@ -19,6 +15,9 @@
                     <row>
                         <col span="12">
                             <ns2:fieldSet name="Budget" id="budget" unreferencedProperties="true">
+                                <ns2:action id="calculate" position = "PANEL"/>
+                                <ns2:action id="reconcile" position = "PANEL"/>
+                                <ns2:action id="createNextBudget" />
                                 <ns2:property id="property"/>
                                 <ns2:property id="budgetYear"/>
                                 <ns2:property id="startDate"/>
@@ -53,7 +52,10 @@
             <ns2:collection id="keyTables" defaultView="table">
                 <ns2:action id="createKeyTable"/>
             </ns2:collection>
-            <ns2:collection id="BudgetCalculationRuns" defaultView="hide"/>
+            <ns2:collection id="BudgetCalculationRuns" defaultView="hide">
+                <ns2:action id="downloadCalculations"/>
+                <ns2:action id="removeNewCalculations" />
+            </ns2:collection>
             <ns2:collection id="partitionings" defaultView="table"/>
         </col>
     </row>
