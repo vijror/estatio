@@ -39,6 +39,10 @@ public class ProjectOrderItemTransferManager {
         this.source = source;
     }
 
+    public String title(){
+        return "Move order items (including linked invoice items)";
+    }
+
     @Getter
     private Project target;
 
