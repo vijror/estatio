@@ -202,7 +202,7 @@ public class Project extends UdoDomainObject<Project> implements
 
 	// TODO: (ECP-438) until we find out more about the process
 	public String disableAddChildProject(){
-		return isParentProject() ? "This project is a parent" : null;
+		return getItems().isEmpty() ? null : "This project cannot be a parent because it has items";
 	}
 
 	@MemberOrder(name="items", sequence = "1")
