@@ -35,6 +35,8 @@ import org.apache.isis.applib.value.Clob;
 import org.isisaddons.module.excel.dom.ExcelService;
 
 import org.estatio.module.capex.app.DebtorBankAccountService;
+import org.estatio.module.capex.app.credittransfer.CreditTransferExportService;
+import org.estatio.module.capex.app.credittransfer.CreditTransferExportLine;
 import org.estatio.module.capex.app.paymentline.PaymentLineForExcelExportV1;
 import org.estatio.module.capex.dom.invoice.IncomingInvoice;
 import org.estatio.module.capex.dom.invoice.IncomingInvoiceRepository;
@@ -445,7 +447,45 @@ public class PaymentBatchManager {
     }
 
 
-
+    @Action(
+            semantics = SemanticsOf.SAFE,
+            commandPersistence = CommandPersistence.NOT_PERSISTED,
+            publishing = Publishing.DISABLED
+    )
+    public Blob downloadReviewSummary(
+            final PaymentBatch paymentBatch,
+            @Nullable final String documentName){
+        List<CreditTransferExportLine> exportLines = new ArrayList<>();
+        for (CreditTransfer transfer : paymentBatch.getTransfers()){
+            for (PaymentLine paymentLine : transfer.getLines()){
+                exportLines.add(
+                        new CreditTransferExportLine(
+                        paymentBatch.getDebtorBankAccount().getIban(),
+                        paymentBatch.getCreatedOn().toString(),
+                        transfer.getEndToEndId(),
+                        transfer.getSellerBankAccount().getIban(),
+                        transfer.getSeller().getName(),
+                        transfer.getSeller().getReference(),
+                        transfer.getAmount(),
+                        transfer.getCurrency().getName(),
+                        paymentLine.getInvoice().getInvoiceNumber(),
+                        paymentLine.getInvoice().getInvoiceDate(),
+                        paymentLine.getInvoice().getGrossAmount(),
+                        creditTransferExportService.getApprovalStateSummary(paymentLine.getInvoice()),
+                        creditTransferExportService.getDescriptionSummary(paymentLine.getInvoice()),
+                        creditTransferExportService.getInvoiceDocumentName(paymentLine.getInvoice()),
+                        paymentLine.getInvoice().getType().name(),
+                        creditTransferExportService.getChargeSummary(paymentLine.getInvoice()),
+                        creditTransferExportService.getProjectSummary(paymentLine.getInvoice()),
+                        creditTransferExportService.getBudgetSummary(paymentLine.getInvoice()),
+                        creditTransferExportService.getPropertySummary(paymentLine.getInvoice())
+                    )
+                );
+            }
+        }
+        String name = documentName!=null ? documentName.concat(".xlsx") : paymentBatch.fileNameWithSuffix("xlsx");
+        return excelService.toExcel(exportLines, CreditTransferExportLine.class, "export", name);
+    }
 
 
     @Action(
@@ -640,5 +680,8 @@ public class PaymentBatchManager {
     @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE)
     ExcelService excelService;
 
+    @Inject
+    @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE)
+    CreditTransferExportService creditTransferExportService;
 
 }
