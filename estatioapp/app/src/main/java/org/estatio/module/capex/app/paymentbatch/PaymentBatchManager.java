@@ -2,6 +2,7 @@ package org.estatio.module.capex.app.paymentbatch;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -457,34 +458,48 @@ public class PaymentBatchManager {
             @Nullable final String documentName){
         List<CreditTransferExportLine> exportLines = new ArrayList<>();
         for (CreditTransfer transfer : paymentBatch.getTransfers()){
+            boolean firstLineForTransfer = true;
             for (PaymentLine paymentLine : transfer.getLines()){
                 exportLines.add(
                         new CreditTransferExportLine(
-                        paymentBatch.getDebtorBankAccount().getIban(),
-                        paymentBatch.getCreatedOn().toString(),
-                        transfer.getEndToEndId(),
-                        transfer.getSellerBankAccount().getIban(),
-                        transfer.getSeller().getName(),
-                        transfer.getSeller().getReference(),
-                        transfer.getAmount(),
-                        transfer.getCurrency().getName(),
-                        paymentLine.getInvoice().getInvoiceNumber(),
-                        paymentLine.getInvoice().getInvoiceDate(),
-                        paymentLine.getInvoice().getGrossAmount(),
-                        creditTransferExportService.getApprovalStateSummary(paymentLine.getInvoice()),
-                        creditTransferExportService.getDescriptionSummary(paymentLine.getInvoice()),
-                        creditTransferExportService.getInvoiceDocumentName(paymentLine.getInvoice()),
-                        paymentLine.getInvoice().getType().name(),
-                        creditTransferExportService.getChargeSummary(paymentLine.getInvoice()),
-                        creditTransferExportService.getProjectSummary(paymentLine.getInvoice()),
-                        creditTransferExportService.getBudgetSummary(paymentLine.getInvoice()),
-                        creditTransferExportService.getPropertySummary(paymentLine.getInvoice())
-                    )
+                                firstLineForTransfer ? paymentBatch.getDebtorBankAccount().getIban() : null,
+                                firstLineForTransfer ? paymentBatch.getCreatedOn().toString() : null,
+                                firstLineForTransfer ? transfer.getEndToEndId() : null,
+                                firstLineForTransfer ? transfer.getSellerBankAccount().getIban() : null,
+                                firstLineForTransfer ? creditTransferExportService.isFirstUseBankAccount(transfer) : null,
+                                firstLineForTransfer ? transfer.getSeller().getName() : null,
+                                firstLineForTransfer ? transfer.getSeller().getReference() : null,
+                                firstLineForTransfer ? transfer.getAmount().setScale(2, RoundingMode.HALF_UP) : null,
+                                firstLineForTransfer ? transfer.getCurrency().getName() : null,
+                                paymentLine.getInvoice().getInvoiceNumber(),
+                                paymentLine.getInvoice().getInvoiceDate(),
+                                paymentLine.getInvoice().getGrossAmount().setScale(2, RoundingMode.HALF_UP),
+                                creditTransferExportService.getApprovalStateTransitionSummary(paymentLine.getInvoice()),
+                                creditTransferExportService.getDescriptionSummary(paymentLine.getInvoice()),
+                                creditTransferExportService.getInvoiceDocumentName(paymentLine.getInvoice()),
+                                paymentLine.getInvoice().getType().name(),
+                                creditTransferExportService.getChargeSummary(paymentLine.getInvoice()),
+                                creditTransferExportService.getProjectSummary(paymentLine.getInvoice()),
+                                creditTransferExportService.getBudgetSummary(paymentLine.getInvoice()),
+                                creditTransferExportService.getPropertySummary(paymentLine.getInvoice())
+                        )
                 );
+                firstLineForTransfer = false;
             }
         }
         String name = documentName!=null ? documentName.concat(".xlsx") : paymentBatch.fileNameWithSuffix("xlsx");
         return excelService.toExcel(exportLines, CreditTransferExportLine.class, "export", name);
+    }
+
+    public List<PaymentBatch> choices0DownloadReviewSummary() {
+        return this.getCompletedBatches();
+    }
+
+    public String disableDownloadReviewSummary() {
+        if (this.getCompletedBatches().isEmpty()) {
+            return "No completed batches";
+        }
+        return null;
     }
 
 

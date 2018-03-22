@@ -20,67 +20,81 @@ public class CreditTransferExportLine {
 
     // transfer information
 
-    @MemberOrder(sequence = "0")
+    @MemberOrder(sequence = "1")
+    @Nullable
     private String debtorBankAccount;
 
-    @MemberOrder(sequence = "0")
+    @MemberOrder(sequence = "2")
+    @Nullable
     private String paymentBatchCreatedOn;
 
-    @MemberOrder(sequence = "1")
+    @MemberOrder(sequence = "3")
+    @Nullable
     private String paymentId;
 
-    @MemberOrder(sequence = "2")
+    @MemberOrder(sequence = "4")
+    @Nullable
     private String sellerBankAccount;
 
-    @MemberOrder(sequence = "3")
-    private String sellerName;
-
-    @MemberOrder(sequence = "4")
-    private String sellerReference;
-
     @MemberOrder(sequence = "5")
-    private BigDecimal paymentAmount;
+    @Nullable
+    private boolean firstUse;
 
     @MemberOrder(sequence = "6")
+    @Nullable
+    private String sellerName;
+
+    @MemberOrder(sequence = "7")
+    @Nullable
+    private String sellerReference;
+
+    @MemberOrder(sequence = "8")
+    @Nullable
+    private BigDecimal paymentAmount;
+
+    @MemberOrder(sequence = "9")
+    @Nullable
     private String currency;
 
     // invoice information
 
-    @MemberOrder(sequence = "6")
+    @MemberOrder(sequence = "10")
     @Nullable
     private String invoiceNumber;
 
-    @MemberOrder(sequence = "7")
+    @MemberOrder(sequence = "11")
     @Nullable
     private LocalDate invoiceDate;
 
-    @MemberOrder(sequence = "8")
+    @MemberOrder(sequence = "12")
     private BigDecimal invoiceGrossAmount;
 
-    @MemberOrder(sequence = "9")
+    @MemberOrder(sequence = "13")
     private String approvals;
 
-    @MemberOrder(sequence = "10")
+    @MemberOrder(sequence = "14")
     private String invoiceDescriptionSummary;
 
-    @MemberOrder(sequence = "11")
+    @MemberOrder(sequence = "15")
     private String invoiceDocumentName;
 
-    @MemberOrder(sequence = "12")
+    @MemberOrder(sequence = "16")
     private String invoiceType;
 
-    @MemberOrder(sequence = "13")
+    // TODO: aggregate the next ones into 1 field ?
+
+    @MemberOrder(sequence = "17")
     private String chargeSummary;
 
-    @MemberOrder(sequence = "14")
+    @MemberOrder(sequence = "18")
     @Nullable
     private String projectSummary;
 
-    @MemberOrder(sequence = "15")
+    @MemberOrder(sequence = "19")
     @Nullable
     private String budgetSummary;
 
-    @MemberOrder(sequence = "16")
+    @MemberOrder(sequence = "20")
     @Nullable
     private String propertySummary;
 
