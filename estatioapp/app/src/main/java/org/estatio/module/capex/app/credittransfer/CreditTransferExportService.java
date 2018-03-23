@@ -53,7 +53,9 @@ public class CreditTransferExportService {
 
         List<Task> approvalTasksForInvoice = new ArrayList<>();
         stateTransitionRepo.findByDomainObject(invoice).forEach(
-                x-> addTaskIfApplicable(x, approvalTasksForInvoice)
+                x-> {
+                    if (hasCompletedApprovalTask(x)) approvalTasksForInvoice.add(x.getTask());
+                }
         );
         StringBuilder builder = new StringBuilder();
         for (Task task : approvalTasksForInvoice){
@@ -65,7 +67,7 @@ public class CreditTransferExportService {
         return builder.toString();
     }
 
-    private void addTaskIfApplicable(final IncomingInvoiceApprovalStateTransition transition, List<Task> tasks){
+    private boolean hasCompletedApprovalTask(final IncomingInvoiceApprovalStateTransition transition){
 
         List<IncomingInvoiceApprovalState> applicableStates = Arrays.asList(
                 IncomingInvoiceApprovalState.APPROVED,
@@ -73,8 +75,9 @@ public class CreditTransferExportService {
                 IncomingInvoiceApprovalState.APPROVED_BY_CORPORATE_MANAGER
         );
         if (transition.getTask()!=null && transition.getTask().isCompleted() && applicableStates.contains(transition.getToState())){
-            tasks.add(transition.getTask());
+            return true;
         }
+        return false;
     }
 
     @Programmatic

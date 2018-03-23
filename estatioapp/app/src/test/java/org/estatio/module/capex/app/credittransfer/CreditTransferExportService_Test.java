@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.assertj.core.api.Assertions;
 import org.jmock.Expectations;
 import org.jmock.auto.Mock;
+import org.joda.time.LocalDateTime;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -12,8 +13,11 @@ import org.apache.isis.core.unittestsupport.jmocking.JUnitRuleMockery2;
 
 import org.estatio.module.capex.dom.invoice.IncomingInvoice;
 import org.estatio.module.capex.dom.invoice.IncomingInvoiceRepository;
+import org.estatio.module.capex.dom.invoice.approval.IncomingInvoiceApprovalState;
+import org.estatio.module.capex.dom.invoice.approval.IncomingInvoiceApprovalStateTransition;
 import org.estatio.module.capex.dom.payment.CreditTransfer;
 import org.estatio.module.capex.dom.payment.PaymentLine;
+import org.estatio.module.capex.dom.task.Task;
 
 public class CreditTransferExportService_Test {
 
@@ -102,6 +106,37 @@ public class CreditTransferExportService_Test {
 
         // then
         Assertions.assertThat(service.isFirstUseBankAccount(transfer)).isTrue();
+
+    }
+
+    @Mock
+    IncomingInvoiceApprovalStateTransition.Repository mockStateTransitionRepo;
+
+    @Test
+    public void getApprovalStateTransitionSummary_works() throws Exception {
+
+        // given
+        CreditTransferExportService service = new CreditTransferExportService();
+        service.stateTransitionRepo = mockStateTransitionRepo;
+        IncomingInvoice invoice = new IncomingInvoice();
+        IncomingInvoiceApprovalStateTransition transition1 = new IncomingInvoiceApprovalStateTransition();
+        Task task1 = new Task(null, null, null, null, null);
+        task1.setCompletedBy("some manager");
+        task1.setCompletedOn(LocalDateTime.parse("2017-01-01"));
+        transition1.setTask(task1);
+        transition1.setToState(IncomingInvoiceApprovalState.APPROVED);
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockStateTransitionRepo).findByDomainObject(invoice);
+            will(returnValue(Arrays.asList(transition1)));
+        }});
+
+        // when
+        String result = service.getApprovalStateTransitionSummary(invoice);
+
+        // then
+        Assertions.assertThat(result).isEqualTo("2017-01-01T00:00:00.000 some manager/\n");
 
     }
 

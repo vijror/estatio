@@ -458,19 +458,18 @@ public class PaymentBatchManager {
             @Nullable final String documentName){
         List<CreditTransferExportLine> exportLines = new ArrayList<>();
         for (CreditTransfer transfer : paymentBatch.getTransfers()){
-            boolean firstLineForTransfer = true;
             for (PaymentLine paymentLine : transfer.getLines()){
                 exportLines.add(
                         new CreditTransferExportLine(
-                                firstLineForTransfer ? paymentBatch.getDebtorBankAccount().getIban() : null,
-                                firstLineForTransfer ? paymentBatch.getCreatedOn().toString() : null,
-                                firstLineForTransfer ? transfer.getEndToEndId() : null,
-                                firstLineForTransfer ? transfer.getSellerBankAccount().getIban() : null,
-                                firstLineForTransfer ? creditTransferExportService.isFirstUseBankAccount(transfer) : null,
-                                firstLineForTransfer ? transfer.getSeller().getName() : null,
-                                firstLineForTransfer ? transfer.getSeller().getReference() : null,
-                                firstLineForTransfer ? transfer.getAmount().setScale(2, RoundingMode.HALF_UP) : null,
-                                firstLineForTransfer ? transfer.getCurrency().getName() : null,
+                                paymentBatch.getDebtorBankAccount().getIban(),
+                                paymentBatch.getCreatedOn().toString(),
+                                transfer.getEndToEndId(),
+                                transfer.getSellerBankAccount().getIban(),
+                                creditTransferExportService.isFirstUseBankAccount(transfer),
+                                transfer.getSeller().getName(),
+                                transfer.getSeller().getReference(),
+                                transfer.getAmount().setScale(2, RoundingMode.HALF_UP),
+                                transfer.getCurrency().getName(),
                                 paymentLine.getInvoice().getInvoiceNumber(),
                                 paymentLine.getInvoice().getInvoiceDate(),
                                 paymentLine.getInvoice().getGrossAmount().setScale(2, RoundingMode.HALF_UP),
@@ -484,7 +483,6 @@ public class PaymentBatchManager {
                                 creditTransferExportService.getPropertySummary(paymentLine.getInvoice())
                         )
                 );
-                firstLineForTransfer = false;
             }
         }
         String name = documentName!=null ? documentName.concat(".xlsx") : paymentBatch.fileNameWithSuffix("xlsx");
