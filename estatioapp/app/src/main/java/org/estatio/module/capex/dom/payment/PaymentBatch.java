@@ -46,6 +46,7 @@ import org.joda.time.DateTime;
 import org.apache.isis.applib.annotation.Action;
 import org.apache.isis.applib.annotation.ActionLayout;
 import org.apache.isis.applib.annotation.BookmarkPolicy;
+import org.apache.isis.applib.annotation.CollectionLayout;
 import org.apache.isis.applib.annotation.Contributed;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.DomainObjectLayout;
@@ -79,12 +80,10 @@ import org.estatio.module.base.dom.UdoDomainObject2;
 import org.estatio.module.capex.app.paymentline.PaymentLineForExcelExportV1;
 import org.estatio.module.capex.dom.documents.LookupAttachedPdfService;
 import org.estatio.module.capex.dom.invoice.IncomingInvoice;
-import org.estatio.module.capex.dom.invoice.approval.IncomingInvoiceApprovalState;
 import org.estatio.module.capex.dom.invoice.approval.IncomingInvoiceApprovalStateTransition;
 import org.estatio.module.capex.dom.invoice.approval.IncomingInvoiceApprovalStateTransitionType;
 import org.estatio.module.capex.dom.payment.approval.PaymentBatchApprovalState;
 import org.estatio.module.capex.dom.payment.approval.PaymentBatchApprovalStateTransition;
-import org.estatio.module.capex.dom.state.NatureOfTransition;
 import org.estatio.module.capex.dom.state.State;
 import org.estatio.module.capex.dom.state.StateTransition;
 import org.estatio.module.capex.dom.state.StateTransitionService;
@@ -266,6 +265,7 @@ public class PaymentBatch extends UdoDomainObject2<PaymentBatch> implements Stat
      * Document > PmtInf > CdtTrfTxInf (* many)
      */
     @Persistent(mappedBy = "batch", dependentElement = "true")
+    @CollectionLayout(sortedBy = PaymentLine.CreditorBankAccountComparator.class)
     @Getter @Setter
     private SortedSet<PaymentLine> lines = new TreeSet<>();
 
@@ -604,19 +604,13 @@ public class PaymentBatch extends UdoDomainObject2<PaymentBatch> implements Stat
                     final Optional<org.incode.module.document.dom.impl.docs.Document> ibanProofDocIfAny = lookupAttachedPdfService
                             .lookupIbanProofPdfFrom(bankAccount);
 
-                    IncomingInvoiceApprovalStateTransition transitionIfAny =
-                            stateTransitionRepository.findByDomainObjectAndToState(invoice,
-                                    IncomingInvoiceApprovalState.APPROVED_BY_COUNTRY_DIRECTOR,
-                                    NatureOfTransition.EXPLICIT);
-
                     List<String> leftLines = Lists.newArrayList();
                     leftLines.add("xfer id: " + transfer.getEndToEndId() + " / " + line.getSequence());
-                    if(transitionIfAny != null) {
-                        final String completedBy = transitionIfAny.getCompletedBy();
+                    for (IncomingInvoice.ApprovalString approvalString : invoice.getApprovals()) {
                         leftLines.add(String.format(
                                 "approved by: %s",
-                                completedBy != null ? completedBy : "(unknown)"));
-                        leftLines.add("approved on: " + transitionIfAny.getCompletedOn().toString("dd-MMM-yyyy HH:mm"));
+                                approvalString.getCompletedBy()));
+                        leftLines.add("on: " + approvalString.getCompletedOn());
                     }
 
                     final List<String> rightLines = Lists.newArrayList();
