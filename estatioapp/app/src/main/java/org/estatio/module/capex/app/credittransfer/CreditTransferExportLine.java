@@ -92,10 +92,6 @@ public class CreditTransferExportLine {
 
     @MemberOrder(sequence = "19")
     @Nullable
-    private String budgetSummary;
-
-    @MemberOrder(sequence = "20")
-    @Nullable
     private String propertySummary;
 
 }

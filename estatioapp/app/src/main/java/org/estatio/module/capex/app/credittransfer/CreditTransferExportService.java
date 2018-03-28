@@ -16,7 +16,6 @@ import org.incode.module.document.dom.impl.docs.Document;
 import org.estatio.module.capex.dom.documents.LookupAttachedPdfService;
 import org.estatio.module.capex.dom.invoice.IncomingInvoice;
 import org.estatio.module.capex.dom.invoice.IncomingInvoiceRepository;
-import org.estatio.module.capex.dom.invoice.approval.IncomingInvoiceApprovalStateTransition;
 import org.estatio.module.capex.dom.payment.CreditTransfer;
 import org.estatio.module.capex.dom.payment.PaymentLine;
 
@@ -59,39 +58,9 @@ public class CreditTransferExportService {
     }
 
     @Programmatic
-    public String getDescriptionSummary(final IncomingInvoice invoice) {
-        // TODO: implement
-        return null;
-    }
-
-    @Programmatic
     public String getInvoiceDocumentName(final IncomingInvoice invoice) {
         final Optional<Document> document = lookupAttachedPdfService.lookupIncomingInvoicePdfFrom(invoice);
         return document.isPresent() ? document.get().getName() : null;
-    }
-
-    @Programmatic
-    public String getChargeSummary(final IncomingInvoice invoice) {
-        // TODO: implement
-        return null;
-    }
-
-    @Programmatic
-    public String getProjectSummary(final IncomingInvoice invoice) {
-        // TODO: implement
-        return null;
-    }
-
-    @Programmatic
-    public String getBudgetSummary(final IncomingInvoice invoice) {
-        // TODO: implement
-        return null;
-    }
-
-    @Programmatic
-    public String getPropertySummary(final IncomingInvoice invoice) {
-        // TODO: implement
-        return null;
     }
 
     @Inject
@@ -99,8 +68,5 @@ public class CreditTransferExportService {
 
     @Inject
     IncomingInvoiceRepository incomingInvoiceRepository;
-
-    @Inject
-    IncomingInvoiceApprovalStateTransition.Repository stateTransitionRepo;
 
 }

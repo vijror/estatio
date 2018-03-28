@@ -1459,6 +1459,73 @@ public class IncomingInvoice extends Invoice<IncomingInvoice> implements SellerB
 
     }
 
+    @Programmatic
+    public String getDescriptionSummary(){
+        StringBuffer summary = new StringBuffer();
+        boolean first = true;
+        for (InvoiceItem item : getItems()){
+            if (item.getDescription()!=null && item.getDescription()!=""){
+                if (!first){
+                    summary.append(" | ");
+                }
+                summary.append(item.getDescription());
+                first=false;
+            }
+        }
+        return summary.toString();
+    }
+
+    @Programmatic
+    public String getChargeSummary(){
+        StringBuffer summary = new StringBuffer();
+        boolean first = true;
+        for (InvoiceItem item : getItems()){
+            if (item.getCharge()!=null){
+                if (!first){
+                    summary.append(" | ");
+                }
+                summary.append(item.getCharge().getName());
+                first=false;
+            }
+        }
+        return summary.toString();
+    }
+
+    @Programmatic
+    public String getProjectSummary(){
+        StringBuffer summary = new StringBuffer();
+        boolean first = true;
+        for (InvoiceItem item : getItems()){
+            IncomingInvoiceItem iitem = (IncomingInvoiceItem) item;
+            if (iitem.getProject()!=null){
+                if (!first){
+                    summary.append(" | ");
+                }
+                summary.append(iitem.getProject().getName());
+                first=false;
+            }
+        }
+        return summary.toString();
+    }
+
+    @Programmatic
+    public String getPropertySummary(){
+        StringBuffer summary = new StringBuffer();
+        boolean first = true;
+        for (InvoiceItem item : getItems()){
+            IncomingInvoiceItem iitem = (IncomingInvoiceItem) item;
+            if (iitem.getFixedAsset()!=null){
+                if (!first){
+                    summary.append(" | ");
+                }
+                summary.append(iitem.getFixedAsset().getName());
+                first=false;
+            }
+        }
+        return summary.toString();
+    }
+
+
 
     @Override
     public int compareTo(final IncomingInvoice other) {

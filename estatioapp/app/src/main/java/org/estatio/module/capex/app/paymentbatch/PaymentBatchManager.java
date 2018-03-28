@@ -474,13 +474,12 @@ public class PaymentBatchManager {
                                 paymentLine.getInvoice().getInvoiceDate(),
                                 paymentLine.getInvoice().getGrossAmount().setScale(2, RoundingMode.HALF_UP),
                                 creditTransferExportService.getApprovalStateTransitionSummary(paymentLine.getInvoice()),
-                                creditTransferExportService.getDescriptionSummary(paymentLine.getInvoice()),
+                                paymentLine.getInvoice().getDescriptionSummary(),
                                 creditTransferExportService.getInvoiceDocumentName(paymentLine.getInvoice()),
                                 paymentLine.getInvoice().getType().name(),
-                                creditTransferExportService.getChargeSummary(paymentLine.getInvoice()),
-                                creditTransferExportService.getProjectSummary(paymentLine.getInvoice()),
-                                creditTransferExportService.getBudgetSummary(paymentLine.getInvoice()),
-                                creditTransferExportService.getPropertySummary(paymentLine.getInvoice())
+                                paymentLine.getInvoice().getChargeSummary(),
+                                paymentLine.getInvoice().getProjectSummary(),
+                                paymentLine.getInvoice().getPropertySummary()
                         )
                 );
             }
