@@ -1470,7 +1470,7 @@ public class IncomingInvoice extends Invoice<IncomingInvoice> implements SellerB
 
     @Inject
     @NotPersistent
-    IncomingInvoiceApprovalStateTransition.Repository stateTransitionRepository;
+    public IncomingInvoiceApprovalStateTransition.Repository stateTransitionRepository;
 
     @Inject
     @NotPersistent
