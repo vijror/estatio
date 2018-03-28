@@ -17,7 +17,6 @@ import org.estatio.module.capex.dom.invoice.approval.IncomingInvoiceApprovalStat
 import org.estatio.module.capex.dom.invoice.approval.IncomingInvoiceApprovalStateTransition;
 import org.estatio.module.capex.dom.payment.CreditTransfer;
 import org.estatio.module.capex.dom.payment.PaymentLine;
-import org.estatio.module.capex.dom.task.Task;
 
 public class CreditTransferExportService_Test {
 
@@ -117,13 +116,11 @@ public class CreditTransferExportService_Test {
 
         // given
         CreditTransferExportService service = new CreditTransferExportService();
-        service.stateTransitionRepo = mockStateTransitionRepo;
         IncomingInvoice invoice = new IncomingInvoice();
+        invoice.stateTransitionRepository = mockStateTransitionRepo;
         IncomingInvoiceApprovalStateTransition transition1 = new IncomingInvoiceApprovalStateTransition();
-        Task task1 = new Task(null, null, null, null, null);
-        task1.setCompletedBy("some manager");
-        task1.setCompletedOn(LocalDateTime.parse("2017-01-01"));
-        transition1.setTask(task1);
+        transition1.setCompletedBy("some manager");
+        transition1.setCompletedOn(LocalDateTime.parse("2017-01-01"));
         transition1.setToState(IncomingInvoiceApprovalState.APPROVED);
 
         // expect
@@ -136,7 +133,7 @@ public class CreditTransferExportService_Test {
         String result = service.getApprovalStateTransitionSummary(invoice);
 
         // then
-        Assertions.assertThat(result).isEqualTo("2017-01-01T00:00:00.000 some manager/\n");
+        Assertions.assertThat(result).isEqualTo("some manager on 01-Jan-2017 00:00\r\n");
 
     }
 

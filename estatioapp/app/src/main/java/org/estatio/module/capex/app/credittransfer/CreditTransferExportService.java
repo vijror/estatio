@@ -1,7 +1,6 @@
 package org.estatio.module.capex.app.credittransfer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,11 +16,9 @@ import org.incode.module.document.dom.impl.docs.Document;
 import org.estatio.module.capex.dom.documents.LookupAttachedPdfService;
 import org.estatio.module.capex.dom.invoice.IncomingInvoice;
 import org.estatio.module.capex.dom.invoice.IncomingInvoiceRepository;
-import org.estatio.module.capex.dom.invoice.approval.IncomingInvoiceApprovalState;
 import org.estatio.module.capex.dom.invoice.approval.IncomingInvoiceApprovalStateTransition;
 import org.estatio.module.capex.dom.payment.CreditTransfer;
 import org.estatio.module.capex.dom.payment.PaymentLine;
-import org.estatio.module.capex.dom.task.Task;
 
 @DomainService(
         nature = NatureOfService.DOMAIN,
@@ -51,33 +48,14 @@ public class CreditTransferExportService {
     @Programmatic
     public String getApprovalStateTransitionSummary(final IncomingInvoice invoice) {
 
-        List<Task> approvalTasksForInvoice = new ArrayList<>();
-        stateTransitionRepo.findByDomainObject(invoice).forEach(
-                x-> {
-                    if (hasCompletedApprovalTask(x)) approvalTasksForInvoice.add(x.getTask());
-                }
-        );
         StringBuilder builder = new StringBuilder();
-        for (Task task : approvalTasksForInvoice){
-            builder.append(task.getCompletedOn());
-            builder.append(" ");
-            builder.append(task.getCompletedBy());
-            builder.append("/\n");
+        for (IncomingInvoice.ApprovalString approvalString : invoice.getApprovals()){
+            builder.append(approvalString.getCompletedBy());
+            builder.append(" on ");
+            builder.append(approvalString.getCompletedOn());
+            builder.append("\r\n");
         }
         return builder.toString();
-    }
-
-    private boolean hasCompletedApprovalTask(final IncomingInvoiceApprovalStateTransition transition){
-
-        List<IncomingInvoiceApprovalState> applicableStates = Arrays.asList(
-                IncomingInvoiceApprovalState.APPROVED,
-                IncomingInvoiceApprovalState.APPROVED_BY_COUNTRY_DIRECTOR,
-                IncomingInvoiceApprovalState.APPROVED_BY_CORPORATE_MANAGER
-        );
-        if (transition.getTask()!=null && transition.getTask().isCompleted() && applicableStates.contains(transition.getToState())){
-            return true;
-        }
-        return false;
     }
 
     @Programmatic
