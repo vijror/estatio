@@ -1,6 +1,7 @@
 package org.estatio.module.capex.dom.invoice;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -1476,51 +1477,39 @@ public class IncomingInvoice extends Invoice<IncomingInvoice> implements SellerB
     }
 
     @Programmatic
-    public String getChargeSummary(){
-        StringBuffer summary = new StringBuffer();
-        boolean first = true;
-        for (InvoiceItem item : getItems()){
-            if (item.getCharge()!=null){
-                if (!first){
-                    summary.append(" | ");
-                }
-                summary.append(item.getCharge().getName());
-                first=false;
-            }
-        }
-        return summary.toString();
-    }
-
-    @Programmatic
     public String getProjectSummary(){
-        StringBuffer summary = new StringBuffer();
-        boolean first = true;
+        List<Project> distinctProjects = new ArrayList<>();
         for (InvoiceItem item : getItems()){
             IncomingInvoiceItem iitem = (IncomingInvoiceItem) item;
-            if (iitem.getProject()!=null){
-                if (!first){
-                    summary.append(" | ");
-                }
-                summary.append(iitem.getProject().getName());
-                first=false;
+            if (iitem.getProject()!=null && !distinctProjects.contains(iitem.getProject())){
+                distinctProjects.add(iitem.getProject());
             }
+        }
+        StringBuffer summary = new StringBuffer();
+        for (Project project : distinctProjects){
+            if (summary.length()>0){
+                summary.append(" | ");
+            }
+            summary.append(project.getName());
         }
         return summary.toString();
     }
 
     @Programmatic
     public String getPropertySummary(){
-        StringBuffer summary = new StringBuffer();
-        boolean first = true;
+        List<Property> distinctProperties = new ArrayList<>();
         for (InvoiceItem item : getItems()){
             IncomingInvoiceItem iitem = (IncomingInvoiceItem) item;
-            if (iitem.getFixedAsset()!=null){
-                if (!first){
-                    summary.append(" | ");
-                }
-                summary.append(iitem.getFixedAsset().getName());
-                first=false;
+            if (iitem.getFixedAsset()!=null && !distinctProperties.contains(iitem.getFixedAsset())){
+                distinctProperties.add((Property) iitem.getFixedAsset());
             }
+        }
+        StringBuffer summary = new StringBuffer();
+        for (Property property : distinctProperties){
+            if (summary.length()>0){
+                summary.append(" | ");
+            }
+            summary.append(property.getName());
         }
         return summary.toString();
     }

@@ -20,6 +20,10 @@ public class CreditTransferExportLine {
 
     // transfer information
 
+    @MemberOrder(sequence = "0")
+    @Nullable
+    private int line;
+
     @MemberOrder(sequence = "1")
     @Nullable
     private String debtorBankAccount;
@@ -38,7 +42,7 @@ public class CreditTransferExportLine {
 
     @MemberOrder(sequence = "5")
     @Nullable
-    private boolean firstUse;
+    private String newIban;
 
     @MemberOrder(sequence = "6")
     @Nullable
@@ -75,23 +79,14 @@ public class CreditTransferExportLine {
     @MemberOrder(sequence = "14")
     private String invoiceDescriptionSummary;
 
-    @MemberOrder(sequence = "15")
+    @MemberOrder(sequence = "17")
     private String invoiceDocumentName;
 
-    @MemberOrder(sequence = "16")
+    @MemberOrder(sequence = "15")
     private String invoiceType;
 
-    // TODO: aggregate the next ones into 1 field ?
-
-    @MemberOrder(sequence = "17")
-    private String chargeSummary;
-
-    @MemberOrder(sequence = "18")
+    @MemberOrder(sequence = "16")
     @Nullable
-    private String projectSummary;
-
-    @MemberOrder(sequence = "19")
-    @Nullable
-    private String propertySummary;
+    private String property;
 
 }
