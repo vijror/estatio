@@ -52,7 +52,7 @@ public class CreditTransferExportService {
             builder.append(approvalString.getCompletedBy());
             builder.append(" on ");
             builder.append(approvalString.getCompletedOn());
-            builder.append("\r\n");
+            builder.append(" \r\n");
         }
         return builder.toString();
     }
