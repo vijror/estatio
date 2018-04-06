@@ -20,7 +20,7 @@ language governing permissions and limitations under the License.
     <parent>
         <groupId>org.estatio</groupId>
         <artifactId>estatio</artifactId>
-        <version>1.27.0-SNAPSHOT</version>
+        <version>1.29.0-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -104,6 +104,7 @@ language governing permissions and limitations under the License.
                         <goals>
                             <goal>revision</goal>
                         </goals>
+                        <phase>process-classes</phase>
                     </execution>
                 </executions>
 
@@ -144,14 +145,14 @@ language governing permissions and limitations under the License.
         </dependency>
 
         <dependency>
-            <groupId>org.incode.ecp.iso20022</groupId>
-            <artifactId>incode-ecp-iso20022-pain</artifactId>
-            <version>001.001.003</version>
+            <groupId>org.apache.isis.core</groupId>
+            <artifactId>isis-core-wrapper</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.apache.isis.core</groupId>
-            <artifactId>isis-core-wrapper</artifactId>
+            <groupId>org.incode.ecp.iso20022</groupId>
+            <artifactId>incode-ecp-iso20022-pain</artifactId>
+            <version>001.001.003</version>
         </dependency>
 
 
@@ -187,12 +188,24 @@ language governing permissions and limitations under the License.
             <artifactId>isis-module-servletapi-dom</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.incode.module.errorrptslack</groupId>
+            <artifactId>incode-module-errorrptslack-impl</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.isisaddons.module.stringinterpolator</groupId>
             <artifactId>isis-module-stringinterpolator-dom</artifactId>
         </dependency>
         <dependency>
             <groupId>org.isisaddons.module.freemarker</groupId>
             <artifactId>isis-module-freemarker-dom</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.incode.module.userimpersonate</groupId>
+            <artifactId>incode-module-userimpersonate-dom</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.incode.module.zip</groupId>
+            <artifactId>incode-module-zip-dom</artifactId>
         </dependency>
 
         <!-- incode modules: metamodel -->
@@ -209,6 +222,10 @@ language governing permissions and limitations under the License.
         <dependency>
             <groupId>org.isisaddons.module.command</groupId>
             <artifactId>isis-module-command-dom</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.isisaddons.module.command</groupId>
+            <artifactId>isis-module-command-replay</artifactId>
         </dependency>
         <dependency>
             <groupId>org.isisaddons.module.publishmq</groupId>

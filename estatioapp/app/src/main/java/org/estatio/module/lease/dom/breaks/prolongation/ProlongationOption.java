@@ -86,6 +86,19 @@ public class ProlongationOption
     @Column(length = 20)
     private String prolongationPeriod;
 
+    @Action(semantics = SemanticsOf.IDEMPOTENT)
+    public ProlongationOption changeProlongationPeriod(final String prolongationPeriod){
+        setProlongationPeriod(prolongationPeriod);
+        return this;
+    }
+
+    public String default0ChangeProlongationPeriod(){
+        return getProlongationPeriod();
+    }
+
+    public String validateChangeProlongationPeriod(final String prolongationPeriod){
+        return prolongationOptionRepository.checkProlongationAndNotificationPeriodStr(prolongationPeriod, null);
+    }
 
     @Override
     protected void createEvents() {
@@ -98,6 +111,10 @@ public class ProlongationOption
         getLease().setEndDate(getBreakDate().plus(JodaPeriodUtils.asPeriod(getProlongationPeriod())));
         prolongationOptionRepository.newProlongationOption(getLease(), getProlongationPeriod(), getNotificationPeriod(), getDescription());
         return getLease();
+    }
+
+    public String disableProlong(){
+        return getLease().getTenancyEndDate()!=null ? "The tenancy end date must be empty in order to prolong" : null;
     }
 
     @Inject

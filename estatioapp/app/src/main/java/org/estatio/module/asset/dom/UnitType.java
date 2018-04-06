@@ -39,7 +39,9 @@ public enum UnitType implements TitledEnum {
     PARKING,
     ELECTRICAL_SUBSTATION,
     RESIDENTIAL,
-    HOTEL;
+    HOTEL,
+    KIOSK,
+    OTHER;
 
     public String title() {
         return StringUtils.enumTitle(this.name());

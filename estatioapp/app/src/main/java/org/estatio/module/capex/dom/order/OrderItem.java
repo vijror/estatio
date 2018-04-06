@@ -427,14 +427,23 @@ public class OrderItem extends UdoDomainObject2<OrderItem> implements FinancialI
     }
 
     public List<Project> choices0EditProject(){
-        return getFixedAsset()!=null ? projectRepository.findByFixedAsset(getFixedAsset()) : null;
+        return getFixedAsset()!=null ?
+                projectRepository.findByFixedAsset(getFixedAsset())
+                        .stream()
+                        .filter(x->!x.isParentProject())
+                        .filter(x->x.getEndDate()==null || !x.getEndDate().isBefore(getEndDate()!=null ? getEndDate() : LocalDate.now()))
+                        .collect(Collectors.toList())
+                : null;
     }
 
     public String disableEditProject(){
         return itemImmutableReasonIfIsImmutable();
     }
 
-
+    public String validateEditProject(final Project project){
+        if (project!=null && project.isParentProject()) return "Parent project is not allowed";
+        return null;
+    }
 
 
     @Getter @Setter

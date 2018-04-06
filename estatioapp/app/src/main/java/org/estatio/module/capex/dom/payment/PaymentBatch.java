@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URI;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
@@ -46,7 +47,7 @@ import org.joda.time.DateTime;
 import org.apache.isis.applib.annotation.Action;
 import org.apache.isis.applib.annotation.ActionLayout;
 import org.apache.isis.applib.annotation.BookmarkPolicy;
-import org.apache.isis.applib.annotation.CommandReification;
+import org.apache.isis.applib.annotation.CollectionLayout;
 import org.apache.isis.applib.annotation.Contributed;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.DomainObjectLayout;
@@ -69,33 +70,34 @@ import org.apache.isis.applib.value.Clob;
 import org.apache.isis.schema.utils.jaxbadapters.PersistentEntityAdapter;
 
 import org.isisaddons.module.excel.dom.ExcelService;
+import org.isisaddons.module.pdfbox.dom.service.PdfBoxService;
 import org.isisaddons.module.security.app.user.MeService;
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
 import org.isisaddons.module.security.dom.tenancy.HasAtPath;
 
 import org.incode.module.communications.dom.mixins.DocumentConstants;
 
+import org.estatio.module.base.dom.UdoDomainObject2;
+import org.estatio.module.capex.app.credittransfer.CreditTransferExportLine;
+import org.estatio.module.capex.app.credittransfer.CreditTransferExportService;
 import org.estatio.module.capex.app.paymentline.PaymentLineForExcelExportV1;
 import org.estatio.module.capex.dom.documents.LookupAttachedPdfService;
-import org.estatio.module.base.dom.UdoDomainObject2;
-import org.estatio.module.financial.dom.BankAccount;
 import org.estatio.module.capex.dom.invoice.IncomingInvoice;
-import org.estatio.module.capex.dom.invoice.approval.IncomingInvoiceApprovalState;
+import org.estatio.module.capex.dom.invoice.IncomingInvoiceType;
 import org.estatio.module.capex.dom.invoice.approval.IncomingInvoiceApprovalStateTransition;
 import org.estatio.module.capex.dom.invoice.approval.IncomingInvoiceApprovalStateTransitionType;
 import org.estatio.module.capex.dom.payment.approval.PaymentBatchApprovalState;
 import org.estatio.module.capex.dom.payment.approval.PaymentBatchApprovalStateTransition;
-import org.estatio.module.capex.dom.state.NatureOfTransition;
 import org.estatio.module.capex.dom.state.State;
 import org.estatio.module.capex.dom.state.StateTransition;
 import org.estatio.module.capex.dom.state.StateTransitionService;
 import org.estatio.module.capex.dom.state.StateTransitionType;
 import org.estatio.module.capex.dom.state.Stateful;
 import org.estatio.module.capex.dom.util.InvoicePageRange;
-import org.estatio.module.capex.platform.PdfBoxService2;
 import org.estatio.module.capex.platform.pdfmanipulator.ExtractSpec;
 import org.estatio.module.capex.platform.pdfmanipulator.PdfManipulator;
 import org.estatio.module.capex.platform.pdfmanipulator.Stamp;
+import org.estatio.module.financial.dom.BankAccount;
 import org.estatio.module.invoice.dom.DocumentTypeData;
 import org.estatio.module.party.dom.Person;
 import org.estatio.module.party.dom.PersonRepository;
@@ -267,6 +269,7 @@ public class PaymentBatch extends UdoDomainObject2<PaymentBatch> implements Stat
      * Document > PmtInf > CdtTrfTxInf (* many)
      */
     @Persistent(mappedBy = "batch", dependentElement = "true")
+    @CollectionLayout(sortedBy = PaymentLine.CreditorBankAccountComparator.class)
     @Getter @Setter
     private SortedSet<PaymentLine> lines = new TreeSet<>();
 
@@ -341,7 +344,6 @@ public class PaymentBatch extends UdoDomainObject2<PaymentBatch> implements Stat
         }
         @Action(
                 semantics = SemanticsOf.IDEMPOTENT,
-                command = CommandReification.DISABLED,
                 publishing = Publishing.DISABLED
         )
         public PaymentBatch act(
@@ -403,7 +405,6 @@ public class PaymentBatch extends UdoDomainObject2<PaymentBatch> implements Stat
         }
         @Action(
                 semantics = SemanticsOf.IDEMPOTENT_ARE_YOU_SURE,
-                command = CommandReification.DISABLED,
                 publishing = Publishing.DISABLED
         )
         @ActionLayout(cssClassFa = "fa-mail-reply", cssClass = "btn-warning")
@@ -607,19 +608,13 @@ public class PaymentBatch extends UdoDomainObject2<PaymentBatch> implements Stat
                     final Optional<org.incode.module.document.dom.impl.docs.Document> ibanProofDocIfAny = lookupAttachedPdfService
                             .lookupIbanProofPdfFrom(bankAccount);
 
-                    IncomingInvoiceApprovalStateTransition transitionIfAny =
-                            stateTransitionRepository.findByDomainObjectAndToState(invoice,
-                                    IncomingInvoiceApprovalState.APPROVED_BY_COUNTRY_DIRECTOR,
-                                    NatureOfTransition.EXPLICIT);
-
                     List<String> leftLines = Lists.newArrayList();
                     leftLines.add("xfer id: " + transfer.getEndToEndId() + " / " + line.getSequence());
-                    if(transitionIfAny != null) {
-                        final String completedBy = transitionIfAny.getCompletedBy();
+                    for (IncomingInvoice.ApprovalString approvalString : invoice.getApprovals()) {
                         leftLines.add(String.format(
                                 "approved by: %s",
-                                completedBy != null ? completedBy : "(unknown)"));
-                        leftLines.add("approved on: " + transitionIfAny.getCompletedOn().toString("dd-MMM-yyyy HH:mm"));
+                                approvalString.getCompletedBy()));
+                        leftLines.add("on: " + approvalString.getCompletedOn());
                     }
 
                     final List<String> rightLines = Lists.newArrayList();
@@ -662,7 +657,7 @@ public class PaymentBatch extends UdoDomainObject2<PaymentBatch> implements Stat
             }
         }
 
-        byte[] pdfMergedBytes = pdfBoxService2.merge(pdfFiles);
+        byte[] pdfMergedBytes = pdfBoxService.merge(pdfFiles);
 
         pdfFiles.stream().forEach(this::cleanup);
 
@@ -715,6 +710,56 @@ public class PaymentBatch extends UdoDomainObject2<PaymentBatch> implements Stat
         return null;
     }
 
+    @Action(
+            semantics = SemanticsOf.SAFE
+    )
+    public Blob downloadReviewSummary(
+            @Nullable final String documentName){
+        List<CreditTransferExportLine> exportLines = new ArrayList<>();
+        int lineNumber = 1;
+        for (CreditTransfer transfer : getTransfers()){
+            boolean newTransfer = true;
+            for (PaymentLine paymentLine : transfer.getLines()){
+                String firstUse = creditTransferExportService.isFirstUseBankAccount(transfer) ? "YES" : "no";
+                exportLines.add(
+                        new CreditTransferExportLine(
+                                lineNumber,
+                                lineNumber == 1 ? getDebtorBankAccount().getIban() : null,
+                                lineNumber == 1 ? getCreatedOn().toString("dd-MMM-yyyy HH:mm") : null,
+                                newTransfer ? transfer.getEndToEndId() : null,
+                                newTransfer ? transfer.getSellerBankAccount().getIban() : null,
+                                newTransfer ? firstUse : null,
+                                newTransfer ? transfer.getSeller().getName() : null,
+                                newTransfer ? transfer.getSeller().getReference() : null,
+                                newTransfer ? transfer.getAmount().setScale(2, RoundingMode.HALF_UP) : null,
+                                newTransfer ? transfer.getCurrency().getName() : null,
+                                paymentLine.getInvoice().getInvoiceNumber(),
+                                paymentLine.getInvoice().getInvoiceDate(),
+                                paymentLine.getInvoice().getGrossAmount().setScale(2, RoundingMode.HALF_UP),
+                                creditTransferExportService.getApprovalStateTransitionSummary(paymentLine.getInvoice()),
+                                paymentLine.getInvoice().getDescriptionSummary(),
+                                creditTransferExportService.getInvoiceDocumentName(paymentLine.getInvoice()),
+                                paymentLine.getInvoice().getType()== IncomingInvoiceType.CAPEX ?
+                                        paymentLine.getInvoice().getType().name() + " (" + paymentLine.getInvoice().getProjectSummary() + ")" :
+                                        paymentLine.getInvoice().getType().name(),
+                                paymentLine.getInvoice().getPropertySummary()
+                        )
+                );
+                newTransfer = false;
+                lineNumber ++;
+            }
+        }
+        String name = documentName!=null ? documentName.concat(".xlsx") : fileNameWithSuffix("xlsx");
+        return excelService.toExcel(
+                exportLines,
+                CreditTransferExportLine.class,
+                getRequestedExecutionDate() != null
+                        ? getRequestedExecutionDate().toString("yyyyMMdd-HHmm")
+                        : "DRAFT",
+                name);
+
+    }
+
     @Action(semantics = SemanticsOf.SAFE)
     @ActionLayout(contributed= Contributed.AS_ACTION)
     public Blob downloadExcelExport(){
@@ -727,7 +772,6 @@ public class PaymentBatch extends UdoDomainObject2<PaymentBatch> implements Stat
             lineVms.add(new PaymentLineForExcelExportV1(
                     getDebtorBankAccount().getIban(),
                     line.getInvoice().getInvoiceDate(),
-                    getRequestedExecutionDate() != null ? this.getRequestedExecutionDate().toLocalDate() : null,
                     null,
                     line.getInvoice().getSeller().getName(),
                     line.getInvoice().getSeller().getReference(),
@@ -743,7 +787,7 @@ public class PaymentBatch extends UdoDomainObject2<PaymentBatch> implements Stat
     }
 
     @Inject
-    PdfBoxService2 pdfBoxService2;
+    PdfBoxService pdfBoxService;
 
     @Inject
     LookupAttachedPdfService lookupAttachedPdfService;
@@ -907,6 +951,7 @@ public class PaymentBatch extends UdoDomainObject2<PaymentBatch> implements Stat
     @Inject
     ExcelService excelService;
 
-
+    @Inject
+    CreditTransferExportService creditTransferExportService;
 
 }

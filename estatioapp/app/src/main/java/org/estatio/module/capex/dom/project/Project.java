@@ -19,10 +19,12 @@
 package org.estatio.module.capex.dom.project;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.jdo.annotations.Column;
@@ -42,6 +44,7 @@ import com.google.common.collect.Lists;
 
 import org.joda.time.LocalDate;
 
+import org.apache.isis.applib.annotation.Action;
 import org.apache.isis.applib.annotation.BookmarkPolicy;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.DomainObjectLayout;
@@ -49,9 +52,12 @@ import org.apache.isis.applib.annotation.Editing;
 import org.apache.isis.applib.annotation.MemberOrder;
 import org.apache.isis.applib.annotation.Optionality;
 import org.apache.isis.applib.annotation.Parameter;
+import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.annotation.Property;
 import org.apache.isis.applib.annotation.PropertyLayout;
+import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.annotation.Where;
+import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.schema.utils.jaxbadapters.PersistentEntityAdapter;
 
 import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
@@ -85,7 +91,11 @@ import lombok.Setter;
 				+ "WHERE reference == :reference "),
 		@Query(name = "matchByReferenceOrName", language = "JDOQL", value = "SELECT "
 				+ "FROM org.estatio.module.capex.dom.project.Project "
-				+ "WHERE reference.matches(:matcher) || name.matches(:matcher) ") })
+				+ "WHERE reference.matches(:matcher) || name.matches(:matcher) "),
+		@Query(name = "findByParent", language = "JDOQL", value = "SELECT "
+				+ "FROM org.estatio.module.capex.dom.project.Project "
+				+ "WHERE parent == :parent ")
+})
 @DomainObject(
 		editing = Editing.DISABLED,
 		objectType = "org.estatio.capex.dom.project.Project",
@@ -151,6 +161,116 @@ public class Project extends UdoDomainObject<Project> implements
 	@Getter @Setter
 	private Project parent;
 
+	@Action(semantics = SemanticsOf.IDEMPOTENT)
+	public Project changeProject(final String name, @Parameter(optionality = Optionality.OPTIONAL) final Project parent){
+		setName(name);
+		setParent(parent);
+		return this;
+	}
+
+	public String default0ChangeProject(){
+		return getName();
+	}
+
+	public Project default1ChangeProject(){
+		return getParent();
+	}
+
+	public List<Project> choices1ChangeProject(){
+		return projectRepository.listAll()
+				.stream()
+				.filter(x->!x.equals(this))
+				.filter(x->x.isParentProject() || x.getItems().size()==0)
+				.collect(Collectors.toList());
+	}
+
+	@Action(semantics = SemanticsOf.IDEMPOTENT)
+	public Project changeDates(@Parameter(optionality = Optionality.OPTIONAL) final LocalDate startDate, @Parameter(optionality = Optionality.OPTIONAL) final LocalDate endDate){
+		setStartDate(startDate);
+		setEndDate(endDate);
+		return this;
+	}
+
+	public LocalDate default0ChangeDates(){
+		return getStartDate();
+	}
+
+	public LocalDate default1ChangeDates(){
+		return getEndDate();
+	}
+
+	public String validateChangeDates(final LocalDate startDate, final LocalDate endDate){
+		return validateNewProject(null, startDate, endDate);
+	}
+
+	@Action(semantics = SemanticsOf.NON_IDEMPOTENT)
+	public Project createParentProject(
+			final String reference,
+			final String name,
+			@Parameter(optionality = Optionality.OPTIONAL)
+			final LocalDate startDate,
+			@Parameter(optionality = Optionality.OPTIONAL)
+			final LocalDate endDate){
+			Project parent = projectRepository.create(reference, name, startDate, endDate, getAtPath(), null);
+		    wrapperFactory.wrap(parent).addChildProject(this);
+			return parent;
+	}
+
+	public String disableCreateParentProject(){
+			return parent!=null ? "The project has a parent already" : null;
+	}
+
+	public String validateCreateParentProject(
+			final String reference,
+			final String name,
+			final LocalDate startDate,
+			final LocalDate endDate){
+		return validateNewProject(reference, startDate, endDate);
+	}
+
+	@Action(semantics = SemanticsOf.NON_IDEMPOTENT)
+	@MemberOrder(sequence = "2", name = "children")
+	public Project createChildProject(final String reference, final String name, @Parameter(optionality = Optionality.OPTIONAL) final LocalDate startDate, @Parameter(optionality = Optionality.OPTIONAL) final LocalDate endDate){
+		return projectRepository.create(reference, name, startDate, endDate, getAtPath(), this);
+	}
+
+	public String validateCreateChildProject(final String reference, final String name, final LocalDate startDate, final LocalDate endDate){
+		return validateNewProject(reference, startDate, endDate);
+	}
+
+	// TODO: (ECP-438) until we find out more about the process
+	public String disableCreateChildProject(){
+		return getItems().isEmpty() ? null : "This project cannot be a parent because it has items";
+	}
+
+
+	@Action(semantics = SemanticsOf.IDEMPOTENT)
+	@MemberOrder(sequence = "1", name = "children")
+	public Project addChildProject(final Project child){
+			child.setParent(this);
+			return this;
+	}
+
+	public String validateAddChildProject(final Project child){
+		if (child.getParent()!=null) return "The child project is linked to a parent already";
+		if (child==this) return "A project cannot have itself as a child";
+		return null;
+	}
+
+	public List<Project> autoComplete0AddChildProject(final String search){
+		return projectRepository.findProject(search)
+				.stream()
+				.filter(x->x!=this)
+				.filter(x->!getChildren().contains(x))
+				.filter(x->x.getAtPath().equals(getAtPath()))
+				.collect(Collectors.toList());
+	}
+
+	// TODO: (ECP-438) until we find out more about the process
+	public String disableAddChildProject(){
+		return getItems().isEmpty() ? null : "This project cannot be a parent because it has items";
+	}
+
 	@MemberOrder(name="items", sequence = "1")
 	public Project addItem(
 			final Charge charge,
@@ -168,6 +288,11 @@ public class Project extends UdoDomainObject<Project> implements
 		projectItemRepository.findOrCreate(
 				this, charge, description, budgetedAmount, startDate, endDate, property, tax);
 		return this;
+	}
+
+	// TODO: (ECP-438) until we find out more about the process
+	public String disableAddItem(){
+		return isParentProject() ? "This project is a parent" : null;
 	}
 
 	@Persistent(mappedBy = "project")
@@ -188,7 +313,7 @@ public class Project extends UdoDomainObject<Project> implements
 
 	@Property(notPersisted = true)
 	public BigDecimal getBudgetedAmount(){
-		return sum(ProjectItem::getBudgetedAmount);
+		return isParentProject()? budgetedAmountWhenParentProject() : sum(ProjectItem::getBudgetedAmount);
 	}
 
 	private BigDecimal sum(final Function<ProjectItem, BigDecimal> x) {
@@ -196,6 +321,24 @@ public class Project extends UdoDomainObject<Project> implements
 				.map(x)
 				.filter(Objects::nonNull)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	private BigDecimal budgetedAmountWhenParentProject(){
+		BigDecimal result = BigDecimal.ZERO;
+		for (Project child : getChildren()){
+			result = result.add(child.getBudgetedAmount());
+		}
+		return result;
+	}
+
+	@Programmatic
+	public boolean isParentProject(){
+		return getChildren().isEmpty() ? false : true;
+	}
+
+	private String validateNewProject(final String reference, final LocalDate startDate, final LocalDate endDate){
+		if (projectRepository.findByReference(reference)!=null) return "There is already a project with this reference";
+		return startDate != null && endDate != null && !startDate.isBefore(endDate) ? "End date must be after start date" : null;
 	}
 
 	@Inject
@@ -206,5 +349,11 @@ public class Project extends UdoDomainObject<Project> implements
 
 	@Inject
 	private ProjectRoleRepository projectRoleRepository;
+
+	@Inject
+	ProjectRepository projectRepository;
+
+	@Inject
+	WrapperFactory wrapperFactory;
 
 }
