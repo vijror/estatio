@@ -302,6 +302,7 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
 
     @Getter @Setter
     @Column(allowsNull = "false")
+    @PropertyLayout(named = "TYPE_OF_PREMISES")
     private String typeOfPremises;
 
     @Getter @Setter
