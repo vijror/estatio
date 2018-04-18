@@ -103,11 +103,11 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
             final BigDecimal arsmoms,
             final String hyresgast,
             final String uppsagd,
-            final LocalDate inflyttningsDatum,
-            final LocalDate avflyttningsDatum,
-            final LocalDate senastuppsagd,
-            final LocalDate kontraktFrom,
-            final LocalDate kontraktTom,
+            final String inflyttningsDatum,
+            final String avflyttningsDatum,
+            final String senastuppsagd,
+            final String kontraktFrom,
+            final String kontraktTom,
             final String uppsagningstidHv,
             final String forlangningstidHv,
             final String moms,
@@ -136,15 +136,15 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
             final String utskrivetDatum,
             final String uppsagningstidHg,
             final String forlangningstidHg,
-            final LocalDate senastuppsagdHg,
+            final String senastuppsagdHg,
             final String uppsagDav,
-            final LocalDate regDatum,
-            final LocalDate vakantFrom,
+            final String regDatum,
+            final String vakantFrom,
             final BigDecimal omsattning,
             final BigDecimal omsattProc,
             final BigDecimal omsattningHyra,
             final BigDecimal omsMinHyra,
-            final LocalDate omsBasDat,
+            final String omsBasDat,
             final BigDecimal omsBasIndex,
             final BigDecimal omsAndelProc,
             final BigDecimal omsIndexBel,
@@ -161,9 +161,17 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
             final String extraUpps2KontraktTomHg,
             final String extraUppstid2Hg,
             final String populärNamn,
-            final LocalDate rentalUnitStartDate,
-            final LocalDate rentalUnitEndDate,
-            final LocalDate spaceUnitsStartDate,
+            final String rentalUnitStartDate,
+            final String rentalUnitEndDate,
+            final String extraUpps3SenastHg,
+            final String extraUpps3KontraktTomtHg,
+            final String extraVillkor3Hg,
+            final String typeOfDeposit,
+            final BigDecimal depositDebit,
+            final String depositRef,
+            final String bankName,
+            final String expiringDate,
+            final String spaceUnitsStartDate,
             final LocalDateTime evdInSd){
         this();
         this.status = status;
@@ -247,6 +255,14 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
         this.populärNamn = populärNamn;
         this.rentalUnitStartDate = rentalUnitStartDate;
         this.rentalUnitEndDate = rentalUnitEndDate;
+        this.extraUpps3SenastHg = extraUpps3SenastHg;
+        this.extraUpps3KontraktTomtHg = extraUpps3KontraktTomtHg;
+        this.extraVillkor3Hg = extraVillkor3Hg;
+        this.typeOfDeposit = typeOfDeposit;
+        this.depositDebit = depositDebit;
+        this.depositRef = depositRef;
+        this.bankName = bankName;
+        this.expiringDate = expiringDate;
         this.spaceUnitsStartDate = spaceUnitsStartDate;
         this.evdInSd = evdInSd;
     }
@@ -323,6 +339,7 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "ARSHYRA_PER_KVM")
     private BigDecimal arshyraPerKvm;
 
     @Getter @Setter
@@ -339,30 +356,38 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
 
     @Getter @Setter
     @Column(allowsNull = "true")
-    private LocalDate inflyttningsDatum;
+    // NOTE: We take the string here because the excel import file we have to handle does not use the date format
+    private String inflyttningsDatum;
+
+    // NOTE: this is a kind of work-a-round we could use for all dates imported as string
+    public LocalDate getInflyttningsDatumAsDate(){
+        return stringToDate(getInflyttningsDatum());
+    }
 
     @Getter @Setter
     @Column(allowsNull = "true")
-    private LocalDate avflyttningsDatum;
+    private String avflyttningsDatum;
 
     @Getter @Setter
     @Column(allowsNull = "true")
-    private LocalDate senastuppsagd;
+    private String senastuppsagd;
 
     @Getter @Setter
     @Column(allowsNull = "true")
-    private LocalDate kontraktFrom;
+    private String kontraktFrom;
 
     @Getter @Setter
     @Column(allowsNull = "true")
-    private LocalDate kontraktTom;
+    private String kontraktTom;
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "UPPSAGNINGSTID_HV")
     private String uppsagningstidHv;
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "FORLANGNINGSTID_HV")
     private String forlangningstidHv;
 
     @Getter @Setter
@@ -423,6 +448,7 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "SA_TILLAGG")
     private BigDecimal saTillagg;
 
     @Getter @Setter
@@ -435,6 +461,7 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "TOTAL_KVM")
     private BigDecimal totalKvm;
 
     @Getter @Setter
@@ -443,6 +470,7 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "PROC_ANDRING")
     private BigDecimal procAndring;
 
     @Getter @Setter
@@ -463,15 +491,18 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "UPPSAGNINGSTID_HG")
     private String uppsagningstidHg;
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "FORLANGNINGSTID_HG")
     private String forlangningstidHg;
 
     @Getter @Setter
     @Column(allowsNull = "true")
-    private LocalDate senastuppsagdHg;
+    @PropertyLayout(named = "SENASTUPPSAGD_HG")
+    private String senastuppsagdHg;
 
     @Getter @Setter
     @Column(allowsNull = "true")
@@ -479,11 +510,11 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
 
     @Getter @Setter
     @Column(allowsNull = "true")
-    private LocalDate regDatum;
+    private String regDatum;
 
     @Getter @Setter
     @Column(allowsNull = "true")
-    private LocalDate vakantFrom;
+    private String vakantFrom;
 
     @Getter @Setter
     @Column(allowsNull = "true")
@@ -503,7 +534,7 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
 
     @Getter @Setter
     @Column(allowsNull = "true")
-    private LocalDate omsBasDat;
+    private String omsBasDat;
 
     @Getter @Setter
     @Column(allowsNull = "true")
@@ -531,38 +562,47 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "Extra_upps_1_Senast_Hg")
     private String extraUpps1SenastHg;
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "Extra_upps_1_Utflkod_Hg")
     private String extraUpps1UtflkodHg;
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "Extra_upps_1_Kontrakt_tom_Hg")
     private String extraUpps1KontraktTomHg;
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "Extra_uppstid_1_Hg")
     private String extraUppstid1Hg;
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "Extra_villkor_1_Hg")
     private String extraVillkor1Hg;
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "Extra_upps_2_Senast_Hg")
     private String extraUpps2SenastHg;
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "Extra_upps_2_Utflkod_Hg")
     private String extraUpps2UtflkodHg;
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "Extra_upps_2_Kontrakt_tom_Hg")
     private String extraUpps2KontraktTomHg;
 
     @Getter @Setter
     @Column(allowsNull = "true")
+    @PropertyLayout(named = "Extra_uppstid_2_Hg")
     private String extraUppstid2Hg;
 
     @Getter @Setter
@@ -571,15 +611,58 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
 
     @Getter @Setter
     @Column(allowsNull = "true")
-    private LocalDate rentalUnitStartDate;
+    @PropertyLayout(named = "rental_unit_start_date")
+    private String rentalUnitStartDate;
 
     @Getter @Setter
     @Column(allowsNull = "true")
-    private LocalDate rentalUnitEndDate;
+    @PropertyLayout(named = "rental_unit_start_date")
+    private String rentalUnitEndDate;
 
     @Getter @Setter
     @Column(allowsNull = "true")
-    private LocalDate spaceUnitsStartDate;
+    @PropertyLayout(named = "extra_upps_3_senast_hg")
+    private String extraUpps3SenastHg;
+
+    @Getter @Setter
+    @Column(allowsNull = "true")
+    @PropertyLayout(named = "extra_upps_3_kontrakt_tom_hg")
+    private String extraUpps3KontraktTomtHg;
+
+    @Getter @Setter
+    @Column(allowsNull = "true")
+    @PropertyLayout(named = "extra_villkor_3_hg")
+    private String extraVillkor3Hg;
+
+    @Getter @Setter
+    @Column(allowsNull = "true")
+    @PropertyLayout(named = "type_of_deposit")
+    private String typeOfDeposit;
+
+    @Getter @Setter
+    @Column(allowsNull = "true")
+    @PropertyLayout(named = "deposit_debit")
+    private BigDecimal depositDebit;
+
+    @Getter @Setter
+    @Column(allowsNull = "true")
+    @PropertyLayout(named = "deposit_ref")
+    private String depositRef;
+
+    @Getter @Setter
+    @Column(allowsNull = "true")
+    @PropertyLayout(named = "bank_name")
+    private String bankName;
+
+    @Getter @Setter
+    @Column(allowsNull = "true")
+    @PropertyLayout(named = "expiring_date")
+    private String expiringDate;
+
+    @Getter @Setter
+    @Column(allowsNull = "true")
+    @PropertyLayout(named = "space_units_start_date")
+    private String spaceUnitsStartDate;
 
     @Getter @Setter
     @Column(allowsNull = "true")
@@ -597,6 +680,10 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
             repositoryService.persistAndFlush(this);
         }
         return Collections.emptyList();
+    }
+
+    private LocalDate stringToDate(final String dateString) {
+        return dateString != null ? LocalDate.parse(dateString) : null;
     }
 
     @Inject

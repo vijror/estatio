@@ -5,7 +5,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import org.apache.isis.applib.annotation.DomainService;
@@ -68,11 +67,11 @@ public class RentRollLineRepository {
             final BigDecimal arsmoms,
             final String hyresgast,
             final String uppsagd,
-            final LocalDate inflyttningsDatum,
-            final LocalDate avflyttningsDatum,
-            final LocalDate senastuppsagd,
-            final LocalDate kontraktFrom,
-            final LocalDate kontraktTom,
+            final String inflyttningsDatum,
+            final String avflyttningsDatum,
+            final String senastuppsagd,
+            final String kontraktFrom,
+            final String kontraktTom,
             final String uppsagningstidHv,
             final String forlangningstidHv,
             final String moms,
@@ -101,15 +100,15 @@ public class RentRollLineRepository {
             final String utskrivetDatum,
             final String uppsagningstidHg,
             final String forlangningstidHg,
-            final LocalDate senastuppsagdHg,
+            final String senastuppsagdHg,
             final String uppsagDav,
-            final LocalDate regDatum,
-            final LocalDate vakantFrom,
+            final String regDatum,
+            final String vakantFrom,
             final BigDecimal omsattning,
             final BigDecimal omsattProc,
             final BigDecimal omsattningHyra,
             final BigDecimal omsMinHyra,
-            final LocalDate omsBasDat,
+            final String omsBasDat,
             final BigDecimal omsBasIndex,
             final BigDecimal omsAndelProc,
             final BigDecimal omsIndexBel,
@@ -126,9 +125,17 @@ public class RentRollLineRepository {
             final String extraUpps2KontraktTomHg,
             final String extraUppstid2Hg,
             final String populärNamn,
-            final LocalDate rentalUnitStartDate,
-            final LocalDate rentalUnitEndDate,
-            final LocalDate spaceUnitsStartDate,
+            final String rentalUnitStartDate,
+            final String rentalUnitEndDate,
+            final String extraUpps3SenastHg,
+            final String extraUpps3KontraktTomtHg,
+            final String extraVillkor3Hg,
+            final String typeOfDeposit,
+            final BigDecimal depositDebit,
+            final String depositRef,
+            final String bankName,
+            final String expiringDate,
+            final String spaceUnitsStartDate,
             final LocalDateTime evdInSd) {
 
         final RentRollLine line = new RentRollLine(
@@ -213,6 +220,14 @@ public class RentRollLineRepository {
                 populärNamn,
                 rentalUnitStartDate,
                 rentalUnitEndDate,
+                extraUpps3SenastHg,
+                extraUpps3KontraktTomtHg,
+                extraVillkor3Hg,
+                typeOfDeposit,
+                depositDebit,
+                depositRef,
+                bankName,
+                expiringDate,
                 spaceUnitsStartDate,
                 evdInSd
         );
