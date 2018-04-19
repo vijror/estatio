@@ -669,6 +669,10 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
     @PropertyLayout(named = "evd-in-sd")
     private LocalDateTime evdInSd;
 
+    @Getter @Setter
+    @Column(allowsNull = "false")
+    private boolean futureRentRollLine;
+
     @Override
     public ApplicationTenancy getApplicationTenancy() {
         return applicationTenancyRepository.findByPath("/SWE");
