@@ -27,11 +27,7 @@ import org.apache.isis.applib.annotation.Editing;
 import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
-import org.isisaddons.module.security.dom.tenancy.ApplicationTenancy;
-import org.isisaddons.module.security.dom.tenancy.ApplicationTenancyRepository;
-
 import org.estatio.module.base.dom.Importable;
-import org.estatio.module.base.dom.UdoDomainObject2;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -67,7 +63,7 @@ import lombok.Setter;
 })
 @Uniques({
         @Unique(
-                name = "RentRollLine_objektsNummer_evdInSd_IDX",
+                name = "RentRollLine_objektsNummer_evdInSd_UNQ",
                 members = { "objektsNummer", "evdInSd" }
         )
 })
@@ -75,197 +71,9 @@ import lombok.Setter;
         editing = Editing.DISABLED,
         objectType = "org.estatio.module.fastnet.dom.RentRollLine"
 )
-public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Importable{
+public class RentRollLine implements Importable{
 
-    public RentRollLine() {
-        super("objektsNummer, evdInSd");
-    }
-
-    public RentRollLine(
-            final String status,
-            final String klientNummer,
-            final String klientNamn,
-            final String fastighetsNummer,
-            final String fastighetsBeteckning,
-            final String objektsNummer,
-            final String kontraktNr,
-            final String kundNr,
-            final String forvaltaransvarig,
-            final String objektTyp,
-            final String objektTypKod,
-            final String beskrivning,
-            final String typeOfPremises,
-            final BigDecimal yta,
-            final String betpertyp,
-            final BigDecimal periodhyra,
-            final BigDecimal arshyra,
-            final BigDecimal arshyraPerKvm,
-            final BigDecimal arsmoms,
-            final String hyresgast,
-            final String uppsagd,
-            final String inflyttningsDatum,
-            final String avflyttningsDatum,
-            final String senastuppsagd,
-            final String kontraktFrom,
-            final String kontraktTom,
-            final String uppsagningstidHv,
-            final String forlangningstidHv,
-            final String moms,
-            final BigDecimal indextal,
-            final BigDecimal indexandel,
-            final BigDecimal bashyra,
-            final BigDecimal indextillagg,
-            final BigDecimal hyrainklindex,
-            final BigDecimal fastighetsskatt,
-            final BigDecimal fskattproc,
-            final BigDecimal varme,
-            final BigDecimal el,
-            final BigDecimal kyla,
-            final BigDecimal va,
-            final BigDecimal kabeltv,
-            final BigDecimal ovrigt,
-            final BigDecimal saTillagg,
-            final BigDecimal okand,
-            final BigDecimal total,
-            final BigDecimal totalKvm,
-            final BigDecimal rabatt,
-            final BigDecimal procAndring,
-            final String notering,
-            final String inflyttningsKod,
-            final String utflyttningsKod,
-            final String utskrivetDatum,
-            final String uppsagningstidHg,
-            final String forlangningstidHg,
-            final String senastuppsagdHg,
-            final String uppsagDav,
-            final String regDatum,
-            final String vakantFrom,
-            final BigDecimal omsattning,
-            final BigDecimal omsattProc,
-            final BigDecimal omsattningHyra,
-            final BigDecimal omsMinHyra,
-            final String omsBasDat,
-            final BigDecimal omsBasIndex,
-            final BigDecimal omsAndelProc,
-            final BigDecimal omsIndexBel,
-            final BigDecimal omsHyraInklIndex,
-            final BigDecimal omsOverskut,
-            final BigDecimal marknBidrag,
-            final String extraUpps1SenastHg,
-            final String extraUpps1UtflkodHg,
-            final String extraUpps1KontraktTomHg,
-            final String extraUppstid1Hg,
-            final String extraVillkor1Hg,
-            final String extraUpps2SenastHg,
-            final String extraUpps2UtflkodHg,
-            final String extraUpps2KontraktTomHg,
-            final String extraUppstid2Hg,
-            final String populärNamn,
-            final String rentalUnitStartDate,
-            final String rentalUnitEndDate,
-            final String extraUpps3SenastHg,
-            final String extraUpps3KontraktTomtHg,
-            final String extraVillkor3Hg,
-            final String typeOfDeposit,
-            final BigDecimal depositDebit,
-            final String depositRef,
-            final String bankName,
-            final String expiringDate,
-            final String spaceUnitsStartDate,
-            final LocalDateTime evdInSd){
-        this();
-        this.status = status;
-        this.klientNummer = klientNummer;
-        this.klientNamn = klientNamn;
-        this.fastighetsNummer = fastighetsNummer;
-        this.fastighetsBeteckning = fastighetsBeteckning;
-        this.objektsNummer = objektsNummer;
-        this.kontraktNr = kontraktNr;
-        this.kundNr = kundNr;
-        this.forvaltaransvarig = forvaltaransvarig;
-        this.objektTyp = objektTyp;
-        this.objektTypKod = objektTypKod;
-        this.beskrivning = beskrivning;
-        this.typeOfPremises = typeOfPremises;
-        this.yta = yta;
-        this.betpertyp = betpertyp;
-        this.periodhyra = periodhyra;
-        this.arshyra = arshyra;
-        this.arshyraPerKvm = arshyraPerKvm;
-        this.arsmoms = arsmoms;
-        this.hyresgast = hyresgast;
-        this.uppsagd = uppsagd;
-        this.inflyttningsDatum = inflyttningsDatum;
-        this.avflyttningsDatum = avflyttningsDatum;
-        this.senastuppsagd = senastuppsagd;
-        this.kontraktFrom = kontraktFrom;
-        this.kontraktTom = kontraktTom;
-        this.uppsagningstidHv = uppsagningstidHv;
-        this.forlangningstidHv = forlangningstidHv;
-        this.moms = moms;
-        this.indextal = indextal;
-        this.indexandel = indexandel;
-        this.bashyra = bashyra;
-        this.indextillagg = indextillagg;
-        this.hyrainklindex = hyrainklindex;
-        this.fastighetsskatt = fastighetsskatt;
-        this.fskattproc = fskattproc;
-        this.varme = varme;
-        this.el = el;
-        this.kyla = kyla;
-        this.va = va;
-        this.kabeltv = kabeltv;
-        this.ovrigt = ovrigt;
-        this.saTillagg = saTillagg;
-        this.okand = okand;
-        this.total = total;
-        this.totalKvm = totalKvm;
-        this.rabatt = rabatt;
-        this.procAndring = procAndring;
-        this.notering = notering;
-        this.inflyttningsKod = inflyttningsKod;
-        this.utflyttningsKod = utflyttningsKod;
-        this.utskrivetDatum = utskrivetDatum;
-        this.uppsagningstidHg = uppsagningstidHg;
-        this.forlangningstidHg = forlangningstidHg;
-        this.senastuppsagdHg = senastuppsagdHg;
-        this.uppsagDav = uppsagDav;
-        this.regDatum = regDatum;
-        this.vakantFrom = vakantFrom;
-        this.omsattning = omsattning;
-        this.omsattProc = omsattProc;
-        this.omsattningHyra = omsattningHyra;
-        this.omsMinHyra = omsMinHyra;
-        this.omsBasDat = omsBasDat;
-        this.omsBasIndex = omsBasIndex;
-        this.omsAndelProc = omsAndelProc;
-        this.omsIndexBel = omsIndexBel;
-        this.omsHyraInklIndex = omsHyraInklIndex;
-        this.omsOverskut = omsOverskut;
-        this.marknBidrag = marknBidrag;
-        this.extraUpps1SenastHg = extraUpps1SenastHg;
-        this.extraUpps1UtflkodHg = extraUpps1UtflkodHg;
-        this.extraUpps1KontraktTomHg = extraUpps1KontraktTomHg;
-        this.extraUppstid1Hg = extraUppstid1Hg;
-        this.extraVillkor1Hg = extraVillkor1Hg;
-        this.extraUpps2SenastHg = extraUpps2SenastHg;
-        this.extraUpps2UtflkodHg = extraUpps2UtflkodHg;
-        this.extraUpps2KontraktTomHg = extraUpps2KontraktTomHg;
-        this.extraUppstid2Hg = extraUppstid2Hg;
-        this.populärNamn = populärNamn;
-        this.rentalUnitStartDate = rentalUnitStartDate;
-        this.rentalUnitEndDate = rentalUnitEndDate;
-        this.extraUpps3SenastHg = extraUpps3SenastHg;
-        this.extraUpps3KontraktTomtHg = extraUpps3KontraktTomtHg;
-        this.extraVillkor3Hg = extraVillkor3Hg;
-        this.typeOfDeposit = typeOfDeposit;
-        this.depositDebit = depositDebit;
-        this.depositRef = depositRef;
-        this.bankName = bankName;
-        this.expiringDate = expiringDate;
-        this.spaceUnitsStartDate = spaceUnitsStartDate;
-        this.evdInSd = evdInSd;
-    }
+    public RentRollLine(){}
 
     @Getter @Setter
     @Column(allowsNull = "false")
@@ -359,7 +167,7 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
     // NOTE: We take the string here because the excel import file we have to handle does not use the date format
     private String inflyttningsDatum;
 
-    // NOTE: this is a kind of work-a-round we could use for all dates imported as string
+    // NOTE: Example - this is a kind of work-a-round we could use for all dates imported as string
     public LocalDate getInflyttningsDatumAsDate(){
         return stringToDate(getInflyttningsDatum());
     }
@@ -612,6 +420,8 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
     @Getter @Setter
     @Column(allowsNull = "true")
     @PropertyLayout(named = "rental_unit_start_date")
+    // rental_unit_start_date is when the unit first started
+    // space_units_start_date is when the latest area is effective from
     private String rentalUnitStartDate;
 
     @Getter @Setter
@@ -662,10 +472,12 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
     @Getter @Setter
     @Column(allowsNull = "true")
     @PropertyLayout(named = "space_units_start_date")
+    // rental_unit_start_date is when the unit first started
+    // space_units_start_date is when the latest area is effective from
     private String spaceUnitsStartDate;
 
     @Getter @Setter
-    @Column(allowsNull = "true")
+    @Column(allowsNull = "false")
     @PropertyLayout(named = "evd-in-sd")
     private LocalDateTime evdInSd;
 
@@ -673,14 +485,14 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
     @Column(allowsNull = "false")
     private boolean futureRentRollLine;
 
-    @Override
-    public ApplicationTenancy getApplicationTenancy() {
-        return applicationTenancyRepository.findByPath("/SWE");
-    }
+    @Getter @Setter
+    @Column(allowsNull = "false")
+    private LocalDate exportDate;
 
     @Override
     public List<Object> importData(final Object previousRow) {
         if (rentRollLineRepository.findByObjektsNummerAndEvdInSd(getObjektsNummer(), getEvdInSd())==null){
+            setExportDate(getEvdInSd().toLocalDate());
             repositoryService.persistAndFlush(this);
         }
         return Collections.emptyList();
@@ -692,9 +504,6 @@ public class RentRollLine extends UdoDomainObject2<RentRollLine> implements Impo
 
     @Inject
     RentRollLineRepository rentRollLineRepository;
-
-    @Inject
-    ApplicationTenancyRepository applicationTenancyRepository;
 
     @Inject
     RepositoryService repositoryService;
