@@ -50,6 +50,11 @@ import lombok.Setter;
                         + "FROM org.estatio.module.fastnet.dom.ChargingLine "
                         + "WHERE kontraktNr == :kontraktNr "),
         @Query(
+                name = "findByExportDate", language = "JDOQL",
+                value = "SELECT "
+                        + "FROM org.estatio.module.fastnet.dom.ChargingLine "
+                        + "WHERE exportDate == :exportDate "),
+        @Query(
                 name = "findByKontraktNrAndExportDate", language = "JDOQL",
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.ChargingLine "

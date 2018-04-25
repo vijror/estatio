@@ -56,6 +56,11 @@ import lombok.Setter;
                         + "FROM org.estatio.module.fastnet.dom.RentRollLine "
                         + "WHERE objektsNummer == :objektsNummer && "
                         + "evdInSd == :evdInSd "),
+        @Query(
+                name = "findByExportDate", language = "JDOQL",
+                value = "SELECT "
+                        + "FROM org.estatio.module.fastnet.dom.RentRollLine "
+                        + "WHERE exportDate == :exportDate "),
 })
 @Indices({
         @Index(name = "RentRollLine_kontraktNr_IDX", members = { "kontraktNr" }),

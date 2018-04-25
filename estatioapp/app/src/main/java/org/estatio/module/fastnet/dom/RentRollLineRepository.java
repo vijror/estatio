@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import org.apache.isis.applib.annotation.DomainService;
@@ -50,6 +51,15 @@ public class RentRollLineRepository {
     }
 
     @Programmatic
+    public List<RentRollLine> findByExportDate(final LocalDate exportDate) {
+        return repositoryService.allMatches(
+                new QueryDefault<>(
+                        RentRollLine.class,
+                        "findByExportDate",
+                        "exportDate", exportDate));
+    }
+
+    @Programmatic
     public List<RentRollLine> importRentRollItems(final Blob spreadsheet) {
         List<RentRollLine> rentRollItems =
                 excelService.fromExcel(spreadsheet, RentRollLine.class, "Actual_rentroll", Mode.RELAXED);
@@ -81,5 +91,4 @@ public class RentRollLineRepository {
 
     @Inject
     ExcelService excelService;
-
 }

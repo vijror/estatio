@@ -52,6 +52,15 @@ public class ChargingLineRepository {
     }
 
     @Programmatic
+    public List<ChargingLine> findByExportDate(final LocalDate exportDate) {
+        return repositoryService.allMatches(
+                new QueryDefault<>(
+                        ChargingLine.class,
+                        "findByExportDate",
+                        "exportDate", exportDate));
+    }
+
+    @Programmatic
     public ChargingLine findUnique(
             final String kontraktNr,
             final String kod,
