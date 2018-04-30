@@ -225,6 +225,10 @@ public class ChargingLine implements Importable{
     @Column(allowsNull = "false")
     private LocalDate exportDate;
 
+    @Getter @Setter
+    @Column(allowsNull = "true")
+    private LocalDate applied;
+
     @Override
     public List<Object> importData(final Object previousRow){
         if (chargingLineRepository.findUnique(getKontraktNr(), getKod(), getKod2(), getFromDat(), getTomDat(), getArsBel(), getEvdInSd())==null) {

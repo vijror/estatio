@@ -501,6 +501,10 @@ public class RentRollLine implements Importable{
     @Column(allowsNull = "false")
     private LocalDate exportDate;
 
+    @Getter @Setter
+    @Column(allowsNull = "true")
+    private LocalDate applied;
+
     @Action(semantics = SemanticsOf.SAFE)
     public List<ChargingLine> getChargingLines(){
         return chargingLineRepository.findByKontraktNrAndExportDate(getKontraktNr(), getExportDate());
