@@ -139,7 +139,7 @@ public class ChargingLine implements Importable{
     // charge date
     // NOTE: We take the string here because the excel import file we have to handle does not use the date format
     @Getter @Setter
-    @Column(allowsNull = "false")
+    @Column(allowsNull = "true") // New situation: we found null's in 20-4-2018
     private String fromDat;
 
     // charge end date
@@ -213,6 +213,11 @@ public class ChargingLine implements Importable{
 
     @Getter @Setter
     @Column(allowsNull = "false")
+    @PropertyLayout(named = "import_date")
+    private LocalDateTime importDate;
+
+    @Getter @Setter
+    @Column(allowsNull = "false")
     @PropertyLayout(named = "evd-in-sd")
     private LocalDateTime evdInSd;
 
@@ -223,7 +228,7 @@ public class ChargingLine implements Importable{
     @Override
     public List<Object> importData(final Object previousRow){
         if (chargingLineRepository.findUnique(getKontraktNr(), getKod(), getKod2(), getFromDat(), getTomDat(), getArsBel(), getEvdInSd())==null) {
-            setExportDate(getEvdInSd().toLocalDate());
+            setExportDate(getImportDate().toLocalDate());
             repositoryService.persistAndFlush(this);
         }
         return Collections.emptyList();

@@ -22,9 +22,11 @@ import javax.jdo.annotations.VersionStrategy;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
+import org.apache.isis.applib.annotation.Action;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.Editing;
 import org.apache.isis.applib.annotation.PropertyLayout;
+import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
 import org.estatio.module.base.dom.Importable;
@@ -492,12 +494,22 @@ public class RentRollLine implements Importable{
 
     @Getter @Setter
     @Column(allowsNull = "false")
+    @PropertyLayout(named = "import_date")
+    private LocalDateTime importDate;
+
+    @Getter @Setter
+    @Column(allowsNull = "false")
     private LocalDate exportDate;
+
+    @Action(semantics = SemanticsOf.SAFE)
+    public List<ChargingLine> getChargingLines(){
+        return chargingLineRepository.findByKontraktNrAndExportDate(getKontraktNr(), getExportDate());
+    }
 
     @Override
     public List<Object> importData(final Object previousRow) {
         if (rentRollLineRepository.findByObjektsNummerAndEvdInSd(getObjektsNummer(), getEvdInSd())==null){
-            setExportDate(getEvdInSd().toLocalDate());
+            setExportDate(getImportDate().toLocalDate());
             repositoryService.persistAndFlush(this);
         }
         return Collections.emptyList();
@@ -512,5 +524,8 @@ public class RentRollLine implements Importable{
 
     @Inject
     RepositoryService repositoryService;
+
+    @Inject
+    ChargingLineRepository chargingLineRepository;
 
 }
