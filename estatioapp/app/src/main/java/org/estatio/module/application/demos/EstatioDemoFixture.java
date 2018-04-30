@@ -198,7 +198,9 @@ public class EstatioDemoFixture extends DiscoverableFixtureScript {
                 LeaseItemForDiscount_enum.OxfTopModel001Gb,
                 LeaseItemForDeposit_enum.OxfTopModel001Gb,
                 LeaseItemForTax_enum.OxfTopModel001Gb,
-                LeaseItemForMarketing_enum.OxfTopModel001Gb);
+                LeaseItemForMarketing_enum.OxfTopModel001Gb,
+                LeaseItemForRent_enum.HanPoison001Se,
+                LeaseItemForRent_enum.HanTopModel002Se);
 
         ec.executeChildren(this,
                 InvoiceForLease_enum.OxfPoison003Gb,

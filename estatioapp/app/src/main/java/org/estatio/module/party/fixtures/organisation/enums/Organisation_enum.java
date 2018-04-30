@@ -65,6 +65,8 @@ public enum Organisation_enum
     TopModelGb("TOPMODEL", "Topmodel Fashion", Gb),
     TopSellerGb("TOPSELLER", "Topseller goods", Gb),
     YoukeaSe("YOUKEA", "Youkea Furniture", Se),
+    PoisonSe("POISON_SE", "Poison Perfumeries", Se),
+    TopModelSe("TOPMODEL", "Topmodel Fashion", Se),
     ;
 
     private final String ref;
