@@ -79,7 +79,7 @@ public class ChargingLineRepository {
             final String kontraktNr,
             final String kod,
             final String kod2,
-            final LocalDate fromDat) {
+            final String fromDat) {
         return repositoryService.allMatches(
                 new QueryDefault<>(
                         ChargingLine.class,
