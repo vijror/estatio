@@ -61,6 +61,36 @@ public class ChargingLineRepository {
     }
 
     @Programmatic
+    public List<ChargingLine> findByKontraktNrAndKodAndKod2(
+            final String kontraktNr,
+            final String kod,
+            final String kod2) {
+        return repositoryService.allMatches(
+                new QueryDefault<>(
+                        ChargingLine.class,
+                        "findByKontraktNrAndKodAndKod2",
+                        "kontraktNr", kontraktNr,
+                        "kod", kod,
+                        "kod2", kod2));
+    }
+
+    @Programmatic
+    public List<ChargingLine> findByKontraktNrAndKodAndKod2AndFromDat(
+            final String kontraktNr,
+            final String kod,
+            final String kod2,
+            final LocalDate fromDat) {
+        return repositoryService.allMatches(
+                new QueryDefault<>(
+                        ChargingLine.class,
+                        "findByKontraktNrAndKodAndKod2AndFromDat",
+                        "kontraktNr", kontraktNr,
+                        "kod", kod,
+                        "kod2", kod2,
+                        "fromDat", fromDat));
+    }
+
+    @Programmatic
     public ChargingLine findUnique(
             final String kontraktNr,
             final String kod,
@@ -92,7 +122,6 @@ public class ChargingLineRepository {
         });
         return chargingLines;
     }
-
 
     @Inject
     RepositoryService repositoryService;

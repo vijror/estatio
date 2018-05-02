@@ -61,6 +61,21 @@ import lombok.Setter;
                         + "WHERE kontraktNr == :kontraktNr && "
                         + "exportDate == :exportDate"),
         @Query(
+                name = "findByKontraktNrAndKodAndKod2", language = "JDOQL",
+                value = "SELECT "
+                        + "FROM org.estatio.module.fastnet.dom.ChargingLine "
+                        + "WHERE kontraktNr == :kontraktNr && "
+                        + "kod == :kod && "
+                        + "kod2 == :kod2"),
+        @Query(
+                name = "findByKontraktNrAndKodAndKod2AndFromDat", language = "JDOQL",
+                value = "SELECT "
+                        + "FROM org.estatio.module.fastnet.dom.ChargingLine "
+                        + "WHERE kontraktNr == :kontraktNr && "
+                        + "kod == :kod && "
+                        + "kod2 == :kod2 && "
+                        + "fromDat == :fromDat"),
+        @Query(
                 name = "findUnique", language = "JDOQL",
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.ChargingLine "
@@ -85,9 +100,10 @@ import lombok.Setter;
         editing = Editing.DISABLED,
         objectType = "org.estatio.module.fastnet.dom.ChargingLine"
 )
-public class ChargingLine implements Importable{
+public class ChargingLine implements Importable {
 
-    public ChargingLine(){}
+    public ChargingLine() {
+    }
 
     @Getter @Setter
     @Column(allowsNull = "false")
@@ -230,8 +246,8 @@ public class ChargingLine implements Importable{
     private LocalDate applied;
 
     @Override
-    public List<Object> importData(final Object previousRow){
-        if (chargingLineRepository.findUnique(getKontraktNr(), getKod(), getKod2(), getFromDat(), getTomDat(), getArsBel(), getEvdInSd())==null) {
+    public List<Object> importData(final Object previousRow) {
+        if (chargingLineRepository.findUnique(getKontraktNr(), getKod(), getKod2(), getFromDat(), getTomDat(), getArsBel(), getEvdInSd()) == null) {
             setExportDate(getImportDate().toLocalDate());
             repositoryService.persistAndFlush(this);
         }
