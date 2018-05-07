@@ -26,7 +26,7 @@ import lombok.Setter;
         nature = Nature.VIEW_MODEL,
         objectType = "org.estatio.dom.viewmodels.LeaseTermForTurnOverRentFixedImport"
 )
-public class LeaseTermForTurnOverRentFixedImport extends LeaseTermImportAbstract implements ExcelFixtureRowHandler, Importable {
+public class LeaseTermForTurnOverRentFixedImport implements ExcelFixtureRowHandler, Importable {
 
     private static final Logger LOG = LoggerFactory.getLogger(LeaseTermForTurnOverRentFixedImport.class);
 
@@ -52,6 +52,9 @@ public class LeaseTermForTurnOverRentFixedImport extends LeaseTermImportAbstract
     private LocalDate startDate;
 
     @Getter @Setter
+    private LocalDate endDate;
+
+    @Getter @Setter
     private BigDecimal value;
 
     @Programmatic
@@ -61,6 +64,7 @@ public class LeaseTermForTurnOverRentFixedImport extends LeaseTermImportAbstract
     }
 
     public List<Object> importData() {
+
         return importData(null);
     }
 

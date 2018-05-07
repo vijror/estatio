@@ -43,7 +43,6 @@ import org.estatio.module.lease.dom.LeaseItemRepository;
 import org.estatio.module.lease.dom.LeaseItemType;
 import org.estatio.module.lease.dom.LeaseRepository;
 import org.estatio.module.lease.dom.LeaseTermForFixed;
-import org.estatio.module.lease.dom.LeaseTermRepository;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -85,12 +84,12 @@ public class LeaseTermForTurnoverRentFixedImportManager {
     @Action(semantics = SemanticsOf.SAFE)
     public Blob download() {
         final String fileName = "TurnoverRentBulkUpdate-" + getProperty().getReference() + "@" + getYear() + ".xlsx";
-        final List<LeaseTermForTurnOverRentFixedImport> lineItems = getTurnoverRents();
+        final List<LeaseTermForTurnOverRentFixedImport> lineItems = getTurnoverRentLines();
         return excelService.toExcel(lineItems, LeaseTermForTurnOverRentFixedImport.class,
                 LEASE_TERM_FOR_TURNOVER_RENT_SHEET_NAME, fileName);
     }
 
-    public List<LeaseTermForTurnOverRentFixedImport> getTurnoverRents(){
+    public List<LeaseTermForTurnOverRentFixedImport> getTurnoverRentLines(){
 
         List<LeaseTermForTurnOverRentFixedImport> result = new ArrayList<>();
         List<Lease> leasesForProperty = leaseRepository.findLeasesByProperty(getProperty());
@@ -114,10 +113,13 @@ public class LeaseTermForTurnoverRentFixedImportManager {
                     if (torTerm.getStartDate().getYear()==getYear()) {
                         LeaseTermForFixed term = (LeaseTermForFixed) torTerm;
                         line.setStartDate(term.getStartDate());
+                        line.setEndDate(term.getEndDate());
                         line.setValue(term.getValue());
                     }
                 });
-                result.add(line);
+                if (line.getValue()!=null || line.getValuePrevious()!=null || line.getValueCurrent()!=null) {
+                    result.add(line);
+                }
             });
         });
 
@@ -144,9 +146,6 @@ public class LeaseTermForTurnoverRentFixedImportManager {
 
     //region > injected services
 
-    @javax.inject.Inject
-    private LeaseTermRepository leaseTermRepository;
-
     @Inject
     LeaseItemRepository leaseItemRepository;
 
@@ -155,9 +154,6 @@ public class LeaseTermForTurnoverRentFixedImportManager {
 
     @javax.inject.Inject
     private ExcelService excelService;
-
-    @javax.inject.Inject
-    private LeaseTermForTurnoverRentService budgetAuditService;
 
     //endregion
 

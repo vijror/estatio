@@ -167,9 +167,6 @@ public class LeaseTermForTurnoverRentManager {
     @javax.inject.Inject
     private ExcelService excelService;
 
-    @javax.inject.Inject
-    private LeaseTermForTurnoverRentService budgetAuditService;
-
     //endregion
 
 }
