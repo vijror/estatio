@@ -34,7 +34,6 @@ import org.estatio.module.base.dom.Importable;
 import lombok.Getter;
 import lombok.Setter;
 
-
 @PersistenceCapable(
         identityType = IdentityType.DATASTORE,
         schema = "fastnet",
@@ -51,7 +50,8 @@ import lombok.Setter;
                 name = "findByKontraktNr", language = "JDOQL",
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.RentRollLine "
-                        + "WHERE kontraktNr == :kontraktNr "),
+                        + "WHERE kontraktNr == :kontraktNr "
+                        + "SORT BY exportDate DESC"),
         @Query(
                 name = "findByObjektsNummerAndEvdInSd", language = "JDOQL",
                 value = "SELECT "
@@ -78,9 +78,10 @@ import lombok.Setter;
         editing = Editing.DISABLED,
         objectType = "org.estatio.module.fastnet.dom.RentRollLine"
 )
-public class RentRollLine implements Importable{
+public class RentRollLine implements Importable {
 
-    public RentRollLine(){}
+    public RentRollLine() {
+    }
 
     @Getter @Setter
     @Column(allowsNull = "false")
@@ -175,7 +176,7 @@ public class RentRollLine implements Importable{
     private String inflyttningsDatum;
 
     // NOTE: Example - this is a kind of work-a-round we could use for all dates imported as string
-    public LocalDate getInflyttningsDatumAsDate(){
+    public LocalDate getInflyttningsDatumAsDate() {
         return stringToDate(getInflyttningsDatum());
     }
 
@@ -506,13 +507,13 @@ public class RentRollLine implements Importable{
     private LocalDate applied;
 
     @Action(semantics = SemanticsOf.SAFE)
-    public List<ChargingLine> getChargingLines(){
+    public List<ChargingLine> getChargingLines() {
         return chargingLineRepository.findByKontraktNrAndExportDate(getKontraktNr(), getExportDate());
     }
 
     @Override
     public List<Object> importData(final Object previousRow) {
-        if (rentRollLineRepository.findByObjektsNummerAndEvdInSd(getObjektsNummer(), getEvdInSd())==null){
+        if (rentRollLineRepository.findByObjektsNummerAndEvdInSd(getObjektsNummer(), getEvdInSd()) == null) {
             setExportDate(getImportDate().toLocalDate());
             repositoryService.persistAndFlush(this);
         }

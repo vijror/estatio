@@ -66,7 +66,8 @@ import lombok.Setter;
                         + "FROM org.estatio.module.fastnet.dom.ChargingLine "
                         + "WHERE kontraktNr == :kontraktNr && "
                         + "kod == :kod && "
-                        + "kod2 == :kod2"),
+                        + "kod2 == :kod2 "
+                        + "SORT BY exportDate DESC"),
         @Query(
                 name = "findByKontraktNrAndKodAndKod2AndFromDat", language = "JDOQL",
                 value = "SELECT "
@@ -74,7 +75,8 @@ import lombok.Setter;
                         + "WHERE kontraktNr == :kontraktNr && "
                         + "kod == :kod && "
                         + "kod2 == :kod2 && "
-                        + "fromDat == :fromDat"),
+                        + "fromDat == :fromDat "
+                        + "SORT BY exportDate DESC"),
         @Query(
                 name = "findUnique", language = "JDOQL",
                 value = "SELECT "
@@ -244,6 +246,17 @@ public class ChargingLine implements Importable {
     @Getter @Setter
     @Column(allowsNull = "true")
     private LocalDate applied;
+
+    public String validateApplied() {
+        return isDiscarded() ? "Charging line can't be applied when it has been discarded" : null;
+    }
+
+    @Getter @Setter
+    private boolean discarded;
+
+    public String validateDiscarded() {
+        return getApplied() != null ? "Charging line can't be discarded when it has been applied" : null;
+    }
 
     @Override
     public List<Object> importData(final Object previousRow) {
