@@ -13,12 +13,8 @@ import org.apache.isis.applib.annotation.ViewModel;
 import lombok.Getter;
 import lombok.Setter;
 
-//WITH l AS
-//        (SELECT * FROM  dbo.Lease WHERE atPath LIKE '/SWE%')
-//SELECT rrl.kontraktNr, rrl.hyresgast, a.reference, l.externalReference, rrl.arshyra, rrl.futureRentRollLine, rrl.exportDate, rrl.applied, *
-//        FROM fastnet.RentRollLine rrl
-//        LEFT OUTER JOIN l ON CONCAT('35', l.externalReference) = rrl.kontraktNr
-//        LEFT OUTER JOIN dbo.Agreement a ON a.id = l.id
+
+// NOTE: this view also is maintained by fly db
 
 @javax.jdo.annotations.PersistenceCapable(
         identityType = IdentityType.NONDURABLE,
