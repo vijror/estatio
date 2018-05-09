@@ -13,80 +13,95 @@ import org.apache.isis.applib.annotation.ViewModel;
 import lombok.Getter;
 import lombok.Setter;
 
-//SELECT rrl.kontraktNr, rrl.hyresgast, a.reference as leaseReference, rrl.arshyra, rrl.futureRentRollLine, rrl.exportDate, *
+//WITH l AS
+//        (SELECT * FROM  dbo.Lease WHERE atPath LIKE '/SWE%')
+//SELECT rrl.kontraktNr, rrl.hyresgast, a.reference, l.externalReference, rrl.arshyra, rrl.futureRentRollLine, rrl.exportDate, rrl.applied, *
 //        FROM fastnet.RentRollLine rrl
-//        LEFT OUTER JOIN dbo.Lease l ON CONCAT('35', l.externalReference) = rrl.kontraktNr
+//        LEFT OUTER JOIN l ON CONCAT('35', l.externalReference) = rrl.kontraktNr
 //        LEFT OUTER JOIN dbo.Agreement a ON a.id = l.id
-//        WHERE NOT kontraktNr is null
-//        AND a.reference is null
-//        AND rrl.futureRentRollLine = 0 -- filter future rent role lines
-//        AND rrl.applied is null -- filter applied lines (should be noop)
-//        AND rrl.exportDate = '2018-04-20'
 
 @javax.jdo.annotations.PersistenceCapable(
         identityType = IdentityType.NONDURABLE,
-        table = "DataSetRentRoleLineEstatioLease",
+        table = "DataSetRentRollLineEstatioLease",
         schema = "fastnet",
         extensions = {
                 @Extension(vendorName = "datanucleus", key = "view-definition",
-                        value = "CREATE VIEW \"fastnet\".\"DataSetRentRoleLineEstatioLease\" " +
+                        value = "CREATE VIEW \"fastnet\".\"DataSetRentRollLineEstatioLease\" " +
                                 "( " +
                                 "  {this.kontraktNr}, " +
                                 "  {this.hyresgast}, " +
+                                "  {this.kundNr}, " +
                                 "  {this.leaseReference}, " +
+                                "  {this.externalReference}, " +
                                 "  {this.arshyra}, " +
                                 "  {this.futureRentRollLine}, " +
-                                "  {this.exportDate} " +
+                                "  {this.exportDate}, " +
+                                "  {this.applied} " +
                                 ") AS " +
+                                "WITH l AS ( " +
+                                "SELECT * FROM \"dbo\".\"Lease\" WHERE \"atPath\" LIKE \'/SWE%\' " +
+                                " ) " +
                                 "SELECT " +
                                 "  rrl.\"kontraktNr\", " +
-                                "  rrl.\"hyresgast\" , " +
+                                "  rrl.\"hyresgast\", " +
+                                "  rrl.\"kundNr\", " +
                                 "  a.\"reference\" AS \"leaseReference\", " +
+                                "  l.\"externalReference\", " +
                                 "  rrl.\"arshyra\", " +
                                 "  rrl.\"futureRentRollLine\", " +
-                                "  rrl.\"exportDate\" " +
+                                "  rrl.\"exportDate\", " +
+                                "  rrl.\"applied\" " +
                                 "FROM \"fastnet\".\"RentRollLine\" rrl " +
-                                "  LEFT OUTER JOIN \"dbo\".\"Lease\" l " +
+                                "  LEFT OUTER JOIN l " +
                                 "    ON CONCAT(\'35\', l.\"externalReference\") = rrl.\"kontraktNr\" " +
                                 "  LEFT OUTER JOIN \"dbo\".\"Agreement\" a " +
-                                "    ON a.\"id\" = l.\"id\"" )
+                                "    ON a.\"id\" = l.\"id\" ")
         })
 @javax.jdo.annotations.Queries({
         @javax.jdo.annotations.Query(
                 name = "findByExportDate", language = "JDOQL",
                 value = "SELECT " +
-                        "FROM org.estatio.module.fastnet.dom.DataSetRentRoleLineEstatioLease " +
+                        "FROM org.estatio.module.fastnet.dom.DataSetRentRollLineEstatioLease " +
                         "WHERE exportDate == :exportDate "),
         @javax.jdo.annotations.Query(
-                name = "estatioLeasesNotFoundByExportDate", language = "JDOQL",
+                name = "nonMatchingRentRollLinesForExportDate", language = "JDOQL",
                 value = "SELECT " +
-                        "FROM org.estatio.module.fastnet.dom.DataSetRentRoleLineEstatioLease " +
+                        "FROM org.estatio.module.fastnet.dom.DataSetRentRollLineEstatioLease " +
                         "WHERE exportDate == :exportDate "
+                        + "&& kontraktNr != null "
                         + "&& futureRentRollLine == false "
                         + "&& leaseReference == null "),
         @javax.jdo.annotations.Query(
-                name = "futureLeasesNotFoundByExportDate", language = "JDOQL",
+                name = "nonMatchingFutureRentRollLinesForExportDate", language = "JDOQL",
                 value = "SELECT " +
-                        "FROM org.estatio.module.fastnet.dom.DataSetRentRoleLineEstatioLease " +
+                        "FROM org.estatio.module.fastnet.dom.DataSetRentRollLineEstatioLease " +
                         "WHERE exportDate == :exportDate "
+                        + "&& kontraktNr != null "
                         + "&& futureRentRollLine == true "
                         + "&& leaseReference == null "),
+
 })
 @javax.jdo.annotations.Inheritance(strategy = InheritanceStrategy.NEW_TABLE)
 @ViewModel
 @Getter @Setter
-public class DataSetRentRoleLineEstatioLease {
+public class DataSetRentRollLineEstatioLease {
 
         private String kontraktNr;
 
         private String hyresgast;
 
+        private String kundNr;
+
         private String leaseReference;
+
+        private String externalReference;
 
         private BigDecimal arshyra;
 
         private boolean futureRentRollLine;
 
         private LocalDate exportDate;
+
+        private LocalDate applied;
 
 }

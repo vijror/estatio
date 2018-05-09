@@ -28,30 +28,30 @@ import org.apache.isis.applib.annotation.Programmatic;
 import org.estatio.module.base.dom.UdoDomainRepositoryAndFactory;
 
 @DomainService(nature = NatureOfService.DOMAIN)
-public class DataSetRentRoleLineEstatioLeaseRepo extends UdoDomainRepositoryAndFactory<DataSetRentRoleLineEstatioLease> {
+public class DataSetRentRollLineEstatioLeaseRepo extends UdoDomainRepositoryAndFactory<DataSetRentRollLineEstatioLease> {
 
-    public DataSetRentRoleLineEstatioLeaseRepo() {
-        super(DataSetRentRoleLineEstatioLeaseRepo.class, DataSetRentRoleLineEstatioLease.class);
+    public DataSetRentRollLineEstatioLeaseRepo() {
+        super(DataSetRentRollLineEstatioLeaseRepo.class, DataSetRentRollLineEstatioLease.class);
     }
 
     @Programmatic
-    public List<DataSetRentRoleLineEstatioLease> findByExportDate(
+    public List<DataSetRentRollLineEstatioLease> findByExportDate(
             final LocalDate exportDate) {
         return allMatches("findByExportDate",
                 "exportDate", exportDate);
     }
 
     @Programmatic
-    public List<DataSetRentRoleLineEstatioLease> estatioLeasesNotFoundByExportDate(
+    public List<DataSetRentRollLineEstatioLease> nonMatchingRentRollLinesForExportDate(
             final LocalDate exportDate) {
-        return allMatches("estatioLeasesNotFoundByExportDate",
+        return allMatches("nonMatchingRentRollLinesForExportDate",
                 "exportDate", exportDate);
     }
 
     @Programmatic
-    public List<DataSetRentRoleLineEstatioLease> futureLeasesNotFoundByExportDate(
+    public List<DataSetRentRollLineEstatioLease> nonMatchingFutureRentRollLinesForExportDate(
             final LocalDate exportDate) {
-        return allMatches("futureLeasesNotFoundByExportDate",
+        return allMatches("nonMatchingFutureRentRollLinesForExportDate",
                 "exportDate", exportDate);
     }
 

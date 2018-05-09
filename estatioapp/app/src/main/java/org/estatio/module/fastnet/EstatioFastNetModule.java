@@ -31,6 +31,7 @@ import org.apache.isis.applib.fixturescripts.FixtureScript;
 import org.incode.module.fixturesupport.dom.scripts.TeardownFixtureAbstract;
 
 import org.estatio.module.fastnet.dom.RentRollLine;
+import org.estatio.module.lease.EstatioLeaseModule;
 
 @XmlRootElement(name = "module")
 public final class EstatioFastNetModule extends ModuleAbstract {
@@ -39,7 +40,9 @@ public final class EstatioFastNetModule extends ModuleAbstract {
 
     @Override
     public Set<Module> getDependencies() {
-        return Sets.newHashSet();
+        return Sets.newHashSet(
+                new EstatioLeaseModule() // because of the views in data sets
+        );
     }
 
     @Override

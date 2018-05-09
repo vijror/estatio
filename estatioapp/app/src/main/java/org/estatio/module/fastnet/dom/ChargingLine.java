@@ -247,16 +247,8 @@ public class ChargingLine implements Importable {
     @Column(allowsNull = "true")
     private LocalDate applied;
 
-    public String validateApplied() {
-        return isDiscarded() ? "Charging line can't be applied when it has been discarded" : null;
-    }
-
     @Getter @Setter
     private boolean discarded;
-
-    public String validateDiscarded() {
-        return getApplied() != null ? "Charging line can't be discarded when it has been applied" : null;
-    }
 
     @Override
     public List<Object> importData(final Object previousRow) {
