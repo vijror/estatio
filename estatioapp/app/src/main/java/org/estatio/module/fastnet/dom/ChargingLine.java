@@ -67,7 +67,7 @@ import lombok.Setter;
                         + "WHERE kontraktNr == :kontraktNr && "
                         + "kod == :kod && "
                         + "kod2 == :kod2 "
-                        + "SORT BY exportDate DESC"),
+                        + "ORDER BY exportDate DESC"),
         @Query(
                 name = "findByKontraktNrAndKodAndKod2AndFromDat", language = "JDOQL",
                 value = "SELECT "
@@ -76,7 +76,7 @@ import lombok.Setter;
                         + "kod == :kod && "
                         + "kod2 == :kod2 && "
                         + "fromDat == :fromDat "
-                        + "SORT BY exportDate DESC"),
+                        + "ORDER BY exportDate DESC"),
         @Query(
                 name = "findUnique", language = "JDOQL",
                 value = "SELECT "
