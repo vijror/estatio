@@ -92,7 +92,7 @@ import lombok.Setter;
 })
 @Uniques({
         @Unique(
-                name = "RentRollLine_unique_UNQ",
+                name = "ChargingLine_unique_UNQ",
                 members = { "keyToLeaseExternalReference", "keyToChargeReference", "fromDat", "tomDat", "arsBel", "evdInSd" }
         )
 })
