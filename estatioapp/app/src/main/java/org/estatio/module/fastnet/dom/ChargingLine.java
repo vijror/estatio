@@ -45,57 +45,55 @@ import lombok.Setter;
         column = "version")
 @Queries({
         @Query(
-                name = "findByKontraktNr", language = "JDOQL",
+                name = "findByKeyToLeaseExternalReference", language = "JDOQL",
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.ChargingLine "
-                        + "WHERE kontraktNr == :kontraktNr "),
+                        + "WHERE keyToLeaseExternalReference == :keyToLeaseExternalReference "),
         @Query(
                 name = "findByExportDate", language = "JDOQL",
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.ChargingLine "
                         + "WHERE exportDate == :exportDate "),
         @Query(
-                name = "findByKontraktNrAndExportDate", language = "JDOQL",
+                name = "findByKeyToLeaseExternalReferenceAndExportDate", language = "JDOQL",
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.ChargingLine "
-                        + "WHERE kontraktNr == :kontraktNr && "
+                        + "WHERE keyToLeaseExternalReference == :keyToLeaseExternalReference && "
                         + "exportDate == :exportDate"),
         @Query(
-                name = "findByKontraktNrAndKodAndKod2", language = "JDOQL",
+                name = "findByKeyToLeaseExternalReferenceAndKeyToChargeReference", language = "JDOQL",
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.ChargingLine "
-                        + "WHERE kontraktNr == :kontraktNr && "
-                        + "kod == :kod && "
-                        + "kod2 == :kod2 "
+                        + "WHERE keyToLeaseExternalReference == :keyToLeaseExternalReference && "
+                        + "keyToChargeReference == :keyToChargeReference && "
                         + "ORDER BY exportDate DESC"),
         @Query(
-                name = "findByKontraktNrAndKodAndKod2AndFromDat", language = "JDOQL",
+                name = "findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndFromDat", language = "JDOQL",
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.ChargingLine "
-                        + "WHERE kontraktNr == :kontraktNr && "
-                        + "kod == :kod && "
-                        + "kod2 == :kod2 && "
+                        + "WHERE keyToLeaseExternalReference == :keyToLeaseExternalReference && "
+                        + "keyToChargeReference == :keyToChargeReference && "
                         + "fromDat == :fromDat "
                         + "ORDER BY exportDate DESC"),
         @Query(
                 name = "findUnique", language = "JDOQL",
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.ChargingLine "
-                        + "WHERE kontraktNr == :kontraktNr && "
-                        + "kod == :kod && "
-                        + "kod2 == :kod2 && "
+                        + "WHERE keyToLeaseExternalReference == :keyToLeaseExternalReference && "
+                        + "keyToChargeReference == :keyToChargeReference && "
                         + "fromDat == :fromDat && "
                         + "tomDat == :tomDat && "
                         + "arsBel == :arsBel && "
                         + "evdInSd == :evdInSd "),
 })
 @Indices({
-        @Index(name = "ChargingLine_kontraktNr_IDX", members = { "kontraktNr" })
+        @Index(name = "ChargingLine_keyToExternalRef_IDX", members = { "keyToLeaseExternalReference" }),
+        @Index(name = "ChargingLine_keyToExternalRef_keyToChargeRef_IDX", members = { "keyToLeaseExternalReference", "keyToChargeReference" })
 })
 @Uniques({
         @Unique(
                 name = "RentRollLine_unique_UNQ",
-                members = { "kontraktNr", "kod", "kod2", "fromDat", "tomDat", "arsBel", "evdInSd" }
+                members = { "keyToLeaseExternalReference", "keyToChargeReference", "fromDat", "tomDat", "arsBel", "evdInSd" }
         )
 })
 @DomainObject(
@@ -134,6 +132,10 @@ public class ChargingLine implements Importable {
 
     @Getter @Setter
     @Column(allowsNull = "false")
+    private String keyToLeaseExternalReference;
+
+    @Getter @Setter
+    @Column(allowsNull = "false")
     private String kundNr;
 
     @Getter @Setter
@@ -153,6 +155,10 @@ public class ChargingLine implements Importable {
     @Column(allowsNull = "false")
     @PropertyLayout(named = "KONT_TEXT2")
     private String kontText2;
+
+    @Getter @Setter
+    @Column(allowsNull = "false")
+    private String keyToChargeReference;
 
     // charge date
     // NOTE: We take the string here because the excel import file we have to handle does not use the date format
@@ -252,15 +258,21 @@ public class ChargingLine implements Importable {
 
     @Override
     public List<Object> importData(final Object previousRow) {
-        if (chargingLineRepository.findUnique(getKontraktNr(), getKod(), getKod2(), getFromDat(), getTomDat(), getArsBel(), getEvdInSd()) == null) {
+        if (chargingLineRepository.findUnique(keyToLeaseExternalReference(), keyToChargeReference(), getFromDat(), getTomDat(), getArsBel(), getEvdInSd()) == null) {
+            setKeyToLeaseExternalReference(keyToLeaseExternalReference());
+            setKeyToChargeReference(keyToChargeReference());
             setExportDate(getImportDate().toLocalDate());
             repositoryService.persistAndFlush(this);
         }
         return Collections.emptyList();
     }
 
-    private LocalDate stringToDate(final String dateString) {
-        return dateString != null ? LocalDate.parse(dateString) : null;
+    String keyToLeaseExternalReference(){
+        return getKontraktNr()!=null ? getKontraktNr().substring(2) : null;
+    }
+
+    String keyToChargeReference(){
+        return "SE" + getKod() + "-" + getKod2();
     }
 
     @Inject

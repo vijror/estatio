@@ -47,7 +47,7 @@ public class RentRollLineRepository {
         return repositoryService.allMatches(
                 new QueryDefault<>(
                         RentRollLine.class,
-                        "findByKontraktNr",
+                        "findByKeyToLeaseExternalReference",
                         "kontraktNr", kontraktNr));
     }
 

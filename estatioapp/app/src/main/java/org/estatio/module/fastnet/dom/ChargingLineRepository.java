@@ -33,21 +33,21 @@ public class ChargingLineRepository {
     }
 
     @Programmatic
-    public List<ChargingLine> findByKontraktNr(final String kontraktNr) {
+    public List<ChargingLine> findByKeyToLeaseExternalReference(final String externalReference) {
         return repositoryService.allMatches(
                 new QueryDefault<>(
                         ChargingLine.class,
-                        "findByKontraktNr",
-                        "kontraktNr", kontraktNr));
+                        "findByKeyToLeaseExternalReference",
+                        "keyToLeaseExternalReference", externalReference));
     }
 
     @Programmatic
-    public List<ChargingLine> findByKontraktNrAndExportDate(final String kontraktNr, final LocalDate exportDate) {
+    public List<ChargingLine> findByKeyToLeaseExternalReferenceAndExportDate(final String externalReference, final LocalDate exportDate) {
         return repositoryService.allMatches(
                 new QueryDefault<>(
                         ChargingLine.class,
-                        "findByKontraktNrAndExportDate",
-                        "kontraktNr", kontraktNr,
+                        "findByKeyToLeaseExternalReferenceAndExportDate",
+                        "keyToLeaseExternalReference", externalReference,
                         "exportDate", exportDate));
     }
 
@@ -61,40 +61,35 @@ public class ChargingLineRepository {
     }
 
     @Programmatic
-    public List<ChargingLine> findByKontraktNrAndKodAndKod2(
-            final String kontraktNr,
-            final String kod,
-            final String kod2) {
+    public List<ChargingLine> findByKeyToLeaseExternalReferenceAndKeyToChargeReference(
+            final String externalReference,
+            final String chargeReference) {
         return repositoryService.allMatches(
                 new QueryDefault<>(
                         ChargingLine.class,
-                        "findByKontraktNrAndKodAndKod2",
-                        "kontraktNr", kontraktNr,
-                        "kod", kod,
-                        "kod2", kod2));
+                        "findByKeyToLeaseExternalReferenceAndKeyToChargeReference",
+                        "keyToLeaseExternalReference", externalReference,
+                        "keyToChargeReference", chargeReference));
     }
 
     @Programmatic
-    public List<ChargingLine> findByKontraktNrAndKodAndKod2AndFromDat(
-            final String kontraktNr,
-            final String kod,
-            final String kod2,
+    public List<ChargingLine> findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndFromDat(
+            final String externalReference,
+            final String chargeReference,
             final String fromDat) {
         return repositoryService.allMatches(
                 new QueryDefault<>(
                         ChargingLine.class,
-                        "findByKontraktNrAndKodAndKod2AndFromDat",
-                        "kontraktNr", kontraktNr,
-                        "kod", kod,
-                        "kod2", kod2,
+                        "findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndFromDat",
+                        "keyToLeaseExternalReference", externalReference,
+                        "keyToChargeReference", chargeReference,
                         "fromDat", fromDat));
     }
 
     @Programmatic
     public ChargingLine findUnique(
-            final String kontraktNr,
-            final String kod,
-            final String kod2,
+            final String externalReference,
+            final String chargeReference,
             final String fromDat,
             final String tomDat,
             final BigDecimal arsBel,
@@ -103,9 +98,8 @@ public class ChargingLineRepository {
                 new QueryDefault<>(
                         ChargingLine.class,
                         "findUnique",
-                        "kontraktNr", kontraktNr,
-                        "kod", kod,
-                        "kod2", kod2,
+                        "keyToLeaseExternalReference", externalReference,
+                        "keyToChargeReference", chargeReference,
                         "fromDat", fromDat,
                         "tomDat", tomDat,
                         "arsBel", arsBel,

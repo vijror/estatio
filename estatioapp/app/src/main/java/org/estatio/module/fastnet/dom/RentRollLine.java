@@ -47,7 +47,7 @@ import lombok.Setter;
         column = "version")
 @Queries({
         @Query(
-                name = "findByKontraktNr", language = "JDOQL",
+                name = "findByKeyToLeaseExternalReference", language = "JDOQL",
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.RentRollLine "
                         + "WHERE kontraktNr == :kontraktNr "
@@ -116,6 +116,10 @@ public class RentRollLine implements Importable {
     @Getter @Setter
     @Column(allowsNull = "true")
     private String kontraktNr;
+
+    @Getter @Setter
+    @Column(allowsNull = "true")
+    private String keyToLeaseExternalReference;
 
     @Getter @Setter
     @Column(allowsNull = "true")
@@ -513,16 +517,21 @@ public class RentRollLine implements Importable {
 
     @Action(semantics = SemanticsOf.SAFE)
     public List<ChargingLine> getChargingLines() {
-        return chargingLineRepository.findByKontraktNrAndExportDate(getKontraktNr(), getExportDate());
+        return chargingLineRepository.findByKeyToLeaseExternalReferenceAndExportDate(getKeyToLeaseExternalReference(), getExportDate());
     }
 
     @Override
     public List<Object> importData(final Object previousRow) {
         if (rentRollLineRepository.findByObjektsNummerAndEvdInSd(getObjektsNummer(), getEvdInSd()) == null) {
+            setKeyToLeaseExternalReference(keyToLeaseExternalReference());
             setExportDate(getImportDate().toLocalDate());
             repositoryService.persistAndFlush(this);
         }
         return Collections.emptyList();
+    }
+
+    String keyToLeaseExternalReference(){
+        return getKontraktNr()!=null ? getKontraktNr().substring(2) : null;
     }
 
     private LocalDate stringToDate(final String dateString) {
