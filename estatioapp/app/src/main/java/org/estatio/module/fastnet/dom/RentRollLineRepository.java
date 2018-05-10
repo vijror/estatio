@@ -31,6 +31,17 @@ public class RentRollLineRepository {
         return repositoryService.allInstances(RentRollLine.class);
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @Programmatic
+    public List<LocalDate> findUniqueExportDates() {
+        List startDates = repositoryService.allMatches(
+                new QueryDefault<>(
+                        RentRollLine.class,
+                        "findUniqueExportDates"));
+
+        return startDates;
+    }
+
     @Programmatic
     public List<RentRollLine> findByKontraktNr(final String kontraktNr) {
         return repositoryService.allMatches(

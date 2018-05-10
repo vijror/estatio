@@ -51,7 +51,7 @@ import lombok.Setter;
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.RentRollLine "
                         + "WHERE kontraktNr == :kontraktNr "
-                        + "SORT BY exportDate DESC"),
+                        + "ORDER BY exportDate DESC"),
         @Query(
                 name = "findByObjektsNummerAndEvdInSd", language = "JDOQL",
                 value = "SELECT "
@@ -63,6 +63,11 @@ import lombok.Setter;
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.RentRollLine "
                         + "WHERE exportDate == :exportDate "),
+        @Query(
+                name = "findUniqueExportDates",
+                value = "SELECT DISTINCT exportDate "
+                        + "FROM org.estatio.module.fastnet.dom.RentRollLine "
+                        + "ORDER BY exportDate DESC")
 })
 @Indices({
         @Index(name = "RentRollLine_kontraktNr_IDX", members = { "kontraktNr" }),
