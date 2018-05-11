@@ -49,6 +49,13 @@ public class FastNetRentRollOnLeaseDataLineRepo extends UdoDomainRepositoryAndFa
     }
 
     @Programmatic
+    public List<FastNetRentRollOnLeaseDataLine> matchingRentRollLinesForExportDate(
+            final LocalDate exportDate) {
+        return allMatches("matchingRentRollLinesForExportDate",
+                "exportDate", exportDate);
+    }
+
+    @Programmatic
     public List<FastNetRentRollOnLeaseDataLine> nonMatchingFutureRentRollLinesForExportDate(
             final LocalDate exportDate) {
         return allMatches("nonMatchingFutureRentRollLinesForExportDate",

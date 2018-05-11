@@ -61,6 +61,12 @@ import lombok.Setter;
                         + "WHERE keyToLeaseExternalReference == :keyToLeaseExternalReference && "
                         + "exportDate == :exportDate"),
         @Query(
+                name = "findFirstByKeyToLeaseExternalReferenceAndExportDate", language = "JDOQL",
+                value = "SELECT TOP 1 "
+                        + "FROM org.estatio.module.fastnet.dom.ChargingLine "
+                        + "WHERE keyToLeaseExternalReference == :keyToLeaseExternalReference && "
+                        + "exportDate == :exportDate"),
+        @Query(
                 name = "findByKeyToLeaseExternalReferenceAndKeyToChargeReference", language = "JDOQL",
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.ChargingLine "

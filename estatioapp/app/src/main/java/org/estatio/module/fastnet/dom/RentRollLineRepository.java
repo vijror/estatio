@@ -43,7 +43,7 @@ public class RentRollLineRepository {
     }
 
     @Programmatic
-    public List<RentRollLine> findByKontraktNr(final String kontraktNr) {
+    public List<RentRollLine> findByKeyToLeaseExternalReference(final String kontraktNr) {
         return repositoryService.allMatches(
                 new QueryDefault<>(
                         RentRollLine.class,

@@ -52,6 +52,16 @@ public class ChargingLineRepository {
     }
 
     @Programmatic
+    public ChargingLine findFirstByKeyToLeaseExternalReferenceAndExportDate(final String externalReference, final LocalDate exportDate) {
+        return repositoryService.uniqueMatch(
+                new QueryDefault<>(
+                        ChargingLine.class,
+                        "findFirstByKeyToLeaseExternalReferenceAndExportDate",
+                        "keyToLeaseExternalReference", externalReference,
+                        "exportDate", exportDate));
+    }
+
+    @Programmatic
     public List<ChargingLine> findByExportDate(final LocalDate exportDate) {
         return repositoryService.allMatches(
                 new QueryDefault<>(
