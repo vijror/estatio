@@ -62,10 +62,11 @@ import lombok.Setter;
                         + "exportDate == :exportDate"),
         @Query(
                 name = "findFirstByKeyToLeaseExternalReferenceAndExportDate", language = "JDOQL",
-                value = "SELECT TOP 1 "
+                value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.ChargingLine "
                         + "WHERE keyToLeaseExternalReference == :keyToLeaseExternalReference && "
-                        + "exportDate == :exportDate"),
+                        + "exportDate == :exportDate "
+                        + "RANGE 0,1"),
         @Query(
                 name = "findByKeyToLeaseExternalReferenceAndKeyToChargeReference", language = "JDOQL",
                 value = "SELECT "
@@ -273,11 +274,11 @@ public class ChargingLine implements Importable {
         return Collections.emptyList();
     }
 
-    String keyToLeaseExternalReference(){
-        return getKontraktNr()!=null ? getKontraktNr().substring(2) : null;
+    String keyToLeaseExternalReference() {
+        return getKontraktNr() != null ? getKontraktNr().substring(2) : null;
     }
 
-    String keyToChargeReference(){
+    String keyToChargeReference() {
         return "SE" + getKod() + "-" + getKod2();
     }
 

@@ -93,7 +93,7 @@ import lombok.Setter;
 @javax.jdo.annotations.Inheritance(strategy = InheritanceStrategy.NEW_TABLE)
 @ViewModel
 @Getter @Setter
-public class FastNetRentRollOnLeaseDataLine {
+public class FastNetRentRollOnLeaseDataLine implements Cloneable {
 
         // key 2
         private String keyToLeaseExternalReference;
