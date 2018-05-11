@@ -66,6 +66,12 @@ import lombok.Setter;
                         "FROM org.estatio.module.fastnet.dom.FastNetRentRollOnLeaseDataLine " +
                         "WHERE exportDate == :exportDate "),
         @javax.jdo.annotations.Query(
+                name = "findByExternalReferenceAndExportDate", language = "JDOQL",
+                value = "SELECT " +
+                        "FROM org.estatio.module.fastnet.dom.FastNetRentRollOnLeaseDataLine " +
+                        "WHERE keyToLeaseExternalReference == :externalReference " +
+                        "&& exportDate == :exportDate "),
+        @javax.jdo.annotations.Query(
                 name = "nonMatchingRentRollLinesForExportDate", language = "JDOQL",
                 value = "SELECT " +
                         "FROM org.estatio.module.fastnet.dom.FastNetRentRollOnLeaseDataLine " +
@@ -93,7 +99,7 @@ import lombok.Setter;
 @javax.jdo.annotations.Inheritance(strategy = InheritanceStrategy.NEW_TABLE)
 @ViewModel
 @Getter @Setter
-public class FastNetRentRollOnLeaseDataLine implements Cloneable {
+public class FastNetRentRollOnLeaseDataLine {
 
         // key 2
         private String keyToLeaseExternalReference;
@@ -117,15 +123,5 @@ public class FastNetRentRollOnLeaseDataLine implements Cloneable {
         private String leaseReference;
 
         private String externalReference;
-
-        @Override
-        protected FastNetRentRollOnLeaseDataLine clone() {
-                try {
-                        return (FastNetRentRollOnLeaseDataLine) super.clone();
-                } catch (CloneNotSupportedException e) {
-                        e.printStackTrace();
-                }
-                return null;
-        }
 
 }
