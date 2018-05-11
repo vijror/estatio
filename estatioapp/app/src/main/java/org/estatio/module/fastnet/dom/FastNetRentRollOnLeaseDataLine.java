@@ -13,30 +13,7 @@ import org.apache.isis.applib.annotation.ViewModel;
 import lombok.Getter;
 import lombok.Setter;
 
-/*
-WITH leaseData AS
-(SELECT
-    l.externalReference
-	, a.reference as leaseReference
-	FROM  dbo.Lease l
-	INNER JOIN dbo.Agreement a ON a.id = l.id
-	WHERE l.atPath LIKE '/SWE%'
-)
-SELECT
-	rrl.keyToLeaseExternalReference
-	, rrl.kontraktNr
-	, rrl.hyresgast
-	, rrl.arshyra
-	, rrl.futureRentRollLine
-	, rrl.exportDate
-	, rrl.applied
-	, ld.leaseReference
-	, ld.externalReference
-        FROM fastnet.RentRollLine rrl
-        LEFT OUTER JOIN leaseData ld ON ld.externalReference = rrl.keyToLeaseExternalReference
- */
 // NOTE: this view also is maintained by fly db
-
 @javax.jdo.annotations.PersistenceCapable(
         identityType = IdentityType.NONDURABLE,
         table = "FastNetRentRollOnLeaseDataLine",
