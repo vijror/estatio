@@ -208,15 +208,15 @@ WHERE cl.exportDate = '2018-04-20'
                                 ", cl.\"arsBel\"" +
                                 ", cl.\"applied\"" +
                                 // lease
-                                ", ld.\"leaseReference\"" +
-                                ", ld.\"externalReference\"" +
-                                ", ld.\"tenantName\"" +
-                                ", ld.\"tenantReference\"" +
-                                ", ld.\"leaseStatus\"" +
-                                ", ld.\"tenancyStartDate\"" +
-                                ", ld.\"tenancyEndDate\"" +
-                                ", ld.\"leaseStartDate\"" +
-                                ", ld.\"leaseEndDate\"" +
+                                ", ISNUll(ld.\"leaseReference\", a2.\"reference\") as \"leaseReference\"" +
+                                ", ISNUll(ld.\"externalReference\", l2.\"externalReference\") as \"externalReference\"" +
+                                ", ISNUll(ld.\"tenantName\", p2.\"name\") as \"tenantName\"" +
+                                ", ISNUll(ld.\"tenantReference\", p2.\"reference\") as \"tenantReference\"" +
+                                ", ISNUll(ld.\"leaseStatus\", l2.\"status\") as \"leaseStatus\"" +
+                                ", ISNUll(ld.\"tenancyStartDate\", l2.\"tenancyStartDate\") as \"tenancyStartDate\"" +
+                                ", ISNUll(ld.\"tenancyEndDate\", l2.\"tenancyEndDate\") as \"tenancyEndDate\"" +
+                                ", ISNUll(ld.\"leaseStartDate\", a2.\"startDate\") as \"leaseStartDate\"" +
+                                ", ISNUll(ld.\"leaseEndDate\", a2.\"endDate\") as \"leaseEndDate\"" +
                                 // lease item
                                 ", ld.\"leaseItemType\"" +
                                 ", ld.\"invoicingFrequency\"" +
@@ -233,7 +233,16 @@ WHERE cl.exportDate = '2018-04-20'
                                 "FROM \"fastnet\".\"ChargingLine\" cl " +
                                 "  LEFT OUTER JOIN leaseData ld " +
                                 "  ON ld.\"externalReference\" = cl.\"keyToLeaseExternalReference\" " +
-                                "  AND ld.\"chargeReference\" = cl.\"keyToChargeReference\" ")
+                                "  AND ld.\"chargeReference\" = cl.\"keyToChargeReference\" " +
+                                "  LEFT OUTER JOIN \"dbo\".\"Lease\" l2 " +
+                                "  ON l2.\"externalReference\" = cl.\"keyToLeaseExternalReference\" " +
+                                "  LEFT OUTER JOIN \"dbo\".\"Agreement\" a2 " +
+                                "  ON l2.\"id\" = a2.\"id\"" +
+                                "  LEFT OUTER JOIN (SELECT * FROM \"dbo\".\"AgreementRole\" WHERE \"typeId\" = 6 AND \"endDate\" is null) AS agr2 " +
+                                "  ON agr2.\"agreementId\" = a2.\"id\" " +
+                                "  LEFT OUTER JOIN \"dbo\".\"Party\" p2 " +
+                                "  ON p2.\"id\" = agr2.\"partyId\" "
+                )
         })
 @javax.jdo.annotations.Queries({
         @javax.jdo.annotations.Query(
