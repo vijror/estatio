@@ -65,8 +65,7 @@ import lombok.Setter;
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.ChargingLine "
                         + "WHERE keyToLeaseExternalReference == :keyToLeaseExternalReference && "
-                        + "exportDate == :exportDate "
-                        + "RANGE 0,1"),
+                        + "exportDate == :exportDate "),
         @Query(
                 name = "findByKeyToLeaseExternalReferenceAndKeyToChargeReference", language = "JDOQL",
                 value = "SELECT "
