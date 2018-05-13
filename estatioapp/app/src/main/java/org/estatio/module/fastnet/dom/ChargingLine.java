@@ -71,7 +71,7 @@ import lombok.Setter;
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.ChargingLine "
                         + "WHERE keyToLeaseExternalReference == :keyToLeaseExternalReference && "
-                        + "keyToChargeReference == :keyToChargeReference && "
+                        + "keyToChargeReference == :keyToChargeReference "
                         + "ORDER BY exportDate DESC"),
         @Query(
                 name = "findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndFromDat", language = "JDOQL",
