@@ -25,7 +25,7 @@
             </ns2:fieldSet>
         </col>
         <col span="8" unreferencedCollections="true">
-            <ns2:collection id="turnoverRents" defaultView="table">
+            <ns2:collection id="turnoverRentLines" defaultView="table">
                 <ns2:action id="download"/>
                 <ns2:action id="upload"/>
             </ns2:collection>
