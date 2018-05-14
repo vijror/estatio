@@ -61,7 +61,8 @@ import lombok.Setter;
                                 "  {this.leaseTermStatus}, " +
                                 "  {this.baseValue}, " +
                                 "  {this.settledValue}, " +
-                                "  {this.value} " +
+                                "  {this.value}, " +
+                                "  {this.budgetedValue} " +
                                 ") AS " +
 
                                 "WITH leaseData AS ( " +
@@ -91,6 +92,7 @@ import lombok.Setter;
                                 ", lt.\"baseValue\"" +
                                 ", lt.\"settledValue\"" +
                                 ", lt.\"value\"" +
+                                ", lt.\"budgetedValue\"" +
 
                                 "FROM \"dbo\".\"LeaseItem\" li " +
                                 "INNER JOIN \"dbo\".\"Lease\" l ON l.\"id\" = li.\"leaseId\" " +
@@ -144,6 +146,7 @@ import lombok.Setter;
                                 ", ld.\"baseValue\"" +
                                 ", ld.\"settledValue\"" +
                                 ", ld.\"value\"" +
+                                ", ld.\"budgetedValue\"" +
                                 "FROM \"fastnet\".\"ChargingLine\" cl " +
                                 "  LEFT OUTER JOIN leaseData ld " +
                                 "  ON ld.\"externalReference\" = cl.\"keyToLeaseExternalReference\" " +
@@ -237,7 +240,7 @@ public class FastNetChargingOnLeaseDataLine {
 
         private String chargeReference;
 
-        // lease term 6
+        // lease term 7
 
         private LocalDate leaseTermStartDate;
 
@@ -250,5 +253,7 @@ public class FastNetChargingOnLeaseDataLine {
         private BigDecimal settledValue;
 
         private BigDecimal value;
+
+        private BigDecimal budgetedValue;
 
 }
