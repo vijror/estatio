@@ -107,6 +107,8 @@ public class LeaseTermForTurnOverRentFixedImport_Test {
         importLine.leaseTermRepository = mockLeaseTermRepository;
 
         LeaseTermForFixed leaseTermForFixed = new LeaseTermForFixed();
+        LocalDate endDateTerm = new LocalDate(2018,11,20);
+        leaseTermForFixed.setEndDate(endDateTerm);
         LeaseItem leaseItem = new LeaseItem();
 
         LocalDate startDate = new LocalDate(2018,01,01);
@@ -128,7 +130,37 @@ public class LeaseTermForTurnOverRentFixedImport_Test {
     }
 
     @Test
-    public void updateOrCreateTerm_works_for_existing_term_without_end_date() throws Exception {
+    public void updateOrCreateTerm_works_when_no_end_date_for_existing_term_with_end_date() throws Exception {
+
+        // given
+        LeaseTermForTurnOverRentFixedImport importLine = new LeaseTermForTurnOverRentFixedImport();
+        importLine.leaseTermRepository = mockLeaseTermRepository;
+
+        LeaseTermForFixed leaseTermForFixed = new LeaseTermForFixed();
+        LocalDate endDate = new LocalDate(2018,11,20);
+        leaseTermForFixed.setEndDate(endDate);
+        LeaseItem leaseItem = new LeaseItem();
+
+        LocalDate startDate = new LocalDate(2018,01,01);
+        BigDecimal value = new BigDecimal("1234.56");
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockLeaseTermRepository).findByLeaseItemAndStartDate(leaseItem, startDate);
+            will(returnValue(leaseTermForFixed));
+        }});
+
+        // when
+        importLine.updateOrCreateTerm(leaseItem, startDate, null, value);
+
+        // then
+        assertThat(leaseTermForFixed.getValue()).isEqualTo(value);
+
+        assertThat(leaseTermForFixed.getEndDate()).isEqualTo(endDate);
+    }
+
+    @Test
+    public void updateOrCreateTerm_works_when_no_end_date_for_existing_term_without_end_date() throws Exception {
 
         // given
         LeaseTermForTurnOverRentFixedImport importLine = new LeaseTermForTurnOverRentFixedImport();
@@ -151,8 +183,7 @@ public class LeaseTermForTurnOverRentFixedImport_Test {
 
         // then
         assertThat(leaseTermForFixed.getValue()).isEqualTo(value);
-        LocalDate expectedEndDate = new LocalDate(2018,12,31);
-        assertThat(leaseTermForFixed.getEndDate()).isEqualTo(expectedEndDate);
+        assertThat(leaseTermForFixed.getEndDate()).isNull();
     }
 
 }
