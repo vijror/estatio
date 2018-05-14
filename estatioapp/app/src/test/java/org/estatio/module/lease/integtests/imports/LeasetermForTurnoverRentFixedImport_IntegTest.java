@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.apache.isis.applib.fixturescripts.FixtureResult;
 import org.apache.isis.applib.fixturescripts.FixtureScript;
 import org.apache.isis.applib.services.registry.ServiceRegistry2;
+import org.apache.isis.applib.services.xactn.TransactionService3;
 import org.apache.isis.applib.value.Blob;
 
 import org.estatio.module.asset.dom.Property;
@@ -107,6 +108,7 @@ public class LeasetermForTurnoverRentFixedImport_IntegTest extends LeaseModuleIn
 
         // when
         wrap(manager).upload(excelSheet);
+        transactionService2.nextTransaction();
 
         // then
         final LocalDate startDate2010 = new LocalDate(2010, 1, 1);
@@ -115,24 +117,25 @@ public class LeasetermForTurnoverRentFixedImport_IntegTest extends LeaseModuleIn
         final LocalDate endDate2011 = new LocalDate(2011, 12, 31);
 
         final LeaseTerm term1Poison = itemForPoison.findTerm(startDate2010);
-        assertThat(term1Poison.getEffectiveValue().equals(new BigDecimal("18000.00")));
-        assertThat(term1Poison.getEndDate().equals(endDate2010));
+        assertThat(term1Poison.getEffectiveValue()).isEqualTo(new BigDecimal("18000.00"));
+        assertThat(term1Poison.getEndDate()).isEqualTo(endDate2010);
         final LeaseTerm term2Poison = itemForPoison.findTerm(startDate2011);
-        assertThat(term2Poison.getEffectiveValue().equals(new BigDecimal("21000.00")));
-        assertThat(term2Poison.getEndDate().equals(endDate2011));
+        assertThat(term2Poison.getEffectiveValue()).isEqualTo(new BigDecimal("21000.00"));
+        assertThat(term2Poison.getEndDate()).isEqualTo(endDate2011);
 
         final LeaseTerm term1Topmodel = itemForTopmodel.findTerm(new LocalDate(2010, 7,15));
-        assertThat(term1Topmodel.getEffectiveValue().equals(new BigDecimal("2000.00")));
-        assertThat(term1Topmodel.getEndDate().equals(endDate2010)); //TODO: should fail !!
+        assertThat(term1Topmodel.getEffectiveValue()).isEqualTo(new BigDecimal("2000.00"));
+        assertThat(term1Topmodel.getEndDate()).isEqualTo(endDate2010);
         final LeaseTerm term2Topmodel = itemForTopmodel.findTerm(startDate2011);
-        assertThat(term2Topmodel.getEffectiveValue().equals(new BigDecimal("21000.00")));
-        assertThat(term2Topmodel.getEndDate().equals(endDate2011));
+        assertThat(term2Topmodel.getEffectiveValue()).isEqualTo(new BigDecimal("2100.00"));
+        assertThat(term2Topmodel.getEndDate()).isEqualTo(endDate2011);
     }
 
     @Inject
     ServiceRegistry2 serviceRegistry2;
 
 
+    @Inject TransactionService3 transactionService2;
 
 
 }

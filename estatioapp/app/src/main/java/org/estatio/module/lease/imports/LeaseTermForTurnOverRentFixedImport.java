@@ -90,10 +90,10 @@ public class LeaseTermForTurnOverRentFixedImport implements ExcelFixtureRowHandl
             return Lists.newArrayList();
         }
         if (getValuePrevious()!=null && getStartDatePrevious() !=null) {
-            updateOrCreateTerm(itemToUpdate, getStartDatePrevious(), null, getValuePrevious());
+            updateOrCreateTerm(itemToUpdate, getStartDatePrevious(), getStartDateCurrent()!=null ? getStartDateCurrent().minusDays(1) : null, getValuePrevious());
         }
         if (getValueCurrent()!=null && getStartDateCurrent() !=null) {
-            updateOrCreateTerm(itemToUpdate, getStartDateCurrent(), null, getValueCurrent());
+            updateOrCreateTerm(itemToUpdate, getStartDateCurrent(), getStartDate()!=null ? getStartDate().minusDays(1) : null, getValueCurrent());
         }
         if (getValue()!=null && getStartDate() !=null) {
             updateOrCreateTerm(itemToUpdate, getStartDate(), getEndDate(), getValue());
@@ -106,7 +106,7 @@ public class LeaseTermForTurnOverRentFixedImport implements ExcelFixtureRowHandl
         LeaseTermForFixed termToUpdate = (LeaseTermForFixed) leaseTermRepository.findByLeaseItemAndStartDate(itemToUpdate, startDate);
         if (termToUpdate!=null){
             termToUpdate.setValue(value);
-            termToUpdate.setEndDate(endDate!=null ? endDate : startDate.plusYears(1).minusDays(1));
+            termToUpdate.setEndDate(endDate!=null ? endDate : termToUpdate.getEndDate());
         } else {
             LeaseTermForFixed newTerm = (LeaseTermForFixed) itemToUpdate.newTerm(startDate, endDate!=null ? endDate : startDate.plusYears(1).minusDays(1));
             newTerm.setValue(value);
