@@ -29,6 +29,7 @@ import lombok.experimental.Accessors;
 import static org.estatio.module.party.dom.PersonGenderType.FEMALE;
 import static org.estatio.module.party.dom.PersonGenderType.MALE;
 import static org.estatio.module.party.dom.relationship.PartyRelationshipTypeEnum.CONTACT;
+import static org.estatio.module.party.fixtures.organisation.enums.Organisation_enum.OmsHyraSe;
 import static org.estatio.module.party.fixtures.organisation.enums.Organisation_enum.PastaPapaItNl;
 import static org.estatio.module.party.fixtures.organisation.enums.Organisation_enum.PerdantFr;
 import static org.estatio.module.party.fixtures.organisation.enums.Organisation_enum.TopModelGb;
@@ -164,6 +165,10 @@ public enum Person_enum
             new FixedAssetRoleSpec[] {}),
     GinoVannelliSe("GVANNELLI", "Gino", "Vannelli", "G", false, MALE, Se,
             CONTACT, TopModelSe,
+            new IPartyRoleType[] {  },
+            new FixedAssetRoleSpec[] {}),
+    JonasCar("JCAR", "Jonas", "Car", "J", false, MALE, Se,
+            CONTACT, OmsHyraSe,
             new IPartyRoleType[] {  },
             new FixedAssetRoleSpec[] {}),
     ;

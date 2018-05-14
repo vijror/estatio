@@ -67,6 +67,7 @@ public enum Organisation_enum
     YoukeaSe("YOUKEA", "Youkea Furniture", Se),
     PoisonSe("POISON_SE", "Poison Perfumeries", Se),
     TopModelSe("TOPMODEL", "Topmodel Fashion", Se),
+    OmsHyraSe("OMSHYRA", "Omshyra rentals", Se),
     ;
 
     private final String ref;
