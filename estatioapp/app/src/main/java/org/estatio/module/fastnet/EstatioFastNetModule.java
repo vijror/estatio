@@ -30,6 +30,7 @@ import org.apache.isis.applib.fixturescripts.FixtureScript;
 
 import org.incode.module.fixturesupport.dom.scripts.TeardownFixtureAbstract;
 
+import org.estatio.module.fastnet.dom.ChargingLine;
 import org.estatio.module.fastnet.dom.RentRollLine;
 import org.estatio.module.lease.EstatioLeaseModule;
 
@@ -50,6 +51,7 @@ public final class EstatioFastNetModule extends ModuleAbstract {
         return new TeardownFixtureAbstract() {
             @Override
             protected void execute(final ExecutionContext executionContext) {
+                deleteFrom(ChargingLine.class);
                 deleteFrom(RentRollLine.class);
             }
         };
