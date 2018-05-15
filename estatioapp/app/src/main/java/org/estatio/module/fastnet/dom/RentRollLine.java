@@ -50,7 +50,7 @@ import lombok.Setter;
                 name = "findByKeyToLeaseExternalReference", language = "JDOQL",
                 value = "SELECT "
                         + "FROM org.estatio.module.fastnet.dom.RentRollLine "
-                        + "WHERE kontraktNr == :kontraktNr "
+                        + "WHERE keyToLeaseExternalReference == :keyToLeaseExternalReference "
                         + "ORDER BY exportDate DESC"),
         @Query(
                 name = "findByObjektsNummerAndEvdInSd", language = "JDOQL",
