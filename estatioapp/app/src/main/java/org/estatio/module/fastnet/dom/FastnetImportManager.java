@@ -74,10 +74,10 @@ public class FastnetImportManager {
     }
 
     @Setter
-    private List<FastNetRentRollOnLeaseDataLine> partialMatchingDataLines = new ArrayList<>();
+    private List<FastNetRentRollOnLeaseDataLine2> partialMatchingDataLines = new ArrayList<>();
 
     @Programmatic
-    public List<FastNetRentRollOnLeaseDataLine> getPartialMatchingDataLines() {
+    public List<FastNetRentRollOnLeaseDataLine2> getPartialMatchingDataLines() {
         return this.partialMatchingDataLines;
     }
 
@@ -158,9 +158,9 @@ public class FastnetImportManager {
     @CollectionLayout(defaultView = "excel")
     public void doImport() {
 
-        getLinesForItemUpdate().forEach(cdl -> {
-            fastnetImportService.updateItem(cdl, getExportDate());
-        });
+//        getLinesForItemUpdate().forEach(cdl -> {
+//            fastnetImportService.updateItem(cdl, getExportDate());
+//        });
         getLinesForItemCreation().forEach(cdl -> {
             fastnetImportService.createItem(cdl);
         });

@@ -10,9 +10,7 @@ import org.joda.time.LocalDate;
 
 import org.apache.isis.applib.annotation.ViewModel;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 // NOTE: this view also is maintained by fly db
@@ -31,16 +29,22 @@ import lombok.Setter;
                                 "  {this.hyresgast}, " +
                                 "  {this.kundNr}, " +
                                 "  {this.arshyra}, " +
+                                "  {this.kontraktFrom}, " +
+                                "  {this.kontraktTom}, " +
                                 "  {this.futureRentRollLine}, " +
                                 "  {this.applied}, " +
 
                                 "  {this.leaseReference}, " +
-                                "  {this.externalReference} " +
+                                "  {this.externalReference}, " +
+                                "  {this.leaseStartDate}, " +
+                                "  {this.leaseEndDate} " +
                                 ") AS " +
                                 "WITH leaseData AS ( " +
                                 "SELECT " +
                                 "l.\"externalReference\"" +
                                 ", a.\"reference\" as \"leaseReference\"" +
+                                ", a.\"startDate\" as \"leaseStartDate\"" +
+                                ", a.\"endDate\" as \"leaseEndDate\"" +
                                 " FROM \"dbo\".\"Lease\" l " +
                                 " INNER JOIN \"dbo\".\"Agreement\" a " +
                                 " ON a.\"id\" = l.\"id\" " +
@@ -53,10 +57,14 @@ import lombok.Setter;
                                 ", rrl.\"hyresgast\"" +
                                 ", rrl.\"kundNr\"" +
                                 ", rrl.\"arshyra\"" +
+                                ", rrl.\"kontraktFrom\"" +
+                                ", rrl.\"kontraktTom\"" +
                                 ", rrl.\"futureRentRollLine\" " +
                                 ", rrl.\"applied\" " +
                                 ", ld.\"leaseReference\" " +
                                 ", ld.\"externalReference\" " +
+                                ", ld.\"leaseStartDate\" " +
+                                ", ld.\"leaseEndDate\" " +
                                 "FROM \"fastnet\".\"RentRollLine\" rrl " +
                                 "  LEFT OUTER JOIN leaseData ld " +
                                 "    ON ld.\"externalReference\" = rrl.\"keyToLeaseExternalReference\" ")
@@ -101,8 +109,6 @@ import lombok.Setter;
 @javax.jdo.annotations.Inheritance(strategy = InheritanceStrategy.NEW_TABLE)
 @ViewModel
 @Getter @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class FastNetRentRollOnLeaseDataLine {
 
         // key 2
@@ -110,7 +116,7 @@ public class FastNetRentRollOnLeaseDataLine {
 
         private LocalDate exportDate;
 
-        // rent roll 6
+        // rent roll 8
         private String kontraktNr;
 
         private String hyresgast;
@@ -119,13 +125,21 @@ public class FastNetRentRollOnLeaseDataLine {
 
         private BigDecimal arshyra;
 
+        private String kontraktFrom;
+
+        private String kontraktTom;
+
         private boolean futureRentRollLine;
 
         private LocalDate applied;
 
-        // lease 2
+        // lease 4
         private String leaseReference;
 
         private String externalReference;
+
+        private LocalDate leaseStartDate;
+
+        private LocalDate leaseEndDate;
 
 }
