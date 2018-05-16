@@ -295,8 +295,12 @@ public class FastnetImportService {
             case "Kvartal":
                 return InvoicingFrequency.QUARTERLY_IN_ADVANCE;
 
+            case "Halvår":
+            return InvoicingFrequency.SEMI_YEARLY_IN_ADVANCE;
+
             case "Helår":
                 return InvoicingFrequency.YEARLY_IN_ADVANCE;
+
         }
         return null;
     }
