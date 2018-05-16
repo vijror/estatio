@@ -371,7 +371,7 @@ public class FastnetImportService {
     }
 
     private void throwExceptionIfLeaseItemTypeIsNotYetImplemented(final LeaseItemType leaseItemType) {
-        if (!Arrays.asList(LeaseItemType.RENT, LeaseItemType.TURNOVER_RENT_FIXED, LeaseItemType.SERVICE_CHARGE, LeaseItemType.PROPERTY_TAX, LeaseItemType.MARKETING).contains(leaseItemType)) {
+        if (!Arrays.asList(LeaseItemType.RENT, LeaseItemType.TURNOVER_RENT_FIXED, LeaseItemType.SERVICE_CHARGE, LeaseItemType.PROPERTY_TAX, LeaseItemType.MARKETING, LeaseItemType.RENT_DISCOUNT_FIXED, LeaseItemType.RENT_FIXED).contains(leaseItemType)) {
             throw new RuntimeException("Type  " + leaseItemType + " not yet supported");
         }
     }
@@ -425,6 +425,20 @@ public class FastnetImportService {
                 termForMarketing = (LeaseTermForServiceCharge) leaseTerm;
                 termForMarketing.setBudgetedValue(value);
                 return termForMarketing;
+
+            case RENT_DISCOUNT_FIXED:
+                LeaseTermForFixed termForRentDiscount;
+                termForRentDiscount = (LeaseTermForFixed) leaseTerm;
+                termForRentDiscount.setValue(value);
+
+                return termForRentDiscount;
+
+            case RENT_FIXED:
+                LeaseTermForFixed termForRentFixed;
+                termForRentFixed = (LeaseTermForFixed) leaseTerm;
+                termForRentFixed.setValue(value);
+
+                return termForRentFixed;
 
             default:
                 // TODO: add support for other types when the time is right
