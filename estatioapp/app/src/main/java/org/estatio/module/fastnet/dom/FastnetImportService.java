@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.NatureOfService;
+import org.apache.isis.applib.services.message.MessageService;
 
 import org.isisaddons.module.excel.dom.ExcelService;
 
@@ -318,17 +319,20 @@ public class FastnetImportService {
         // TODO: somehow the dates on cdl for lease, lease item and lease term are all set to LocalDate.now() while
         // they are right when the lines are set on the fastnet import manager
         // maybe because FastNetChargingOnLeaseDataLine is mapped to a DN view??
-
-//        if (!sameValues(cdl)) {
+        if (termToUpdate!=null) {
+            //        if (!sameValues(cdl)) {
             updateLeaseTermValue(itemToUpdate, cdl.getArsBel(), termToUpdate);
-//        }
-//        if (!sameDates(cdl)){
+            //        }
+            //        if (!sameDates(cdl)){
             termToUpdate.setEndDate(stringToDate(cdl.getTomDat()));
-//        }
-//        if (!sameInvoicingFrequency(cdl)){
+            //        }
+            //        if (!sameInvoicingFrequency(cdl)){
             itemToUpdate.setInvoicingFrequency(mapToFrequency(cdl.getDebPer()));
-//        }
-        cLine.setApplied(LocalDate.now());
+            //        }
+            cLine.setApplied(LocalDate.now());
+        } else {
+            messageService.warnUser(String.format("Term with charge %s and start date %s could not be found.", charge.getReference(), cdl.getFromDat()));
+        }
 
     }
 
@@ -527,5 +531,7 @@ public class FastnetImportService {
     @Inject FastNetRentRollOnLeaseDataLineRepo rentRollOnLeaseDataLineRepo;
 
     @Inject FastNetChargingOnLeaseDataLineRepo chargingOnLeaseDataLineRepo;
+
+    @Inject MessageService messageService;
 
 }
