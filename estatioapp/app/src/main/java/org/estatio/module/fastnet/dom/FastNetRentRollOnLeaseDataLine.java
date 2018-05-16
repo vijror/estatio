@@ -10,7 +10,9 @@ import org.joda.time.LocalDate;
 
 import org.apache.isis.applib.annotation.ViewModel;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 // NOTE: this view also is maintained by fly db
@@ -99,6 +101,8 @@ import lombok.Setter;
 @javax.jdo.annotations.Inheritance(strategy = InheritanceStrategy.NEW_TABLE)
 @ViewModel
 @Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class FastNetRentRollOnLeaseDataLine {
 
         // key 2

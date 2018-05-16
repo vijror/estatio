@@ -22,12 +22,18 @@ import javax.jdo.annotations.VersionStrategy;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
+import org.apache.isis.applib.annotation.Action;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.Editing;
 import org.apache.isis.applib.annotation.PropertyLayout;
+import org.apache.isis.applib.annotation.SemanticsOf;
+import org.apache.isis.applib.services.clock.ClockService;
+import org.apache.isis.applib.services.message.MessageService;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
 import org.estatio.module.base.dom.Importable;
+import org.estatio.module.charge.dom.ChargeRepository;
+import org.estatio.module.lease.dom.LeaseRepository;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -262,6 +268,18 @@ public class ChargingLine implements Importable {
     @Getter @Setter
     private boolean discarded;
 
+    @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
+    public ChargingLine apply(){
+//        //TODO: implement
+        return this;
+    }
+
+    @Action(semantics = SemanticsOf.IDEMPOTENT)
+    public ChargingLine discard(){
+        setDiscarded(true);
+        return this;
+    }
+
     @Override
     public List<Object> importData(final Object previousRow) {
         if (chargingLineRepository.findUnique(keyToLeaseExternalReference(), keyToChargeReference(), getFromDat(), getTomDat(), getArsBel(), getEvdInSd()) == null) {
@@ -286,5 +304,15 @@ public class ChargingLine implements Importable {
 
     @Inject
     RepositoryService repositoryService;
+
+    @Inject
+    LeaseRepository leaseRepository;
+
+    @Inject ChargeRepository chargeRepository;
+
+    @Inject
+    ClockService clockService;
+
+    @Inject MessageService messageService;
 
 }
