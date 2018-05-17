@@ -58,7 +58,7 @@ public class FastnetImportService {
         List<FastNetRentRollOnLeaseDataLine> potentiallyPartialMatchingDataLines = rentRollOnLeaseDataLineRepo.nonMatchingRentRollLinesForExportDate(exportDate);
         long potentials = System.currentTimeMillis();
 
-        List<FastNetRentRollOnLeaseDataLine2> partialMatchingDataLines = getPartiallyMatchingDataLines(potentiallyPartialMatchingDataLines);
+        List<FastNetRentRollOnLeaseDataLine> partialMatchingDataLines = getPartiallyMatchingDataLines(potentiallyPartialMatchingDataLines);
         fastnetImportManager.setPartialMatchingDataLines(partialMatchingDataLines);
         long partials = System.currentTimeMillis();
 
@@ -232,9 +232,9 @@ public class FastnetImportService {
         ///////
     }
 
-    List<FastNetRentRollOnLeaseDataLine> getNonMatchingDataLines(final List<FastNetRentRollOnLeaseDataLine> potentiallyPartialMatchingDataLines, final List<FastNetRentRollOnLeaseDataLine2> partialMatchingDataLines) {
+    List<FastNetRentRollOnLeaseDataLine> getNonMatchingDataLines(final List<FastNetRentRollOnLeaseDataLine> potentiallyPartialMatchingDataLines, final List<FastNetRentRollOnLeaseDataLine> partialMatchingDataLines) {
         List<FastNetRentRollOnLeaseDataLine> nonMatchingDataLines = new ArrayList<>();
-        List<String> partialKeys = partialMatchingDataLines.stream().map(FastNetRentRollOnLeaseDataLine2::getKeyToLeaseExternalReference).collect(Collectors.toList());
+        List<String> partialKeys = partialMatchingDataLines.stream().map(FastNetRentRollOnLeaseDataLine::getKeyToLeaseExternalReference).collect(Collectors.toList());
         potentiallyPartialMatchingDataLines.forEach(nml -> {
             if (!partialKeys.contains(nml.getKeyToLeaseExternalReference())) {
                 nonMatchingDataLines.add(nml);
@@ -243,13 +243,13 @@ public class FastnetImportService {
         return nonMatchingDataLines;
     }
 
-    List<FastNetRentRollOnLeaseDataLine2> getPartiallyMatchingDataLines(final List<FastNetRentRollOnLeaseDataLine> potentiallyPartialMatchingDataLines) {
-        List<FastNetRentRollOnLeaseDataLine2> partialMatchingDataLines = new ArrayList<>();
+    List<FastNetRentRollOnLeaseDataLine> getPartiallyMatchingDataLines(List<FastNetRentRollOnLeaseDataLine> potentiallyPartialMatchingDataLines) {
+        List<FastNetRentRollOnLeaseDataLine> partialMatchingDataLines = new ArrayList<>();
         potentiallyPartialMatchingDataLines.forEach(line -> {
             final List<Lease> partialMatchedLeases = leaseRepository.matchLeaseByExternalReference(mapPartialExternalReference(line.getKeyToLeaseExternalReference()));
             if (!partialMatchedLeases.isEmpty()) {
                 partialMatchedLeases.forEach(lease -> {
-                    FastNetRentRollOnLeaseDataLine2 lineForPartial = new FastNetRentRollOnLeaseDataLine2(
+                    FastNetRentRollOnLeaseDataLine lineForPartial = new FastNetRentRollOnLeaseDataLine(
                             line.getKeyToLeaseExternalReference(),
                             line.getExportDate(),
                             line.getKontraktNr(),
@@ -265,9 +265,10 @@ public class FastnetImportService {
                             line.getLeaseStartDate(),
                             line.getLeaseEndDate()
                     );
-                    // TODO: finish
                     lineForPartial.setLeaseReference(lease.getReference());
                     lineForPartial.setExternalReference(lease.getExternalReference());
+                    lineForPartial.setLeaseStartDate(lease.getStartDate());
+                    lineForPartial.setLeaseEndDate(lease.getEndDate());
                     partialMatchingDataLines.add(lineForPartial);
                 });
             }

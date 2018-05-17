@@ -5,10 +5,16 @@ import java.math.BigDecimal;
 import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.InheritanceStrategy;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.joda.time.LocalDate;
 
-import org.apache.isis.applib.annotation.ViewModel;
+import org.apache.isis.applib.annotation.DomainObject;
+import org.apache.isis.schema.utils.jaxbadapters.JodaLocalDateStringAdapter;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -171,7 +177,53 @@ import lombok.Setter;
 
 })
 @javax.jdo.annotations.Inheritance(strategy = InheritanceStrategy.NEW_TABLE)
-@ViewModel
+@XmlRootElement(name = "FastNetChargingOnLeaseDataLine")
+@XmlType(
+        propOrder = {
+                "keyToLeaseExternalReference",
+                "keyToChargeReference",
+                "exportDate",
+
+                "kontraktNr",
+                "kundNr",
+                "kod",
+                "kod2",
+                "kontText",
+                "kontText2",
+                "fromDat",
+                "tomDat",
+                "debPer",
+                "firstPosStart",
+                "arsBel",
+                "applied",
+
+                "leaseReference",
+                "externalReference",
+                "tenantName",
+                "tenantReference",
+                "leaseStatus",
+                "tenancyStartDate",
+                "tenancyEndDate",
+                "leaseStartDate",
+                "leaseEndDate",
+
+                "leaseItemType",
+                "invoicingFrequency",
+                "leaseItemStartDate",
+                "leaseItemEndDate",
+                "chargeReference",
+
+                "leaseTermStartDate",
+                "leaseTermEndDate",
+                "leaseTermStatus",
+                "baseValue",
+                "settledValue",
+                "value",
+                "budgetedValue"
+        }
+)
+@XmlAccessorType(XmlAccessType.FIELD)
+@DomainObject(objectType = "org.estatio.module.fastnet.dom.FastNetChargingOnLeaseDataLine")
 @Getter @Setter
 public class FastNetChargingOnLeaseDataLine {
 
@@ -180,6 +232,7 @@ public class FastNetChargingOnLeaseDataLine {
 
         private String keyToChargeReference;
 
+        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate exportDate;
 
         // charging 12
@@ -206,6 +259,7 @@ public class FastNetChargingOnLeaseDataLine {
 
         private BigDecimal arsBel;
 
+        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate applied;
 
         // lease 9
@@ -220,12 +274,16 @@ public class FastNetChargingOnLeaseDataLine {
 
         private String leaseStatus;
 
+        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate tenancyStartDate;
 
+        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate tenancyEndDate;
 
+        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate leaseStartDate;
 
+        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate leaseEndDate;
 
         // lease item 5
@@ -234,16 +292,20 @@ public class FastNetChargingOnLeaseDataLine {
 
         private String invoicingFrequency;
 
+        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate leaseItemStartDate;
 
+        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate leaseItemEndDate;
 
         private String chargeReference;
 
         // lease term 7
 
+        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate leaseTermStartDate;
 
+        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate leaseTermEndDate;
 
         private String leaseTermStatus;

@@ -5,11 +5,18 @@ import java.math.BigDecimal;
 import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.InheritanceStrategy;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.joda.time.LocalDate;
 
-import org.apache.isis.applib.annotation.ViewModel;
+import org.apache.isis.applib.annotation.DomainObject;
+import org.apache.isis.schema.utils.jaxbadapters.JodaLocalDateStringAdapter;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -107,13 +114,39 @@ import lombok.Setter;
 
 })
 @javax.jdo.annotations.Inheritance(strategy = InheritanceStrategy.NEW_TABLE)
-@ViewModel
+@XmlRootElement(name = "FastNetRentRollOnLeaseDataLine")
+@XmlType(
+        propOrder = {
+                "keyToLeaseExternalReference",
+                "exportDate",
+
+                "kontraktNr",
+                "hyresgast",
+                "kundNr",
+                "arshyra",
+                "kontraktFrom",
+                "kontraktTom",
+                "futureRentRollLine",
+                "applied",
+
+                "leaseReference",
+                "externalReference",
+                "leaseStartDate",
+                "leaseEndDate"
+
+
+        }
+)
+@XmlAccessorType(XmlAccessType.FIELD)
+@DomainObject(objectType = "org.estatio.module.fastnet.dom.FastNetRentRollOnLeaseDataLine")
+@AllArgsConstructor
 @Getter @Setter
 public class FastNetRentRollOnLeaseDataLine {
 
         // key 2
         private String keyToLeaseExternalReference;
 
+        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate exportDate;
 
         // rent roll 8
@@ -131,6 +164,7 @@ public class FastNetRentRollOnLeaseDataLine {
 
         private boolean futureRentRollLine;
 
+        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate applied;
 
         // lease 4
@@ -138,8 +172,10 @@ public class FastNetRentRollOnLeaseDataLine {
 
         private String externalReference;
 
+        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate leaseStartDate;
 
+        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate leaseEndDate;
 
 }
