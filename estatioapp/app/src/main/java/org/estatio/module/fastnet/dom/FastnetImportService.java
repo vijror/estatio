@@ -311,39 +311,19 @@ public class FastnetImportService {
         return dateString != null ? LocalDate.parse(dateString) : null;
     }
 
-    public Lease closeAllItemsOfTypeActiveOnEpochDate(final Lease lease, final LeaseItemType leaseItemType) {
-        throwExceptionIfLeaseItemTypeIsNotYetImplemented(leaseItemType);
-        lease.findItemsOfType(leaseItemType).stream().filter(x -> x.getInterval().contains(EPOCH_DATE_FASTNET_IMPORT.minusDays(1))).forEach(x -> x.setEndDate(EPOCH_DATE_FASTNET_IMPORT.minusDays(1)));
-        return lease;
-    }
-
     void updateItem(final FastNetChargingOnLeaseDataLine cdl, final LocalDate exportDate) {
         final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate());
         cLine.applyUpdate();
     }
 
     public LeaseItem updateItemAndTerm(final ChargingLine cLine){
-        final List<Lease> canditateLeaseForUpdate = leaseRepository.matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
-        if (canditateLeaseForUpdate.isEmpty()){
-            final String message = String.format("Lease with external reference %s not found.", cLine.getKeyToLeaseExternalReference());
-            messageService.warnUser(message);
-            logger.warn(message);
-            return null;
-        }
-        if (canditateLeaseForUpdate.size()>1){
-            final String message = String.format("Multiple leases with external reference %s found.", cLine.getKeyToLeaseExternalReference());
-            messageService.warnUser(message);
-            logger.warn(message);
-            return null;
-        }
-        final Lease lease = canditateLeaseForUpdate.get(0);
-        final Charge charge = chargeRepository.findByReference(cLine.getKeyToChargeReference());
-        if (charge==null){
-            final String message = String.format("Charge with reference %s not found for lease %s.", cLine.getKeyToChargeReference(), cLine.getKeyToLeaseExternalReference());
-            messageService.warnUser(message);
-            logger.warn(message);
-            return null;
-        }
+
+        final Lease lease = findLeaseOrReturnNull(cLine);
+        if (lease==null) return null;
+
+        final Charge charge = findChargeOrReturnNull(cLine);
+        if (charge == null) return null;
+
         LeaseItem itemToUpdate = lease.findFirstItemOfTypeAndCharge(mapToLeaseItemType(charge), charge);
         if (itemToUpdate==null) {
             final String message = String.format("Item with charge %s not found for lease %s.", charge.getReference(), cLine.getKeyToLeaseExternalReference());
@@ -376,21 +356,67 @@ public class FastnetImportService {
     }
 
     public void createItem(final FastNetChargingOnLeaseDataLine cdl) {
-        final Lease lease = leaseRepository.findLeaseByReference(cdl.getLeaseReference());
-        final Charge charge = chargeRepository.findByReference(cdl.getKeyToChargeReference()); // getChargeReference is null unless an item is found
+        final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate());
+        cLine.applyNewItemCreation();
+    }
+
+    public LeaseItem createItemAndTerm(final ChargingLine cLine){
+
+        final Lease lease = findLeaseOrReturnNull(cLine);
+        if (lease==null) return null;
+
+        final Charge charge = findChargeOrReturnNull(cLine);
+        if (charge == null) return null;
 
         LeaseItemType leaseItemType = mapToLeaseItemType(charge);
         closeAllItemsOfTypeActiveOnEpochDate(lease, leaseItemType);
 
-        final LeaseItem leaseItem = findOrCreateLeaseItemForTypeAndCharge(lease, leaseItemType, charge, mapToFrequency(cdl.getDebPer()), stringToDate(cdl.getFromDat()));
-        createNewTermAndCloseExistingIfOverlappingAndOpenEnded(leaseItem, cdl.getArsBel(), stringToDate(cdl.getFromDat()), stringToDate(cdl.getTomDat()));
+        final LeaseItem leaseItem = findOrCreateLeaseItemForTypeAndCharge(lease, leaseItemType, charge, mapToFrequency(cLine.getDebPer()), stringToDate(cLine.getFromDat()));
+        createNewTermAndCloseExistingIfOverlappingAndOpenEnded(leaseItem, cLine.getArsBel(), stringToDate(cLine.getFromDat()), stringToDate(cLine.getTomDat()));
+
+        return leaseItem;
     }
+
+    Charge findChargeOrReturnNull(final ChargingLine cLine) {
+        final Charge charge = chargeRepository.findByReference(cLine.getKeyToChargeReference());
+        if (charge==null){
+            final String message = String.format("Charge with reference %s not found for lease %s.", cLine.getKeyToChargeReference(), cLine.getKeyToLeaseExternalReference());
+            messageService.warnUser(message);
+            logger.warn(message);
+            return null;
+        }
+        return charge;
+    }
+
+    Lease findLeaseOrReturnNull(final ChargingLine cLine){
+        final List<Lease> canditateLeaseForUpdate = leaseRepository.matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
+        if (canditateLeaseForUpdate.isEmpty()){
+            final String message = String.format("Lease with external reference %s not found.", cLine.getKeyToLeaseExternalReference());
+            messageService.warnUser(message);
+            logger.warn(message);
+            return null;
+        }
+        if (canditateLeaseForUpdate.size()>1){
+            final String message = String.format("Multiple leases with external reference %s found.", cLine.getKeyToLeaseExternalReference());
+            messageService.warnUser(message);
+            logger.warn(message);
+            return null;
+        }
+        return canditateLeaseForUpdate.get(0);
+    }
+
+    Lease closeAllItemsOfTypeActiveOnEpochDate(final Lease lease, final LeaseItemType leaseItemType) {
+        throwExceptionIfLeaseItemTypeIsNotYetImplemented(leaseItemType);
+        lease.findItemsOfType(leaseItemType).stream().filter(x -> x.getInterval().contains(EPOCH_DATE_FASTNET_IMPORT.minusDays(1))).forEach(x -> x.setEndDate(EPOCH_DATE_FASTNET_IMPORT.minusDays(1)));
+        return lease;
+    }
+
 
     LeaseItemType mapToLeaseItemType(final Charge charge) {
         return LeaseItemType.valueOf(charge.getGroup().getReference().replace("SE_", "")); // by convention
     }
 
-    public LeaseItem findOrCreateLeaseItemForTypeAndCharge(final Lease lease, final LeaseItemType leaseItemType, final Charge charge, final InvoicingFrequency invoicingFrequency, final LocalDate startDate) {
+    LeaseItem findOrCreateLeaseItemForTypeAndCharge(final Lease lease, final LeaseItemType leaseItemType, final Charge charge, final InvoicingFrequency invoicingFrequency, final LocalDate startDate) {
 
         throwExceptionIfLeaseItemTypeIsNotYetImplemented(leaseItemType);
 

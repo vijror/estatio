@@ -270,15 +270,21 @@ public class ChargingLine implements Importable {
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
     public LeaseItem applyUpdate(){
         LeaseItem result = fastnetImportService.updateItemAndTerm(this);
-        if (result!=null) setApplied(clockService.now());
-        setImportStatus(ImportStatus.LEASE_ITEM_UPDATED);
+        if (result!=null) {
+            setApplied(clockService.now());
+            setImportStatus(ImportStatus.LEASE_ITEM_UPDATED);
+        }
         return result;
     }
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
     public LeaseItem applyNewItemCreation(){
-        // TODO: implement
-        return null;
+        LeaseItem result = fastnetImportService.createItemAndTerm(this);
+        if (result!=null) {
+            setApplied(clockService.now());
+            setImportStatus(ImportStatus.LEASE_ITEM_CREATED);
+        }
+        return result;
     }
 
     @Action(semantics = SemanticsOf.IDEMPOTENT)

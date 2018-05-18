@@ -1,6 +1,7 @@
 package org.estatio.module.fastnet.dom;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,7 +26,9 @@ import org.estatio.module.lease.dom.LeaseItem;
 import org.estatio.module.lease.dom.LeaseItemType;
 import org.estatio.module.lease.dom.LeaseRepository;
 import org.estatio.module.lease.dom.LeaseTerm;
+import org.estatio.module.lease.dom.LeaseTermForFixed;
 import org.estatio.module.lease.dom.LeaseTermForIndexable;
+import org.estatio.module.lease.dom.LeaseTermForServiceCharge;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -581,6 +584,159 @@ public class FastnetImportService_Test {
         // then
         assertThat(leaseTerm.getSettledValue()).isEqualTo(arsBel);
         assertThat(leaseTerm.getEndDate()).isEqualTo(new LocalDate(2018, 12, 31));
+    }
+
+    @Test
+    public void create_item_and_term_when_lease_not_found() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        service.leaseRepository = mockLeaseRepository;
+        service.messageService = mockMessageService;
+        ChargingLine cLine = new ChargingLine();
+        cLine.setKeyToLeaseExternalReference("ABCD");
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
+            will(returnValue(Arrays.asList()));
+            oneOf(mockMessageService).warnUser("Lease with external reference ABCD not found.");
+        }});
+
+        // when
+        service.createItemAndTerm(cLine);
+
+    }
+
+    @Test
+    public void create_item_and_term_when_charge_not_found() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        service.leaseRepository = mockLeaseRepository;
+        service.chargeRepository = mockChargeRepository;
+        service.messageService = mockMessageService;
+        ChargingLine cLine = new ChargingLine();
+        cLine.setKeyToLeaseExternalReference("ABCD");
+        cLine.setKeyToChargeReference("SE123-4");
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
+            will(returnValue(Arrays.asList(new Lease())));
+            oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
+            will(returnValue(null));
+            oneOf(mockMessageService).warnUser("Charge with reference SE123-4 not found for lease ABCD.");
+        }});
+
+        // when
+        service.createItemAndTerm(cLine);
+
+    }
+
+    @Test
+    public void update_lease_term_value_works_for_indexable() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        LeaseItem item = new LeaseItem();
+        Charge charge = new Charge();
+        charge.setReference("123-1");
+        item.setCharge(charge);
+        item.setType(LeaseItemType.RENT);
+        LeaseTermForIndexable term = new LeaseTermForIndexable();
+        BigDecimal amount = new BigDecimal("123.45");
+
+        // when
+        service.updateLeaseTermValue(item, amount, term);
+
+        // then
+        assertThat(term.getBaseValue()).isEqualTo(amount);
+        assertThat(term.getSettledValue()).isEqualTo(amount);
+
+        // and when
+        LeaseTermForIndexable term2 = new LeaseTermForIndexable();
+        charge.setReference("123-X");
+        service.updateLeaseTermValue(item, amount, term2);
+
+        // then
+        assertThat(term2.getBaseValue()).isNull();
+        assertThat(term2.getSettledValue()).isEqualTo(amount);
+
+    }
+
+    @Test
+    public void update_lease_term_value_works_for_service_charge() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        LeaseItem item = new LeaseItem();
+        item.setType(LeaseItemType.SERVICE_CHARGE);
+        LeaseTermForServiceCharge term = new LeaseTermForServiceCharge();
+        BigDecimal amount = new BigDecimal("123.45");
+
+        // when
+        service.updateLeaseTermValue(item, amount, term);
+
+        // then
+        assertThat(term.getBudgetedValue()).isEqualTo(amount);
+
+    }
+
+    @Test
+    public void update_lease_term_value_works_for_fixed() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        LeaseItem item = new LeaseItem();
+        item.setType(LeaseItemType.RENT_FIXED);
+        LeaseTermForFixed term = new LeaseTermForFixed();
+        BigDecimal amount = new BigDecimal("123.45");
+
+        // when
+        service.updateLeaseTermValue(item, amount, term);
+
+        // then
+        assertThat(term.getValue()).isEqualTo(amount);
+
+    }
+
+    @Test
+    public void close_all_items_of_type_active_on_epoch_date_works() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        final LocalDate epochDateFastnetImport = service.EPOCH_DATE_FASTNET_IMPORT;
+
+        LeaseItemType leaseItemType = LeaseItemType.RENT;
+        Lease lease = new Lease();
+
+        LeaseItem itemToBeClosed = new LeaseItem();
+        itemToBeClosed.setSequence(BigInteger.valueOf(1));
+        itemToBeClosed.setType(leaseItemType);
+        itemToBeClosed.setEndDate(epochDateFastnetImport);
+        lease.getItems().add(itemToBeClosed);
+
+        LeaseItem itemNotToBeClosed = new LeaseItem();
+        itemNotToBeClosed.setSequence(BigInteger.valueOf(2));
+        itemNotToBeClosed.setType(leaseItemType);
+        itemNotToBeClosed.setStartDate(epochDateFastnetImport);
+        lease.getItems().add(itemNotToBeClosed);
+
+        LeaseItem itemClosedInPast = new LeaseItem();
+        itemClosedInPast.setSequence(BigInteger.valueOf(3));
+        itemClosedInPast.setType(leaseItemType);
+        itemClosedInPast.setEndDate(epochDateFastnetImport.minusDays(2));
+        lease.getItems().add(itemClosedInPast);
+
+        // when
+        service.closeAllItemsOfTypeActiveOnEpochDate(lease, leaseItemType);
+
+        // then
+        assertThat(itemToBeClosed.getEndDate()).isEqualTo(epochDateFastnetImport.minusDays(1));
+        assertThat(itemNotToBeClosed.getEndDate()).isNull();
+        assertThat(itemClosedInPast.getEndDate()).isEqualTo(epochDateFastnetImport.minusDays(2));
+
     }
 
 }
