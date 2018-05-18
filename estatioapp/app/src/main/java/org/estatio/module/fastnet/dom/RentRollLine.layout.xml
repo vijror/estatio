@@ -20,6 +20,8 @@
                 <cpt:property id="exportDate"/>
                 <cpt:property id="applied"/>
                 <cpt:property id="kontraktNr"/>
+                <cpt:property id="kontraktFrom"/>
+                <cpt:property id="kontraktTom"/>
                 <cpt:property id="kundNr"/>
                 <cpt:property id="hyresgast"/>
             </cpt:fieldSet>

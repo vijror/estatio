@@ -313,10 +313,10 @@ public class FastnetImportService {
 
     void updateItem(final FastNetChargingOnLeaseDataLine cdl, final LocalDate exportDate) {
         final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate());
-        cLine.applyUpdate();
+        cLine.apply();
     }
 
-    public LeaseItem updateItemAndTerm(final ChargingLine cLine){
+    public ImportStatus updateOrCreateItemAndTerm(final ChargingLine cLine){
 
         final Lease lease = findLeaseOrReturnNull(cLine);
         if (lease==null) return null;
@@ -325,6 +325,12 @@ public class FastnetImportService {
         if (charge == null) return null;
 
         LeaseItem itemToUpdate = lease.findFirstItemOfTypeAndCharge(mapToLeaseItemType(charge), charge);
+
+        return itemToUpdate == null ? createItemAndTerm(cLine, lease, charge) : updateItemAndTerm(cLine, charge, itemToUpdate);
+
+    }
+
+    ImportStatus updateItemAndTerm(final ChargingLine cLine, final Charge charge, LeaseItem itemToUpdate){
         if (itemToUpdate==null) {
             final String message = String.format("Item with charge %s not found for lease %s.", charge.getReference(), cLine.getKeyToLeaseExternalReference());
             messageService.warnUser(message);
@@ -352,29 +358,23 @@ public class FastnetImportService {
             logger.warn(message);
             return null;
         }
-        return itemToUpdate;
+        return ImportStatus.LEASE_ITEM_UPDATED;
     }
 
     public void createItem(final FastNetChargingOnLeaseDataLine cdl) {
         final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate());
-        cLine.applyNewItemCreation();
+        cLine.apply();
     }
 
-    public LeaseItem createItemAndTerm(final ChargingLine cLine){
-
-        final Lease lease = findLeaseOrReturnNull(cLine);
-        if (lease==null) return null;
-
-        final Charge charge = findChargeOrReturnNull(cLine);
-        if (charge == null) return null;
+    ImportStatus createItemAndTerm(final ChargingLine cLine, final Lease lease, final Charge charge){
 
         LeaseItemType leaseItemType = mapToLeaseItemType(charge);
         closeAllItemsOfTypeActiveOnEpochDate(lease, leaseItemType);
 
         final LeaseItem leaseItem = findOrCreateLeaseItemForTypeAndCharge(lease, leaseItemType, charge, mapToFrequency(cLine.getDebPer()), stringToDate(cLine.getFromDat()));
-        createNewTermAndCloseExistingIfOverlappingAndOpenEnded(leaseItem, cLine.getArsBel(), stringToDate(cLine.getFromDat()), stringToDate(cLine.getTomDat()));
+        LeaseTerm newTerm = createNewTermAndCloseExistingIfOverlappingAndOpenEnded(leaseItem, cLine.getArsBel(), stringToDate(cLine.getFromDat()), stringToDate(cLine.getTomDat()));
 
-        return leaseItem;
+        return newTerm!=null ? ImportStatus.LEASE_ITEM_CREATED : null;
     }
 
     Charge findChargeOrReturnNull(final ChargingLine cLine) {

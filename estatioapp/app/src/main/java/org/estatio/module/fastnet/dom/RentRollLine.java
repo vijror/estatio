@@ -524,6 +524,14 @@ public class RentRollLine implements Importable {
         return chargingLineRepository.findByKeyToLeaseExternalReferenceAndExportDate(getKeyToLeaseExternalReference(), getExportDate());
     }
 
+
+    @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
+    public RentRollLine apply(){
+        getChargingLines().forEach(line->line.apply());
+        return this;
+    }
+
+
     @Override
     public List<Object> importData(final Object previousRow) {
         if (rentRollLineRepository.findByObjektsNummerAndEvdInSd(getObjektsNummer(), getEvdInSd()) == null) {

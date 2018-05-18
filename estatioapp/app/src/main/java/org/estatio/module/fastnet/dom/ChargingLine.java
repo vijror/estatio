@@ -31,7 +31,6 @@ import org.apache.isis.applib.services.clock.ClockService;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
 import org.estatio.module.base.dom.Importable;
-import org.estatio.module.lease.dom.LeaseItem;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -268,21 +267,11 @@ public class ChargingLine implements Importable {
     private ImportStatus importStatus;
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
-    public LeaseItem applyUpdate(){
-        LeaseItem result = fastnetImportService.updateItemAndTerm(this);
+    public ImportStatus apply(){
+        ImportStatus result = fastnetImportService.updateOrCreateItemAndTerm(this);
         if (result!=null) {
             setApplied(clockService.now());
-            setImportStatus(ImportStatus.LEASE_ITEM_UPDATED);
-        }
-        return result;
-    }
-
-    @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
-    public LeaseItem applyNewItemCreation(){
-        LeaseItem result = fastnetImportService.createItemAndTerm(this);
-        if (result!=null) {
-            setApplied(clockService.now());
-            setImportStatus(ImportStatus.LEASE_ITEM_CREATED);
+            setImportStatus(result);
         }
         return result;
     }

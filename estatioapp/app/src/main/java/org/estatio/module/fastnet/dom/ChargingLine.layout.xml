@@ -18,6 +18,7 @@
         <bs3:col span="4">
             <cpt:fieldSet name="Key properties" id="keyproperties">
                 <cpt:property id="exportDate"/>
+                <cpt:property id="importStatus"/>
                 <cpt:property id="applied"/>
                 <cpt:property id="kontraktNr"/>
                 <cpt:property id="kundNr"/>

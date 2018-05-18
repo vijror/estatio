@@ -347,7 +347,7 @@ public class FastnetImportService_Test {
         }});
 
         // when
-        service.updateItemAndTerm(cLine);
+        service.updateOrCreateItemAndTerm(cLine);
 
     }
 
@@ -373,47 +373,15 @@ public class FastnetImportService_Test {
         }});
 
         // when
-        service.updateItemAndTerm(cLine);
+        service.updateOrCreateItemAndTerm(cLine);
 
     }
 
     @Mock
     Lease mockLease;
 
-    @Test
-    public void update_item_and_term_when_item_not_found() throws Exception {
-
-        // given
-        FastnetImportService service = new FastnetImportService();
-        service.leaseRepository = mockLeaseRepository;
-        service.chargeRepository = mockChargeRepository;
-        service.messageService = mockMessageService;
-        ChargingLine cLine = new ChargingLine();
-        cLine.setKeyToLeaseExternalReference("ABCD");
-        cLine.setKeyToChargeReference("SE123-4");
-        Charge charge = new Charge();
-        charge.setReference(cLine.getKeyToChargeReference());
-        ChargeGroup chargeGroup = new ChargeGroup();
-        chargeGroup.setReference("SE_RENT");
-        charge.setGroup(chargeGroup);
-
-        // expect
-        context.checking(new Expectations(){{
-            oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
-            will(returnValue(Arrays.asList(mockLease)));
-            oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
-            will(returnValue(charge));
-            oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
-            will(returnValue(null));
-            oneOf(mockMessageService).warnUser("Item with charge SE123-4 not found for lease ABCD.");
-        }});
-
-        // when
-        service.updateItemAndTerm(cLine);
-
-    }
-
-    @Mock LeaseItem mockLeaseItem;
+    @Mock
+    LeaseItem mockLeaseItem;
 
     @Test
     public void update_item_and_term_when_term_not_found() throws Exception {
@@ -447,7 +415,7 @@ public class FastnetImportService_Test {
         }});
 
         // when
-        service.updateItemAndTerm(cLine);
+        service.updateOrCreateItemAndTerm(cLine);
 
     }
 
@@ -489,7 +457,7 @@ public class FastnetImportService_Test {
         }});
 
         // when
-        service.updateItemAndTerm(cLine);
+        service.updateOrCreateItemAndTerm(cLine);
 
     }
 
@@ -532,7 +500,7 @@ public class FastnetImportService_Test {
         }});
 
         // when
-        service.updateItemAndTerm(cLine);
+        service.updateOrCreateItemAndTerm(cLine);
 
         // then
         assertThat(leaseTerm.getSettledValue()).isEqualTo(BigDecimal.ZERO.setScale(2));
@@ -579,7 +547,7 @@ public class FastnetImportService_Test {
         }});
 
         // when
-        service.updateItemAndTerm(cLine);
+        service.updateOrCreateItemAndTerm(cLine);
 
         // then
         assertThat(leaseTerm.getSettledValue()).isEqualTo(arsBel);
@@ -604,7 +572,7 @@ public class FastnetImportService_Test {
         }});
 
         // when
-        service.createItemAndTerm(cLine);
+        service.updateOrCreateItemAndTerm(cLine);
 
     }
 
@@ -630,7 +598,7 @@ public class FastnetImportService_Test {
         }});
 
         // when
-        service.createItemAndTerm(cLine);
+        service.updateOrCreateItemAndTerm(cLine);
 
     }
 
