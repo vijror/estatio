@@ -27,6 +27,7 @@ import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.Editing;
 import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.annotation.SemanticsOf;
+import org.apache.isis.applib.services.clock.ClockService;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
 import org.estatio.module.base.dom.Importable;
@@ -263,11 +264,15 @@ public class ChargingLine implements Importable {
     private LocalDate applied;
 
     @Getter @Setter
-    private boolean discarded;
+    @Column(allowsNull = "true")
+    private ImportStatus importStatus;
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
     public LeaseItem applyUpdate(){
-        return fastnetImportService.updateItemAndTerm(this);
+        LeaseItem result = fastnetImportService.updateItemAndTerm(this);
+        if (result!=null) setApplied(clockService.now());
+        setImportStatus(ImportStatus.LEASE_ITEM_UPDATED);
+        return result;
     }
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
@@ -278,7 +283,7 @@ public class ChargingLine implements Importable {
 
     @Action(semantics = SemanticsOf.IDEMPOTENT)
     public ChargingLine discard(){
-        setDiscarded(true);
+        setImportStatus(ImportStatus.DISCARDED);
         return this;
     }
 
@@ -309,5 +314,8 @@ public class ChargingLine implements Importable {
 
     @Inject
     FastnetImportService fastnetImportService;
+
+    @Inject
+    ClockService clockService;
 
 }

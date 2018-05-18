@@ -45,6 +45,7 @@ import lombok.Setter;
                                 "  {this.firstPosStart}, " +
                                 "  {this.arsBel}, " +
                                 "  {this.applied}, " +
+                                "  {this.importStatus}, " +
 
                                 "  {this.leaseReference}, " +
                                 "  {this.externalReference}, " +
@@ -129,6 +130,7 @@ import lombok.Setter;
                                 ", cl.\"firstPosStart\"" +
                                 ", cl.\"arsBel\"" +
                                 ", cl.\"applied\"" +
+                                ", cl.\"importStatus\"" +
                                 // lease
                                 ", ISNUll(ld.\"leaseReference\", a2.\"reference\") as \"leaseReference\"" +
                                 ", ISNUll(ld.\"externalReference\", l2.\"externalReference\") as \"externalReference\"" +
@@ -196,6 +198,7 @@ import lombok.Setter;
                 "firstPosStart",
                 "arsBel",
                 "applied",
+                "importStatus",
 
                 "leaseReference",
                 "externalReference",
@@ -261,6 +264,8 @@ public class FastNetChargingOnLeaseDataLine {
 
         @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate applied;
+
+        private ImportStatus importStatus;
 
         // lease 9
 

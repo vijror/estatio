@@ -40,6 +40,7 @@ import lombok.Setter;
                                 "  {this.kontraktTom}, " +
                                 "  {this.futureRentRollLine}, " +
                                 "  {this.applied}, " +
+                                "  {this.importStatus}, " +
 
                                 "  {this.leaseReference}, " +
                                 "  {this.externalReference}, " +
@@ -68,6 +69,7 @@ import lombok.Setter;
                                 ", rrl.\"kontraktTom\"" +
                                 ", rrl.\"futureRentRollLine\" " +
                                 ", rrl.\"applied\" " +
+                                ", rrl.\"importStatus\" " +
                                 ", ld.\"leaseReference\" " +
                                 ", ld.\"externalReference\" " +
                                 ", ld.\"leaseStartDate\" " +
@@ -128,6 +130,7 @@ import lombok.Setter;
                 "kontraktTom",
                 "futureRentRollLine",
                 "applied",
+                "importStatus",
 
                 "leaseReference",
                 "externalReference",
@@ -166,6 +169,8 @@ public class FastNetRentRollOnLeaseDataLine {
 
         @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate applied;
+
+        private ImportStatus importStatus;
 
         // lease 4
         private String leaseReference;

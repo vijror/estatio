@@ -260,6 +260,7 @@ public class FastnetImportService {
                             line.getKontraktTom(),
                             line.isFutureRentRollLine(),
                             line.getApplied(),
+                            line.getImportStatus(),
                             line.getLeaseReference(),
                             line.getExternalReference(),
                             line.getLeaseStartDate(),
