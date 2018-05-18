@@ -6,7 +6,6 @@ import java.util.List;
 import javax.inject.Inject;
 
 import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 
 import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.NatureOfService;
@@ -103,7 +102,7 @@ public class ChargingLineRepository {
             final String fromDat,
             final String tomDat,
             final BigDecimal arsBel,
-            final LocalDateTime evdInSd) {
+            final LocalDate exportDate) {
         return repositoryService.uniqueMatch(
                 new QueryDefault<>(
                         ChargingLine.class,
@@ -113,7 +112,7 @@ public class ChargingLineRepository {
                         "fromDat", fromDat,
                         "tomDat", tomDat,
                         "arsBel", arsBel,
-                        "evdInSd", evdInSd));
+                        "exportDate", exportDate));
     }
 
     @Programmatic

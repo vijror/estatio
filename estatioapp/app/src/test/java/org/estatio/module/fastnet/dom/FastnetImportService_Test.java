@@ -1,5 +1,6 @@
 package org.estatio.module.fastnet.dom;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import org.apache.isis.applib.services.message.MessageService;
 import org.apache.isis.core.unittestsupport.jmocking.JUnitRuleMockery2;
 
 import org.estatio.module.charge.dom.Charge;
@@ -62,9 +64,6 @@ public class FastnetImportService_Test {
 
     @Rule
     public JUnitRuleMockery2 context = JUnitRuleMockery2.createFor(JUnitRuleMockery2.Mode.INTERFACES_AND_CLASSES);
-
-    @Mock
-    Lease mockLease;
 
     @Test
     public void find_or_create_works_when_item_not_found() throws Exception {
@@ -323,6 +322,265 @@ public class FastnetImportService_Test {
         assertThat(result.size()).isEqualTo(1);
         assertThat(result).contains(leaseInactive);
 
+    }
+
+    @Mock MessageService mockMessageService;
+
+    @Test
+    public void update_item_and_term_when_lease_not_found() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        service.leaseRepository = mockLeaseRepository;
+        service.messageService = mockMessageService;
+        ChargingLine cLine = new ChargingLine();
+        cLine.setKeyToLeaseExternalReference("ABCD");
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
+            will(returnValue(Arrays.asList()));
+            oneOf(mockMessageService).warnUser("Lease with external reference ABCD not found.");
+        }});
+
+        // when
+        service.updateItemAndTerm(cLine);
+
+    }
+
+    @Test
+    public void update_item_and_term_when_charge_not_found() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        service.leaseRepository = mockLeaseRepository;
+        service.chargeRepository = mockChargeRepository;
+        service.messageService = mockMessageService;
+        ChargingLine cLine = new ChargingLine();
+        cLine.setKeyToLeaseExternalReference("ABCD");
+        cLine.setKeyToChargeReference("SE123-4");
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
+            will(returnValue(Arrays.asList(new Lease())));
+            oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
+            will(returnValue(null));
+            oneOf(mockMessageService).warnUser("Charge with reference SE123-4 not found for lease ABCD.");
+        }});
+
+        // when
+        service.updateItemAndTerm(cLine);
+
+    }
+
+    @Mock
+    Lease mockLease;
+
+    @Test
+    public void update_item_and_term_when_item_not_found() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        service.leaseRepository = mockLeaseRepository;
+        service.chargeRepository = mockChargeRepository;
+        service.messageService = mockMessageService;
+        ChargingLine cLine = new ChargingLine();
+        cLine.setKeyToLeaseExternalReference("ABCD");
+        cLine.setKeyToChargeReference("SE123-4");
+        Charge charge = new Charge();
+        charge.setReference(cLine.getKeyToChargeReference());
+        ChargeGroup chargeGroup = new ChargeGroup();
+        chargeGroup.setReference("SE_RENT");
+        charge.setGroup(chargeGroup);
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
+            will(returnValue(Arrays.asList(mockLease)));
+            oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
+            will(returnValue(charge));
+            oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
+            will(returnValue(null));
+            oneOf(mockMessageService).warnUser("Item with charge SE123-4 not found for lease ABCD.");
+        }});
+
+        // when
+        service.updateItemAndTerm(cLine);
+
+    }
+
+    @Mock LeaseItem mockLeaseItem;
+
+    @Test
+    public void update_item_and_term_when_term_not_found() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        service.leaseRepository = mockLeaseRepository;
+        service.chargeRepository = mockChargeRepository;
+        service.messageService = mockMessageService;
+        ChargingLine cLine = new ChargingLine();
+        cLine.setKeyToLeaseExternalReference("ABCD");
+        cLine.setKeyToChargeReference("SE123-4");
+        cLine.setFromDat("2018-01-01");
+        Charge charge = new Charge();
+        charge.setReference(cLine.getKeyToChargeReference());
+        ChargeGroup chargeGroup = new ChargeGroup();
+        chargeGroup.setReference("SE_RENT");
+        charge.setGroup(chargeGroup);
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
+            will(returnValue(Arrays.asList(mockLease)));
+            oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
+            will(returnValue(charge));
+            oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
+            will(returnValue(mockLeaseItem));
+            oneOf(mockLeaseItem).findTerm(service.stringToDate(cLine.getFromDat()));
+            will(returnValue(null));
+            oneOf(mockMessageService).warnUser("Term with start date 2018-01-01 not found for charge SE123-4 on lease ABCD.");
+        }});
+
+        // when
+        service.updateItemAndTerm(cLine);
+
+    }
+
+    @Test
+    public void update_item_and_term_when_frequency_not_found() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        service.leaseRepository = mockLeaseRepository;
+        service.chargeRepository = mockChargeRepository;
+        service.messageService = mockMessageService;
+        ChargingLine cLine = new ChargingLine();
+        cLine.setKeyToLeaseExternalReference("ABCD");
+        cLine.setKeyToChargeReference("SE123-4");
+        cLine.setFromDat("2018-01-01");
+        cLine.setDebPer("some_thing_not_recognized");
+        Charge charge = new Charge();
+        charge.setReference(cLine.getKeyToChargeReference());
+        ChargeGroup chargeGroup = new ChargeGroup();
+        chargeGroup.setReference("SE_RENT");
+        charge.setGroup(chargeGroup);
+        LeaseTerm leaseTerm = new LeaseTermForIndexable();
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
+            will(returnValue(Arrays.asList(mockLease)));
+            oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
+            will(returnValue(charge));
+            oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
+            will(returnValue(mockLeaseItem));
+            oneOf(mockLeaseItem).findTerm(service.stringToDate(cLine.getFromDat()));
+            will(returnValue(leaseTerm));
+            oneOf(mockLeaseItem).getType();
+            will(returnValue(LeaseItemType.RENT));
+            oneOf(mockLeaseItem).getCharge();
+            will(returnValue(charge));
+            oneOf(mockMessageService).warnUser("Value debPer some_thing_not_recognized could not be mapped to invoicing frequency for charge SE123-4 on lease ABCD.");
+        }});
+
+        // when
+        service.updateItemAndTerm(cLine);
+
+    }
+
+    @Test
+    public void update_item_and_term_when_value_not_found() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        service.leaseRepository = mockLeaseRepository;
+        service.chargeRepository = mockChargeRepository;
+        service.messageService = mockMessageService;
+        ChargingLine cLine = new ChargingLine();
+        cLine.setKeyToLeaseExternalReference("ABCD");
+        cLine.setKeyToChargeReference("SE123-4");
+        cLine.setFromDat("2018-01-01");
+        cLine.setTomDat("2018-12-31");
+        cLine.setDebPer("Månad");
+        Charge charge = new Charge();
+        charge.setReference(cLine.getKeyToChargeReference());
+        ChargeGroup chargeGroup = new ChargeGroup();
+        chargeGroup.setReference("SE_RENT");
+        charge.setGroup(chargeGroup);
+        LeaseTermForIndexable leaseTerm = new LeaseTermForIndexable();
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
+            will(returnValue(Arrays.asList(mockLease)));
+            oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
+            will(returnValue(charge));
+            oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
+            will(returnValue(mockLeaseItem));
+            oneOf(mockLeaseItem).findTerm(service.stringToDate(cLine.getFromDat()));
+            will(returnValue(leaseTerm));
+            oneOf(mockLeaseItem).getType();
+            will(returnValue(LeaseItemType.RENT));
+            oneOf(mockLeaseItem).getCharge();
+            will(returnValue(charge));
+            oneOf(mockLeaseItem).setInvoicingFrequency(InvoicingFrequency.MONTHLY_IN_ADVANCE);
+        }});
+
+        // when
+        service.updateItemAndTerm(cLine);
+
+        // then
+        assertThat(leaseTerm.getSettledValue()).isEqualTo(BigDecimal.ZERO.setScale(2));
+    }
+
+    @Test
+    public void update_item_and_term_when_all_is_fine() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        service.leaseRepository = mockLeaseRepository;
+        service.chargeRepository = mockChargeRepository;
+        service.messageService = mockMessageService;
+        ChargingLine cLine = new ChargingLine();
+        cLine.setKeyToLeaseExternalReference("ABCD");
+        cLine.setKeyToChargeReference("SE123-4");
+        cLine.setFromDat("2018-01-01");
+        cLine.setTomDat("2018-12-31");
+        cLine.setDebPer("Månad");
+        final BigDecimal arsBel = new BigDecimal("1234.56");
+        cLine.setArsBel(arsBel);
+        Charge charge = new Charge();
+        charge.setReference(cLine.getKeyToChargeReference());
+        ChargeGroup chargeGroup = new ChargeGroup();
+        chargeGroup.setReference("SE_RENT");
+        charge.setGroup(chargeGroup);
+        LeaseTermForIndexable leaseTerm = new LeaseTermForIndexable();
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
+            will(returnValue(Arrays.asList(mockLease)));
+            oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
+            will(returnValue(charge));
+            oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
+            will(returnValue(mockLeaseItem));
+            oneOf(mockLeaseItem).findTerm(service.stringToDate(cLine.getFromDat()));
+            will(returnValue(leaseTerm));
+            oneOf(mockLeaseItem).getType();
+            will(returnValue(LeaseItemType.RENT));
+            oneOf(mockLeaseItem).getCharge();
+            will(returnValue(charge));
+            oneOf(mockLeaseItem).setInvoicingFrequency(InvoicingFrequency.MONTHLY_IN_ADVANCE);
+        }});
+
+        // when
+        service.updateItemAndTerm(cLine);
+
+        // then
+        assertThat(leaseTerm.getSettledValue()).isEqualTo(arsBel);
+        assertThat(leaseTerm.getEndDate()).isEqualTo(new LocalDate(2018, 12, 31));
     }
 
 }

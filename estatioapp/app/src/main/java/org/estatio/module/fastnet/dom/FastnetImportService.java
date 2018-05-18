@@ -316,33 +316,62 @@ public class FastnetImportService {
         return lease;
     }
 
-    public void updateItem(final FastNetChargingOnLeaseDataLine cdl, final LocalDate exportDate) {
+    void updateItem(final FastNetChargingOnLeaseDataLine cdl, final LocalDate exportDate) {
+        final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate());
+        cLine.applyUpdate();
+    }
 
-        final ChargingLine cLine = chargingLineRepository.findFirstByKeyToLeaseExternalReferenceAndExportDate(cdl.getKeyToLeaseExternalReference(), exportDate);
-
-        final Lease lease = leaseRepository.findLeaseByReference(cdl.getLeaseReference());
-        final Charge charge = chargeRepository.findByReference(cdl.getKeyToChargeReference());
-        LeaseItem itemToUpdate = lease.findFirstItemOfTypeAndCharge(mapToLeaseItemType(charge), charge);
-        LeaseTerm termToUpdate = itemToUpdate.findTerm(stringToDate(cdl.getFromDat()));
-
-        // TODO: somehow the dates on cdl for lease, lease item and lease term are all set to LocalDate.now() while
-        // they are right when the lines are set on the fastnet import manager
-        // maybe because FastNetChargingOnLeaseDataLine is mapped to a DN view??
-        if (termToUpdate!=null) {
-            //        if (!sameValues(cdl)) {
-            updateLeaseTermValue(itemToUpdate, cdl.getArsBel(), termToUpdate);
-            //        }
-            //        if (!sameDates(cdl)){
-            termToUpdate.setEndDate(stringToDate(cdl.getTomDat()));
-            //        }
-            //        if (!sameInvoicingFrequency(cdl)){
-            itemToUpdate.setInvoicingFrequency(mapToFrequency(cdl.getDebPer()));
-            //        }
-            cLine.setApplied(LocalDate.now());
-        } else {
-            messageService.warnUser(String.format("Term with charge %s and start date %s could not be found.", charge.getReference(), cdl.getFromDat()));
+    public LeaseItem updateItemAndTerm(final ChargingLine cLine){
+        final List<Lease> canditateLeaseForUpdate = leaseRepository.matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
+        if (canditateLeaseForUpdate.isEmpty()){
+            final String message = String.format("Lease with external reference %s not found.", cLine.getKeyToLeaseExternalReference());
+            messageService.warnUser(message);
+            logger.warn(message);
+            return null;
         }
-
+        if (canditateLeaseForUpdate.size()>1){
+            final String message = String.format("Multiple leases with external reference %s found.", cLine.getKeyToLeaseExternalReference());
+            messageService.warnUser(message);
+            logger.warn(message);
+            return null;
+        }
+        final Lease lease = canditateLeaseForUpdate.get(0);
+        final Charge charge = chargeRepository.findByReference(cLine.getKeyToChargeReference());
+        if (charge==null){
+            final String message = String.format("Charge with reference %s not found for lease %s.", cLine.getKeyToChargeReference(), cLine.getKeyToLeaseExternalReference());
+            messageService.warnUser(message);
+            logger.warn(message);
+            return null;
+        }
+        LeaseItem itemToUpdate = lease.findFirstItemOfTypeAndCharge(mapToLeaseItemType(charge), charge);
+        if (itemToUpdate==null) {
+            final String message = String.format("Item with charge %s not found for lease %s.", charge.getReference(), cLine.getKeyToLeaseExternalReference());
+            messageService.warnUser(message);
+            logger.warn(message);
+            return null;
+        }
+        LeaseTerm termToUpdate = itemToUpdate.findTerm(stringToDate(cLine.getFromDat()));
+        if (termToUpdate==null){
+            final String message = String.format("Term with start date %s not found for charge %s on lease %s.", cLine.getFromDat(), charge.getReference(), cLine.getKeyToLeaseExternalReference());
+            messageService.warnUser(message);
+            logger.warn(message);
+            return null;
+        }
+        if (cLine.getArsBel()==null){
+            cLine.setArsBel(BigDecimal.ZERO);
+        }
+        termToUpdate = updateLeaseTermValue(itemToUpdate, cLine.getArsBel(), termToUpdate);
+        termToUpdate.setEndDate(stringToDate(cLine.getTomDat()));
+        final InvoicingFrequency frequency = mapToFrequency(cLine.getDebPer());
+        if (frequency !=null){
+            itemToUpdate.setInvoicingFrequency(frequency);
+        } else {
+            final String message = String.format("Value debPer %s could not be mapped to invoicing frequency for charge %s on lease %s.", cLine.getDebPer(), charge.getReference(), cLine.getKeyToLeaseExternalReference());
+            messageService.warnUser(message);
+            logger.warn(message);
+            return null;
+        }
+        return itemToUpdate;
     }
 
     public void createItem(final FastNetChargingOnLeaseDataLine cdl) {

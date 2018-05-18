@@ -27,13 +27,10 @@ import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.Editing;
 import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.annotation.SemanticsOf;
-import org.apache.isis.applib.services.clock.ClockService;
-import org.apache.isis.applib.services.message.MessageService;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
 import org.estatio.module.base.dom.Importable;
-import org.estatio.module.charge.dom.ChargeRepository;
-import org.estatio.module.lease.dom.LeaseRepository;
+import org.estatio.module.lease.dom.LeaseItem;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -96,7 +93,7 @@ import lombok.Setter;
                         + "fromDat == :fromDat && "
                         + "tomDat == :tomDat && "
                         + "arsBel == :arsBel && "
-                        + "evdInSd == :evdInSd "),
+                        + "exportDate == :exportDate "),
 })
 @Indices({
         @Index(name = "ChargingLine_keyToExternalRef_IDX", members = { "keyToLeaseExternalReference" }),
@@ -105,7 +102,7 @@ import lombok.Setter;
 @Uniques({
         @Unique(
                 name = "ChargingLine_unique_UNQ",
-                members = { "keyToLeaseExternalReference", "keyToChargeReference", "fromDat", "tomDat", "arsBel", "evdInSd" }
+                members = { "keyToLeaseExternalReference", "keyToChargeReference", "fromDat", "tomDat", "arsBel", "exportDate" }
         )
 })
 @DomainObject(
@@ -269,9 +266,14 @@ public class ChargingLine implements Importable {
     private boolean discarded;
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
-    public ChargingLine apply(){
-//        //TODO: implement
-        return this;
+    public LeaseItem applyUpdate(){
+        return fastnetImportService.updateItemAndTerm(this);
+    }
+
+    @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
+    public LeaseItem applyNewItemCreation(){
+        // TODO: implement
+        return null;
     }
 
     @Action(semantics = SemanticsOf.IDEMPOTENT)
@@ -282,10 +284,10 @@ public class ChargingLine implements Importable {
 
     @Override
     public List<Object> importData(final Object previousRow) {
-        if (chargingLineRepository.findUnique(keyToLeaseExternalReference(), keyToChargeReference(), getFromDat(), getTomDat(), getArsBel(), getEvdInSd()) == null) {
-            setKeyToLeaseExternalReference(keyToLeaseExternalReference());
-            setKeyToChargeReference(keyToChargeReference());
-            setExportDate(getImportDate().toLocalDate());
+        setKeyToLeaseExternalReference(keyToLeaseExternalReference());
+        setKeyToChargeReference(keyToChargeReference());
+        setExportDate(getImportDate().toLocalDate());
+        if (chargingLineRepository.findUnique(keyToLeaseExternalReference(), keyToChargeReference(), getFromDat(), getTomDat(), getArsBel(), getExportDate()) == null) {
             repositoryService.persistAndFlush(this);
         }
         return Collections.emptyList();
@@ -306,13 +308,6 @@ public class ChargingLine implements Importable {
     RepositoryService repositoryService;
 
     @Inject
-    LeaseRepository leaseRepository;
-
-    @Inject ChargeRepository chargeRepository;
-
-    @Inject
-    ClockService clockService;
-
-    @Inject MessageService messageService;
+    FastnetImportService fastnetImportService;
 
 }
