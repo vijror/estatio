@@ -45,8 +45,8 @@ import lombok.Setter;
                 "noUpdateNeeded",
                 "linesForItemUpdate",
                 "linesForItemCreation",
-                "activeLeasesNotInImport"
-
+                "activeLeasesNotInImport",
+                "discardedLines"
 
         }
 )
@@ -58,7 +58,7 @@ public class FastnetImportManager {
 
 
     public String title() {
-        return "Fastnet Import";
+        return "Fastnet Import " + getExportDate().toString("yyyy-MM-dd");
     }
 
     @Getter @Setter
@@ -146,6 +146,14 @@ public class FastnetImportManager {
     }
 
     @Setter
+    private List<FastNetChargingOnLeaseDataLine> discardedLines = new ArrayList<>();
+
+    @Programmatic
+    public List<FastNetChargingOnLeaseDataLine> getDiscardedLines() {
+        return this.discardedLines;
+    }
+
+    @Setter
     private List<LeaseViewModel> activeLeasesNotInImport = new ArrayList<>();
 
     @Programmatic
@@ -163,6 +171,9 @@ public class FastnetImportManager {
         });
         getLinesForItemCreation().forEach(cdl -> {
             fastnetImportService.createItem(cdl);
+        });
+        getDiscardedLines().forEach(cdl -> {
+            fastnetImportService.discard(cdl);
         });
 
     }
@@ -189,7 +200,9 @@ public class FastnetImportManager {
         WorksheetContent content8 = new WorksheetContent(getLinesForItemUpdate(), spec8);
         WorksheetSpec spec9 = new WorksheetSpec(FastNetChargingOnLeaseDataLine.class, "linesForItemCreation");
         WorksheetContent content9 = new WorksheetContent(getLinesForItemCreation(), spec9);
-        return excelService.toExcel(Arrays.asList(content0, content1, content2, content3, content4, content5, content6, content7, content8, content9), "analysis.xlsx");
+        WorksheetSpec spec10 = new WorksheetSpec(FastNetChargingOnLeaseDataLine.class, "discardedLines");
+        WorksheetContent content10 = new WorksheetContent(getDiscardedLines(), spec10);
+        return excelService.toExcel(Arrays.asList(content0, content1, content2, content3, content4, content5, content6, content7, content8, content9, content10), "analysis export date " + getExportDate().toString("yyyy-MM-dd") + ".xlsx");
     }
 
     @XmlTransient

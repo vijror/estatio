@@ -28,6 +28,7 @@ import org.incode.module.country.dom.impl.CountryRepository;
 import org.estatio.module.asset.dom.Property;
 import org.estatio.module.asset.dom.PropertyRepository;
 import org.estatio.module.charge.dom.Charge;
+import org.estatio.module.charge.dom.ChargeGroup;
 import org.estatio.module.charge.dom.ChargeRepository;
 import org.estatio.module.invoice.dom.PaymentMethod;
 import org.estatio.module.lease.dom.InvoicingFrequency;
@@ -87,18 +88,27 @@ public class FastnetImportService {
         fastnetImportManager.getActiveLeasesNotInImport().addAll(toViewmodels);
         long activeleasesnotinimport = System.currentTimeMillis();
 
+        List<FastNetChargingOnLeaseDataLine> chargingDataLinesChargeNotFound = chargingDataLines
+                .stream()
+                .filter(x->x.getChargeReference()==null)
+                .collect(Collectors.toList());
+        chargingDataLines.removeAll(chargingDataLinesChargeNotFound);
+        fastnetImportManager.setChargeNotFound(chargingDataLinesChargeNotFound);
+
+        List<FastNetChargingOnLeaseDataLine> chargingDataLinesToDiscard = chargingDataLines
+                .stream()
+                .filter(x->x.getChargeGroupReference().equals("SE_DISCARD"))
+                .collect(Collectors.toList());
+        chargingDataLines.removeAll(chargingDataLinesToDiscard);
+        fastnetImportManager.setDiscardedLines(chargingDataLinesToDiscard);
+
         // cleaning
         // again ugly, but might save some time because we iterate once over charging data lines
-        List<FastNetChargingOnLeaseDataLine> chargingDataLinesChargeNotFound = new ArrayList<>();
         List<String> matchingKeys = matchingRentRollDataLines.stream().map(l -> l.getKeyToLeaseExternalReference()).collect(Collectors.toList());
         List<FastNetChargingOnLeaseDataLine> notInMatchingRentRollDataLines = new ArrayList<>();
         List<FastNetChargingOnLeaseDataLine> noUpdateNeeded = new ArrayList<>();
         Map<String, List<FastNetChargingOnLeaseDataLine>> chargeRefLineMap = new HashMap<>();
         chargingDataLines.forEach(cdl -> {
-            // check on charge
-            if (chargeRepository.findByReference(cdl.getKeyToChargeReference()) == null) {
-                chargingDataLinesChargeNotFound.add(cdl);
-            }
             // check against matchingRentRollDataLines
             if (!matchingKeys.contains(cdl.getKeyToLeaseExternalReference())) {
                 notInMatchingRentRollDataLines.add(cdl);
@@ -109,7 +119,6 @@ public class FastnetImportService {
             } else {
                 chargeRefLineMap.get(getChargeRefMapKey(cdl)).add(cdl);
             }
-
             // determine no update needed
             if (hasNoEffectAtAll(cdl)) {
                 noUpdateNeeded.add(cdl);
@@ -121,7 +130,6 @@ public class FastnetImportService {
         List<FastNetChargingOnLeaseDataLine> duplicateChargeReferences = chargeRefLineMap.values().stream().flatMap(List::stream).collect(Collectors.toList());
 
         chargingDataLines.removeAll(duplicateChargeReferences);
-        chargingDataLines.removeAll(chargingDataLinesChargeNotFound);
         chargingDataLines.removeAll(notInMatchingRentRollDataLines);
         chargingDataLines.removeAll(noUpdateNeeded);
 
@@ -130,7 +138,6 @@ public class FastnetImportService {
         duplicateChargeReferences.removeAll(notInMatchingRentRollDataLines);
 
         fastnetImportManager.setDuplicateChargeReferences(duplicateChargeReferences);
-        fastnetImportManager.setChargeNotFound(chargingDataLinesChargeNotFound);
         fastnetImportManager.setNoUpdateNeeded(noUpdateNeeded);
 
         List<FastNetChargingOnLeaseDataLine> chargingDataLinesForItemUpdate = chargingDataLines.stream().filter(cl -> cl.getLeaseTermStartDate() != null).collect(Collectors.toList());
@@ -324,6 +331,9 @@ public class FastnetImportService {
         final Charge charge = findChargeOrReturnNull(cLine);
         if (charge == null) return null;
 
+        final ChargeGroup chargeGroup = charge.getGroup();
+        if (chargeGroup.getReference().equals("SE_DISCARD")) return null;
+
         LeaseItem itemToUpdate = lease.findFirstItemOfTypeAndCharge(mapToLeaseItemType(charge), charge);
 
         return itemToUpdate == null ? createItemAndTerm(cLine, lease, charge) : updateItemAndTerm(cLine, charge, itemToUpdate);
@@ -364,6 +374,11 @@ public class FastnetImportService {
     public void createItem(final FastNetChargingOnLeaseDataLine cdl) {
         final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate());
         cLine.apply();
+    }
+
+    public void discard(final FastNetChargingOnLeaseDataLine cdl) {
+        final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate());
+        cLine.discard();
     }
 
     ImportStatus createItemAndTerm(final ChargingLine cLine, final Lease lease, final Charge charge){
