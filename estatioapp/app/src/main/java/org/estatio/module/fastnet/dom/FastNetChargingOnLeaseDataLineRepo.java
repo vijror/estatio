@@ -41,4 +41,11 @@ public class FastNetChargingOnLeaseDataLineRepo extends UdoDomainRepositoryAndFa
                 "exportDate", exportDate);
     }
 
+    @Programmatic
+    public List<FastNetChargingOnLeaseDataLine> findNonDiscardedAndNonAppliedByExportDate(
+            final LocalDate exportDate) {
+        return allMatches("findNonDiscardedAndNonAppliedByExportDate",
+                "exportDate", exportDate);
+    }
+
 }

@@ -268,25 +268,58 @@ public class ChargingLine implements Importable {
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
     public ImportStatus apply(){
-        ImportStatus result = fastnetImportService.updateOrCreateItemAndTerm(this);
-        if (result!=null) {
-            setApplied(clockService.now());
-            setImportStatus(result);
+        if (!discardedOrApplied()) {
+            ImportStatus result = fastnetImportService.updateOrCreateItemAndTerm(this);
+            if (result != null) {
+                setApplied(clockService.now());
+                setImportStatus(result);
+            }
+            return result;
+        } else {
+            return getImportStatus();
         }
-        return result;
+    }
+
+    public boolean hideApply(){
+        if (discardedOrApplied())
+            return true;
+        return false;
     }
 
     @Action(semantics = SemanticsOf.IDEMPOTENT)
     public ChargingLine discard(){
-        setImportStatus(ImportStatus.DISCARDED);
+        if (!discardedOrApplied()) {
+            setImportStatus(ImportStatus.DISCARDED);
+        }
         return this;
+    }
+
+    public boolean hideDiscard(){
+        if (discardedOrApplied())
+            return true;
+        return false;
     }
 
     @Action(semantics = SemanticsOf.IDEMPOTENT)
     public ChargingLine noUpdate(){
-        setImportStatus(ImportStatus.NO_UPDATE_NEEDED);
-        setApplied(clockService.now());
+        if (!discardedOrApplied()) {
+            setImportStatus(ImportStatus.NO_UPDATE_NEEDED);
+            setApplied(clockService.now());
+        }
         return this;
+    }
+
+    public boolean hideNoUpdate(){
+        if (discardedOrApplied())
+            return true;
+        return false;
+    }
+
+    boolean discardedOrApplied() {
+        if (getImportStatus()== ImportStatus.DISCARDED || getApplied()!=null){
+            return true;
+        }
+        return false;
     }
 
     @Override

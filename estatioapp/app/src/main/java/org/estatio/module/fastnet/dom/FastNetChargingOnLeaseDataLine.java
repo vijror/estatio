@@ -182,6 +182,14 @@ import lombok.Setter;
                         "FROM org.estatio.module.fastnet.dom.FastNetChargingOnLeaseDataLine " +
                         "WHERE exportDate == :exportDate " +
                         "ORDER BY keyToLeaseExternalReference, keyToChargeReference, leaseTermStartDate DESC"),
+        @javax.jdo.annotations.Query(
+                name = "findNonDiscardedAndNonAppliedByExportDate", language = "JDOQL",
+                value = "SELECT " +
+                        "FROM org.estatio.module.fastnet.dom.FastNetChargingOnLeaseDataLine " +
+                        "WHERE exportDate == :exportDate " +
+                        "&& applied == null " +
+                        "&& ( importStatus == null || importStatus != 'DISCARDED' ) " +
+                        "ORDER BY keyToLeaseExternalReference, keyToChargeReference, leaseTermStartDate DESC"),
 
 })
 @javax.jdo.annotations.Inheritance(strategy = InheritanceStrategy.NEW_TABLE)

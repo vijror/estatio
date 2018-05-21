@@ -19,8 +19,6 @@ import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.NatureOfService;
 import org.apache.isis.applib.services.message.MessageService;
 
-import org.isisaddons.module.excel.dom.ExcelService;
-
 import org.incode.module.base.dom.valuetypes.LocalDateInterval;
 import org.incode.module.country.dom.impl.Country;
 import org.incode.module.country.dom.impl.CountryRepository;
@@ -41,7 +39,6 @@ import org.estatio.module.lease.dom.LeaseTerm;
 import org.estatio.module.lease.dom.LeaseTermForFixed;
 import org.estatio.module.lease.dom.LeaseTermForIndexable;
 import org.estatio.module.lease.dom.LeaseTermForServiceCharge;
-import org.estatio.module.lease.dom.LeaseTermRepository;
 
 @DomainService(nature = NatureOfService.DOMAIN)
 public class FastnetImportService {
@@ -80,7 +77,7 @@ public class FastnetImportService {
 
         // end of rent roll datalines analysis //////////////////////
 
-        List<FastNetChargingOnLeaseDataLine> chargingDataLines = chargingOnLeaseDataLineRepo.findByExportDate(exportDate);
+        List<FastNetChargingOnLeaseDataLine> chargingDataLines = chargingOnLeaseDataLineRepo.findNonDiscardedAndNonAppliedByExportDate(exportDate);
         long chargingDatalines = System.currentTimeMillis();
 
         List<Lease> activeLeasesNotInImport = getLeasesNotInImport(chargingDataLines);
@@ -557,32 +554,6 @@ public class FastnetImportService {
         return chargeRepository.findByReference("SE".concat(kod).concat("-").concat(kod2));
     }
 
-    //    @Programmatic
-    //    public List<Lease> activeLeasesNotInImport(final List<SweImportResult> results) {
-    //
-    //        List<Lease> notInImport = new ArrayList<>();
-    //
-    //        for (Lease lease : activeSwedishLeases()) {
-    //            boolean found = false;
-    //            for (SweImportResult result : results) {
-    //
-    //                if (result.getLease() != null && result.getLease().equals(lease)) {
-    //                    found = true;
-    //                    break;
-    //                }
-    //
-    //            }
-    //
-    //            if (!found) {
-    //                notInImport.add(lease);
-    //            }
-    //
-    //        }
-    //
-    //        return notInImport.stream().filter(x -> !x.getReference().startsWith("Z-")).collect(Collectors.toList());
-    //
-    //    }
-
     List<Lease> activeSwedishLeases() {
         List<Lease> result = new ArrayList<>();
         Country sweden = countryRepository.findCountry("SWE");
@@ -598,23 +569,8 @@ public class FastnetImportService {
         return result;
     }
 
-    void setExternalReference(final String leaseReference, final String externalReference) {
-
-        Lease leaseCandidate = leaseRepository.findLeaseByReference(leaseReference);
-        if (leaseCandidate != null) {
-            leaseCandidate.setExternalReference(externalReference);
-        }
-
-    }
-
     @Inject
     LeaseRepository leaseRepository;
-
-    @Inject
-    LeaseTermRepository leaseTermRepository;
-
-    @Inject
-    ExcelService excelService;
 
     @Inject
     ChargeRepository chargeRepository;
@@ -622,8 +578,6 @@ public class FastnetImportService {
     @Inject PropertyRepository propertyRepository;
 
     @Inject CountryRepository countryRepository;
-
-    @Inject RentRollLineRepository rentRollLineRepository;
 
     @Inject ChargingLineRepository chargingLineRepository;
 
