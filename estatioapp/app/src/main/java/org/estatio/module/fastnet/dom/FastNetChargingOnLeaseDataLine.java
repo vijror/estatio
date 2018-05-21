@@ -62,6 +62,7 @@ import lombok.Setter;
                                 "  {this.leaseItemStartDate}, " +
                                 "  {this.leaseItemEndDate}, " +
                                 "  {this.chargeReference}, " +
+                                "  {this.chargeGroupReference}, " +
 
                                 "  {this.leaseTermStartDate}, " +
                                 "  {this.leaseTermEndDate}, " +
@@ -146,7 +147,8 @@ import lombok.Setter;
                                 ", ld.\"invoicingFrequency\"" +
                                 ", ld.\"leaseItemStartDate\"" +
                                 ", ld.\"leaseItemEndDate\"" +
-                                ", ld.\"chargeReference\"" +
+                                ", ch.\"reference\" as chargeReference" +
+                                ", chg.\"reference\" as chargeGroupReference" +
                                 // lease term
                                 ", ld.\"leaseTermStartDate\"" +
                                 ", ld.\"leaseTermEndDate\"" +
@@ -166,7 +168,11 @@ import lombok.Setter;
                                 "  LEFT OUTER JOIN (SELECT * FROM \"dbo\".\"AgreementRole\" WHERE \"typeId\" = 6 AND \"endDate\" is null) AS agr2 " +
                                 "  ON agr2.\"agreementId\" = a2.\"id\" " +
                                 "  LEFT OUTER JOIN \"dbo\".\"Party\" p2 " +
-                                "  ON p2.\"id\" = agr2.\"partyId\" "
+                                "  ON p2.\"id\" = agr2.\"partyId\" " +
+                                "  LEFT OUTER JOIN \"dbo\".\"Charge\" ch " +
+                                "  ON ch.\"reference\" = cl.\"keyToChargeReference\" " +
+                                "  LEFT OUTER JOIN \"dbo\".\"ChargeGroup\" chg " +
+                                "  ON ch.\"groupId\" = chg.\"id\" "
                 )
         })
 @javax.jdo.annotations.Queries({
@@ -215,6 +221,7 @@ import lombok.Setter;
                 "leaseItemStartDate",
                 "leaseItemEndDate",
                 "chargeReference",
+                "chargeGroupReference",
 
                 "leaseTermStartDate",
                 "leaseTermEndDate",
@@ -291,7 +298,7 @@ public class FastNetChargingOnLeaseDataLine {
         @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
         private LocalDate leaseEndDate;
 
-        // lease item 5
+        // lease item 6
 
         private String leaseItemType;
 
@@ -304,6 +311,8 @@ public class FastNetChargingOnLeaseDataLine {
         private LocalDate leaseItemEndDate;
 
         private String chargeReference;
+
+        private String chargeGroupReference;
 
         // lease term 7
 
