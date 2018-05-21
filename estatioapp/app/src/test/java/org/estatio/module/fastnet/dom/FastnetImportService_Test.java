@@ -496,6 +496,7 @@ public class FastnetImportService_Test {
             will(returnValue(LeaseItemType.RENT));
             oneOf(mockLeaseItem).getCharge();
             will(returnValue(charge));
+            oneOf(mockLeaseItem).setEndDate(new LocalDate(2018,12,31));
             oneOf(mockLeaseItem).setInvoicingFrequency(InvoicingFrequency.MONTHLY_IN_ADVANCE);
         }});
 
@@ -543,6 +544,7 @@ public class FastnetImportService_Test {
             will(returnValue(LeaseItemType.RENT));
             oneOf(mockLeaseItem).getCharge();
             will(returnValue(charge));
+            oneOf(mockLeaseItem).setEndDate(new LocalDate(2018,12,31));
             oneOf(mockLeaseItem).setInvoicingFrequency(InvoicingFrequency.MONTHLY_IN_ADVANCE);
         }});
 
