@@ -282,6 +282,13 @@ public class ChargingLine implements Importable {
         return this;
     }
 
+    @Action(semantics = SemanticsOf.IDEMPOTENT)
+    public ChargingLine noUpdate(){
+        setImportStatus(ImportStatus.NO_UPDATE_NEEDED);
+        setApplied(clockService.now());
+        return this;
+    }
+
     @Override
     public List<Object> importData(final Object previousRow) {
         setKeyToLeaseExternalReference(keyToLeaseExternalReference());

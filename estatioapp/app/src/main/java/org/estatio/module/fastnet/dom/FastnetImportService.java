@@ -381,6 +381,11 @@ public class FastnetImportService {
         cLine.discard();
     }
 
+    public void noUpdate(final FastNetChargingOnLeaseDataLine cdl) {
+        final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate());
+        cLine.noUpdate();
+    }
+
     ImportStatus createItemAndTerm(final ChargingLine cLine, final Lease lease, final Charge charge){
 
         LeaseItemType leaseItemType = mapToLeaseItemType(charge);

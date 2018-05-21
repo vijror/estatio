@@ -175,6 +175,9 @@ public class FastnetImportManager {
         getDiscardedLines().forEach(cdl -> {
             fastnetImportService.discard(cdl);
         });
+        getNoUpdateNeeded().forEach(cdl -> {
+            fastnetImportService.noUpdate(cdl);
+        });
 
     }
 
