@@ -393,6 +393,7 @@ public class FastnetImportService {
         closeAllItemsOfTypeActiveOnEpochDate(lease, leaseItemType);
 
         final LeaseItem leaseItem = findOrCreateLeaseItemForTypeAndCharge(lease, leaseItemType, charge, mapToFrequency(cLine.getDebPer()), stringToDate(cLine.getFromDat()));
+        leaseItem.setEndDate(stringToDate(cLine.getTomDat()));
         LeaseTerm newTerm = createNewTermAndCloseExistingIfOverlappingAndOpenEnded(leaseItem, cLine.getArsBel(), stringToDate(cLine.getFromDat()), stringToDate(cLine.getTomDat()));
 
         return newTerm!=null ? ImportStatus.LEASE_ITEM_CREATED : null;
