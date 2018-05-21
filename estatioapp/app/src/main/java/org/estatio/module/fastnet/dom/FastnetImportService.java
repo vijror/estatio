@@ -355,7 +355,11 @@ public class FastnetImportService {
             cLine.setArsBel(BigDecimal.ZERO);
         }
         termToUpdate = updateLeaseTermValue(itemToUpdate, cLine.getArsBel(), termToUpdate);
-        termToUpdate.setEndDate(stringToDate(cLine.getTomDat()));
+        final String tomDat = cLine.getTomDat();
+        if (tomDat !=null) {
+            termToUpdate.setEndDate(stringToDate(tomDat));
+            itemToUpdate.setEndDate(stringToDate(tomDat));
+        }
         final InvoicingFrequency frequency = mapToFrequency(cLine.getDebPer());
         if (frequency !=null){
             itemToUpdate.setInvoicingFrequency(frequency);
