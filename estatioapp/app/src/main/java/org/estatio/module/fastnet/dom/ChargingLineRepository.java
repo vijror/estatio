@@ -123,6 +123,16 @@ public class ChargingLineRepository {
             serviceRegistry2.injectServicesInto(x);
             x.importData(null);
         });
+        try {
+            List<ChargingLine> chargingFutureLinesIncluded =
+                    excelService.fromExcel(spreadsheet, ChargingLine.class, "Charging (2)", Mode.RELAXED);
+            chargingFutureLinesIncluded.forEach(x -> {
+                serviceRegistry2.injectServicesInto(x);
+                x.importData(null);
+            });
+        } catch (IllegalArgumentException e){
+            // do nothing
+        }
         return chargingLines;
     }
 

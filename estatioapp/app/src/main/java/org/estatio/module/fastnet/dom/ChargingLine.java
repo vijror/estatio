@@ -215,17 +215,17 @@ public class ChargingLine implements Importable {
     private String debIndexNyDatum;
 
     @Getter @Setter
-    @Column(allowsNull = "false")
+    @Column(allowsNull = "true")
     @PropertyLayout(named = "enhet_andr")
     private int enhetAndr;
 
     @Getter @Setter
-    @Column(allowsNull = "false")
+    @Column(allowsNull = "true")
     @PropertyLayout(named = "adj_freq_months")
     private int adjFreqMonths;
 
     @Getter @Setter
-    @Column(allowsNull = "false")
+    @Column(allowsNull = "true")
     @PropertyLayout(named = "adj_delay_months")
     private int adjDelayMonths;
 
@@ -235,7 +235,7 @@ public class ChargingLine implements Importable {
     private BigDecimal debIndexAndel;
 
     @Getter @Setter
-    @Column(allowsNull = "false")
+    @Column(allowsNull = "true")
     @PropertyLayout(named = "bara_hoj")
     private String baraHoj;
 

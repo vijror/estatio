@@ -96,23 +96,13 @@ import lombok.Setter;
                         "FROM org.estatio.module.fastnet.dom.FastNetRentRollOnLeaseDataLine " +
                         "WHERE exportDate == :exportDate "
                         + "&& kontraktNr != null "
-                        + "&& futureRentRollLine == false "
                         + "&& leaseReference == null "),
         @javax.jdo.annotations.Query(
                 name = "matchingRentRollLinesForExportDate", language = "JDOQL",
                 value = "SELECT " +
                         "FROM org.estatio.module.fastnet.dom.FastNetRentRollOnLeaseDataLine " +
                         "WHERE exportDate == :exportDate "
-                        + "&& futureRentRollLine == false "
                         + "&& leaseReference != null "),
-        @javax.jdo.annotations.Query(
-                name = "nonMatchingFutureRentRollLinesForExportDate", language = "JDOQL",
-                value = "SELECT " +
-                        "FROM org.estatio.module.fastnet.dom.FastNetRentRollOnLeaseDataLine " +
-                        "WHERE exportDate == :exportDate "
-                        + "&& kontraktNr != null "
-                        + "&& futureRentRollLine == true "
-                        + "&& leaseReference == null "),
 
 })
 @javax.jdo.annotations.Inheritance(strategy = InheritanceStrategy.NEW_TABLE)
