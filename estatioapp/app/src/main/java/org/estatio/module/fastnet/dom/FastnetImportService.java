@@ -344,12 +344,20 @@ public class FastnetImportService {
             logger.warn(message);
             return null;
         }
-        LeaseTerm termToUpdate = itemToUpdate.findTerm(stringToDate(cLine.getFromDat()));
+        final LocalDate startDate = stringToDate(cLine.getFromDat());
+        LeaseTerm termToUpdate = itemToUpdate.findTerm(startDate);
         if (termToUpdate==null){
-            final String message = String.format("Term with start date %s not found for charge %s on lease %s.", cLine.getFromDat(), charge.getReference(), cLine.getKeyToLeaseExternalReference());
-            messageService.warnUser(message);
-            logger.warn(message);
-            return null;
+            final String message = String.format("Term with start date %s not found for charge %s on lease %s; creating new term.", cLine.getFromDat(), charge.getReference(), cLine.getKeyToLeaseExternalReference());
+            messageService.informUser(message);
+            logger.info(message);
+            LeaseTerm last = null;
+            if (!itemToUpdate.getTerms().isEmpty()){
+                last = itemToUpdate.getTerms().last();
+            }
+            termToUpdate = itemToUpdate.newTerm(startDate, null);
+            if (last!=null) {
+                last.setEndDate(startDate.minusDays(1));
+            }
         }
         if (cLine.getArsBel()==null){
             cLine.setArsBel(BigDecimal.ZERO);

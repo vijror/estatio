@@ -4,7 +4,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
+import java.util.TreeSet;
 
+import org.assertj.core.api.Assertions;
 import org.jmock.Expectations;
 import org.jmock.auto.Mock;
 import org.joda.time.LocalDate;
@@ -395,11 +397,14 @@ public class FastnetImportService_Test {
         cLine.setKeyToLeaseExternalReference("ABCD");
         cLine.setKeyToChargeReference("SE123-4");
         cLine.setFromDat("2018-01-01");
+        cLine.setDebPer("Månad");
         Charge charge = new Charge();
         charge.setReference(cLine.getKeyToChargeReference());
         ChargeGroup chargeGroup = new ChargeGroup();
         chargeGroup.setReference("SE_RENT");
         charge.setGroup(chargeGroup);
+        LeaseTerm oldTerm = new LeaseTermForIndexable();
+        LeaseTerm newTerm = new LeaseTermForIndexable();
 
         // expect
         context.checking(new Expectations(){{
@@ -411,11 +416,23 @@ public class FastnetImportService_Test {
             will(returnValue(mockLeaseItem));
             oneOf(mockLeaseItem).findTerm(service.stringToDate(cLine.getFromDat()));
             will(returnValue(null));
-            oneOf(mockMessageService).warnUser("Term with start date 2018-01-01 not found for charge SE123-4 on lease ABCD.");
+            oneOf(mockMessageService).informUser("Term with start date 2018-01-01 not found for charge SE123-4 on lease ABCD; creating new term.");
+            allowing(mockLeaseItem).getTerms();
+            will(returnValue(new TreeSet<>(Arrays.asList(oldTerm))));
+            oneOf(mockLeaseItem).newTerm(new LocalDate(2018,1,1),null);
+            will(returnValue(newTerm));
+            oneOf(mockLeaseItem).getType();
+            will(returnValue(LeaseItemType.RENT));
+            oneOf(mockLeaseItem).getCharge();
+            will(returnValue(charge));
+            oneOf(mockLeaseItem).setInvoicingFrequency(InvoicingFrequency.MONTHLY_IN_ADVANCE);
         }});
 
         // when
         service.updateOrCreateItemAndTerm(cLine);
+
+        // then
+        Assertions.assertThat(oldTerm.getEndDate()).isEqualTo(new LocalDate(2017,12,31));
 
     }
 
