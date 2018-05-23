@@ -82,6 +82,20 @@ public class ChargingLineRepository {
     }
 
     @Programmatic
+    public List<ChargingLine> findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndExportDate(
+            final String externalReference,
+            final String chargeReference,
+            final LocalDate exportDate) {
+        return repositoryService.allMatches(
+                new QueryDefault<>(
+                        ChargingLine.class,
+                        "findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndExportDate",
+                        "keyToLeaseExternalReference", externalReference,
+                        "keyToChargeReference", chargeReference,
+                        "exportDate", exportDate));
+    }
+
+    @Programmatic
     public List<ChargingLine> findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndFromDat(
             final String externalReference,
             final String chargeReference,
@@ -134,6 +148,13 @@ public class ChargingLineRepository {
             // do nothing
         }
         return chargingLines;
+    }
+
+    @Programmatic
+    public ChargingLine persist(final ChargingLine line){
+        serviceRegistry2.injectServicesInto(line);
+        repositoryService.persistAndFlush(line);
+        return line;
     }
 
     @Inject

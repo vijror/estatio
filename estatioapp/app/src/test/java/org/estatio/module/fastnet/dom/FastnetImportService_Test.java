@@ -726,4 +726,251 @@ public class FastnetImportService_Test {
 
     }
 
+    @Test
+    public void handle_ChargingLines_With_Same_Charge_works_when_no_overlap() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService(){
+
+            int order = 1; // used to check order
+
+            @Override
+            ImportStatus createItemAndTerm(final ChargingLine cLine, final Lease lease, final Charge charge){
+                cLine.setImportStatus(ImportStatus.LEASE_ITEM_CREATED);
+                cLine.setEnhetAndr(order); // used to check order
+                order++;
+                return ImportStatus.LEASE_ITEM_CREATED;
+            }
+        };
+        Lease lease = mockLease;
+        Charge charge = new Charge();
+        ChargeGroup group = new ChargeGroup();
+        group.setReference("SE_RENT");
+        charge.setGroup(group);
+
+        ChargingLine line1 = new ChargingLine();
+        line1.setFromDat("2017-1-1");
+        line1.setTomDat("2017-12-31");
+        ChargingLine line2 = new ChargingLine();
+        line2.setFromDat("2018-1-1");
+        line2.setTomDat("2018-06-20");
+        ChargingLine line3 = new ChargingLine();
+        line3.setFromDat("2018-7-1");
+
+        List<ChargingLine> linesWithSameCharge = Arrays.asList(line2, line3, line1); // order is shifted
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockLease).findFirstItemOfTypeAndCharge(LeaseItemType.RENT, charge);
+            will(returnValue(null));
+        }});
+
+        // when
+        ImportStatus result = service.handleChargingLinesWithSameCharge(linesWithSameCharge, lease, charge);
+
+        // then
+        assertThat(result).isEqualTo(ImportStatus.LEASE_ITEM_CREATED);
+        // set by mock method overriding to check order
+        assertThat(line1.getImportStatus()).isEqualTo(ImportStatus.LEASE_ITEM_CREATED);
+        assertThat(line1.getEnhetAndr()).isEqualTo(1);
+        assertThat(line2.getImportStatus()).isEqualTo(ImportStatus.LEASE_ITEM_CREATED);
+        assertThat(line2.getEnhetAndr()).isEqualTo(2);
+        assertThat(line3.getImportStatus()).isEqualTo(ImportStatus.LEASE_ITEM_CREATED);
+        assertThat(line3.getEnhetAndr()).isEqualTo(3);
+
+    }
+
+    @Test
+    public void handle_ChargingLines_With_Same_Charge_works_when_no_start_date() throws Exception {
+
+        FastnetImportService service = new FastnetImportService();
+        service.messageService = mockMessageService;
+        Lease lease = new Lease();
+        Charge charge = new Charge();
+        ChargeGroup group = new ChargeGroup();
+        group.setReference("SE_RENT");
+        charge.setGroup(group);
+
+        ChargingLine line1 = new ChargingLine();
+        line1.setTomDat("2017-12-31");
+        line1.setKeyToLeaseExternalReference("ABCD");
+        line1.setKeyToChargeReference("SE123-4");
+        ChargingLine line2 = new ChargingLine();
+        line2.setFromDat("2017-01-01");
+
+        List<ChargingLine> linesWithSameCharge = Arrays.asList(line1, line2);
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockMessageService).warnUser("Charging line for lease ABCD with charge SE123-4 has no start date (fromdat) while also multiple lines with this charge found. Please handle manually.");
+        }});
+
+        // when
+        service.handleChargingLinesWithSameCharge(linesWithSameCharge, lease, charge);
+
+    }
+
+    @Test
+    public void handle_ChargingLines_With_Same_Charge_works_when_overlap_cannot_be_handled() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        service.messageService = mockMessageService;
+        Lease lease = new Lease();
+        Charge charge = new Charge();
+        ChargeGroup group = new ChargeGroup();
+        group.setReference("SE_RENT");
+        charge.setGroup(group);
+
+        ChargingLine line1 = new ChargingLine();
+        line1.setFromDat("2017-1-1");
+        line1.setTomDat("2017-12-31");
+        line1.setKeyToLeaseExternalReference("ABCD");
+        line1.setKeyToChargeReference("SE123-4");
+        ChargingLine line2 = new ChargingLine();
+        line2.setFromDat("2017-12-31");
+        line2.setTomDat("2018-06-20");
+
+        List<ChargingLine> linesWithSameCharge = Arrays.asList(line2, line1);
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockMessageService).warnUser("Multiple lines for lease ABCD with charge SE123-4 found that could not be aggregated. Please handle manually.");
+        }});
+
+        // when
+        service.handleChargingLinesWithSameCharge(linesWithSameCharge, lease, charge);
+
+    }
+
+    @Mock
+    ChargingLineRepository mockChargingLineRepository;
+
+    @Test
+    public void handle_ChargingLines_With_Same_Charge_works_when_same_fromdat_and_no_tomdat() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        service.chargingLineRepository = mockChargingLineRepository;
+        service.messageService = mockMessageService;
+        Lease lease = new Lease();
+        Charge charge = new Charge();
+        ChargeGroup group = new ChargeGroup();
+        group.setReference("SE_RENT");
+        charge.setGroup(group);
+
+        ChargingLine line1 = new ChargingLine();
+        line1.setFromDat("2016-1-1");
+        line1.setArsBel(new BigDecimal("100.00"));
+        line1.setKeyToLeaseExternalReference("ABCD");
+        line1.setKeyToChargeReference("SE123-4");
+        ChargingLine line2 = new ChargingLine();
+        line2.setFromDat("2017-1-1");
+        line2.setArsBel(new BigDecimal("23.45"));
+
+        List<ChargingLine> linesWithSameCharge = Arrays.asList(line2, line1);
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockChargingLineRepository).persist(with(any(ChargingLine.class)));
+        }});
+
+        // when
+        service.handleChargingLinesWithSameCharge(linesWithSameCharge, lease, charge);
+
+        assertThat(line1.getImportStatus()).isEqualTo(ImportStatus.AGGREGATED);
+        assertThat(line2.getImportStatus()).isEqualTo(ImportStatus.AGGREGATED);
+
+    }
+
+    @Test
+    public void handle_ChargingLines_With_Same_Charge_works_when_same_tomdat() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        service.chargingLineRepository = mockChargingLineRepository;
+        service.messageService = mockMessageService;
+        Lease lease = new Lease();
+        Charge charge = new Charge();
+        ChargeGroup group = new ChargeGroup();
+        group.setReference("SE_RENT");
+        charge.setGroup(group);
+
+        ChargingLine line1 = new ChargingLine();
+        line1.setFromDat("2016-1-1");
+        line1.setTomDat("2017-7-1");
+        line1.setArsBel(new BigDecimal("100.00"));
+        line1.setKeyToLeaseExternalReference("ABCD");
+        line1.setKeyToChargeReference("SE123-4");
+        ChargingLine line2 = new ChargingLine();
+        line2.setFromDat("2017-1-1");
+        line2.setTomDat("2017-7-1");
+        line2.setArsBel(new BigDecimal("23.45"));
+
+        List<ChargingLine> linesWithSameCharge = Arrays.asList(line2, line1);
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockChargingLineRepository).persist(with(any(ChargingLine.class)));
+        }});
+
+        // when
+        service.handleChargingLinesWithSameCharge(linesWithSameCharge, lease, charge);
+
+        assertThat(line1.getImportStatus()).isEqualTo(ImportStatus.AGGREGATED);
+        assertThat(line2.getImportStatus()).isEqualTo(ImportStatus.AGGREGATED);
+
+    }
+
+    @Test
+    public void summedArsBel_works() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        ChargingLine line1 = new ChargingLine();
+        line1.setArsBel(new BigDecimal("100.00"));
+        ChargingLine line2 = new ChargingLine();
+        line2.setArsBel(new BigDecimal("23.45"));
+
+        List<ChargingLine> lines = Arrays.asList(line2, line1);
+
+        // when, then
+        assertThat(service.summedArsBel(lines)).isEqualTo(new BigDecimal("123.45"));
+
+    }
+
+    @Test
+    public void getMinFromDatAsString_works() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        ChargingLine line1 = new ChargingLine();
+        line1.setFromDat("2017-01-01");
+        ChargingLine line2 = new ChargingLine();
+        line2.setFromDat("2017-01-02");
+
+        List<ChargingLine> lines = Arrays.asList(line2, line1);
+
+        // when, then
+        assertThat(service.getMinFromDatAsString(lines)).isEqualTo("2017-01-01");
+
+    }
+
+    @Test
+    public void getMaxTomDatAsString_works() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        ChargingLine line1 = new ChargingLine();
+        line1.setTomDat("2017-01-01");
+        ChargingLine line2 = new ChargingLine();
+        line2.setTomDat("2017-01-02");
+
+        List<ChargingLine> lines = Arrays.asList(line2, line1);
+
+        // when, then
+        assertThat(service.getMaxTomDatAsString(lines)).isEqualTo("2017-01-02");
+
+    }
+
 }
