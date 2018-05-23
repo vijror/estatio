@@ -3,6 +3,7 @@ package org.estatio.module.fastnet.dom;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -82,10 +83,10 @@ public class FastnetImportService_Test {
         LocalDate startdate = new LocalDate(2018, 01, 01);
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockLease).findItemsOfType(LeaseItemType.RENT);
             will(Expectations.returnValue(Arrays.asList()));
-            oneOf(mockLease).newItem(itemType, LeaseAgreementRoleTypeEnum.LANDLORD,charge , frequency, PaymentMethod.BANK_TRANSFER, startdate);
+            oneOf(mockLease).newItem(itemType, LeaseAgreementRoleTypeEnum.LANDLORD, charge, frequency, PaymentMethod.BANK_TRANSFER, startdate);
             will(Expectations.returnValue(leaseItem));
         }});
 
@@ -111,7 +112,7 @@ public class FastnetImportService_Test {
         InvoicingFrequency frequency = InvoicingFrequency.QUARTERLY_IN_ADVANCE;
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockLease).findItemsOfType(LeaseItemType.RENT);
             will(Expectations.returnValue(Arrays.asList(leaseItem)));
         }});
@@ -139,7 +140,7 @@ public class FastnetImportService_Test {
         InvoicingFrequency frequency = InvoicingFrequency.QUARTERLY_IN_ADVANCE;
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockLease).findItemsOfType(LeaseItemType.RENT);
             will(Expectations.returnValue(Arrays.asList(leaseItem1, leaseItem2)));
             oneOf(mockLease).getReference();
@@ -163,7 +164,7 @@ public class FastnetImportService_Test {
         FastnetImportService service = new FastnetImportService();
         service.chargeRepository = mockChargeRepository;
         FastNetChargingOnLeaseDataLine cdl = new FastNetChargingOnLeaseDataLine();
-        cdl.setLeaseTermStartDate(new LocalDate(2018,1,1));
+        cdl.setLeaseTermStartDate(new LocalDate(2018, 1, 1));
         //when, then
         assertThat(service.sameDates(cdl)).isFalse();
 
@@ -172,7 +173,7 @@ public class FastnetImportService_Test {
         cdl.setTomDat("2019-01-01");
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockChargeRepository).findByReference(cdl.getKeyToChargeReference());
             will(returnValue(null));
         }});
@@ -188,7 +189,7 @@ public class FastnetImportService_Test {
         assertThat(service.sameDates(cdl)).isTrue();
 
         // and when
-        cdl.setLeaseTermEndDate(new LocalDate(2019,01,01));
+        cdl.setLeaseTermEndDate(new LocalDate(2019, 01, 01));
         cdl.setFromDat("2018-01-01");
         cdl.setTomDat("2019-01-01");
 
@@ -208,11 +209,11 @@ public class FastnetImportService_Test {
         charge.setGroup(group);
 
         FastNetChargingOnLeaseDataLine cdl = new FastNetChargingOnLeaseDataLine();
-        cdl.setLeaseTermStartDate(new LocalDate(2018,1,1));
-        cdl.setLeaseTermEndDate(new LocalDate(2018,12,31));
+        cdl.setLeaseTermStartDate(new LocalDate(2018, 1, 1));
+        cdl.setLeaseTermEndDate(new LocalDate(2018, 12, 31));
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockChargeRepository).findByReference(cdl.getKeyToChargeReference());
             will(returnValue(charge));
         }});
@@ -244,23 +245,22 @@ public class FastnetImportService_Test {
         // given
         FastnetImportService service = new FastnetImportService();
         LeaseItem leaseItem = new LeaseItem();
-        LocalDate startDateNewTerm = new LocalDate(2018, 1,1);
-        LocalDate endDateNewTerm = new LocalDate(2018, 7,1);
+        LocalDate startDateNewTerm = new LocalDate(2018, 1, 1);
+        LocalDate endDateNewTerm = new LocalDate(2018, 7, 1);
 
         LeaseTerm overlappingClosedTerm = new LeaseTermForIndexable();
         LeaseTerm overlappingOpenTerm = new LeaseTermForIndexable();
         LeaseTerm nonOverlappingOpenTerm = new LeaseTermForIndexable();
 
-        overlappingClosedTerm.setStartDate(new LocalDate(2016,1,1));
+        overlappingClosedTerm.setStartDate(new LocalDate(2016, 1, 1));
         final LocalDate endDateOverlappingTerm = new LocalDate(2018, 4, 1);
         overlappingClosedTerm.setEndDate(endDateOverlappingTerm);
 
         overlappingOpenTerm.setStartDate(new LocalDate(2017, 1, 1));
 
-        nonOverlappingOpenTerm.setStartDate(new LocalDate(2018,7,2));
+        nonOverlappingOpenTerm.setStartDate(new LocalDate(2018, 7, 2));
 
         leaseItem.getTerms().addAll(Arrays.asList(overlappingClosedTerm, overlappingOpenTerm, nonOverlappingOpenTerm));
-
 
         // when
         service.closeOverlappingOpenEndedExistingTerms(leaseItem, startDateNewTerm, endDateNewTerm);
@@ -286,9 +286,8 @@ public class FastnetImportService_Test {
         Lease leaseInactive = new Lease();
         leaseInactive.setTenancyEndDate(service.EPOCH_DATE_FASTNET_IMPORT);
 
-
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockLeaseRepository).matchLeaseByExternalReference("1234-5678-01");
             will(Expectations.returnValue(Arrays.asList(leaseActive, leaseActive2, leaseInactive)));
         }});
@@ -313,9 +312,8 @@ public class FastnetImportService_Test {
         Lease leaseInactive = new Lease();
         leaseInactive.setTenancyEndDate(service.EPOCH_DATE_FASTNET_IMPORT);
 
-
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockLeaseRepository).matchLeaseByExternalReference("1234-5678-01");
             will(Expectations.returnValue(Arrays.asList(leaseInactive)));
         }});
@@ -339,10 +337,11 @@ public class FastnetImportService_Test {
         service.leaseRepository = mockLeaseRepository;
         service.messageService = mockMessageService;
         ChargingLine cLine = new ChargingLine();
+        cLine.setFromDat("2018-01-01");
         cLine.setKeyToLeaseExternalReference("ABCD");
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
             will(returnValue(Arrays.asList()));
             oneOf(mockMessageService).warnUser("Lease with external reference ABCD not found.");
@@ -362,11 +361,12 @@ public class FastnetImportService_Test {
         service.chargeRepository = mockChargeRepository;
         service.messageService = mockMessageService;
         ChargingLine cLine = new ChargingLine();
+        cLine.setFromDat("2018-01-01");
         cLine.setKeyToLeaseExternalReference("ABCD");
         cLine.setKeyToChargeReference("SE123-4");
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
             will(returnValue(Arrays.asList(new Lease())));
             oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
@@ -385,11 +385,15 @@ public class FastnetImportService_Test {
     @Mock
     LeaseItem mockLeaseItem;
 
+    @Mock
+    ChargingLineRepository mockChargingLineRepository;
+
     @Test
     public void update_item_and_term_when_term_not_found() throws Exception {
 
         // given
         FastnetImportService service = new FastnetImportService();
+        service.chargingLineRepository = mockChargingLineRepository;
         service.leaseRepository = mockLeaseRepository;
         service.chargeRepository = mockChargeRepository;
         service.messageService = mockMessageService;
@@ -407,7 +411,9 @@ public class FastnetImportService_Test {
         LeaseTerm newTerm = new LeaseTermForIndexable();
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
+            oneOf(mockChargingLineRepository).findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndExportDate(cLine.getKeyToLeaseExternalReference(), cLine.getKeyToChargeReference(), cLine.getExportDate());
+            will(returnValue(Collections.emptyList()));
             oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
             will(returnValue(Arrays.asList(mockLease)));
             oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
@@ -419,7 +425,7 @@ public class FastnetImportService_Test {
             oneOf(mockMessageService).informUser("Term with start date 2018-01-01 not found for charge SE123-4 on lease ABCD; creating new term.");
             allowing(mockLeaseItem).getTerms();
             will(returnValue(new TreeSet<>(Arrays.asList(oldTerm))));
-            oneOf(mockLeaseItem).newTerm(new LocalDate(2018,1,1),null);
+            oneOf(mockLeaseItem).newTerm(new LocalDate(2018, 1, 1), null);
             will(returnValue(newTerm));
             oneOf(mockLeaseItem).getType();
             will(returnValue(LeaseItemType.RENT));
@@ -432,7 +438,7 @@ public class FastnetImportService_Test {
         service.updateOrCreateItemAndTerm(cLine);
 
         // then
-        Assertions.assertThat(oldTerm.getEndDate()).isEqualTo(new LocalDate(2017,12,31));
+        Assertions.assertThat(oldTerm.getEndDate()).isEqualTo(new LocalDate(2017, 12, 31));
 
     }
 
@@ -441,6 +447,7 @@ public class FastnetImportService_Test {
 
         // given
         FastnetImportService service = new FastnetImportService();
+        service.chargingLineRepository = mockChargingLineRepository;
         service.leaseRepository = mockLeaseRepository;
         service.chargeRepository = mockChargeRepository;
         service.messageService = mockMessageService;
@@ -457,7 +464,9 @@ public class FastnetImportService_Test {
         LeaseTerm leaseTerm = new LeaseTermForIndexable();
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
+            oneOf(mockChargingLineRepository).findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndExportDate(cLine.getKeyToLeaseExternalReference(), cLine.getKeyToChargeReference(), cLine.getExportDate());
+            will(returnValue(Collections.emptyList()));
             oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
             will(returnValue(Arrays.asList(mockLease)));
             oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
@@ -483,6 +492,7 @@ public class FastnetImportService_Test {
 
         // given
         FastnetImportService service = new FastnetImportService();
+        service.chargingLineRepository = mockChargingLineRepository;
         service.leaseRepository = mockLeaseRepository;
         service.chargeRepository = mockChargeRepository;
         service.messageService = mockMessageService;
@@ -500,7 +510,9 @@ public class FastnetImportService_Test {
         LeaseTermForIndexable leaseTerm = new LeaseTermForIndexable();
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
+            oneOf(mockChargingLineRepository).findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndExportDate(cLine.getKeyToLeaseExternalReference(), cLine.getKeyToChargeReference(), cLine.getExportDate());
+            will(returnValue(Collections.emptyList()));
             oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
             will(returnValue(Arrays.asList(mockLease)));
             oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
@@ -513,7 +525,7 @@ public class FastnetImportService_Test {
             will(returnValue(LeaseItemType.RENT));
             oneOf(mockLeaseItem).getCharge();
             will(returnValue(charge));
-            oneOf(mockLeaseItem).setEndDate(new LocalDate(2018,12,31));
+            oneOf(mockLeaseItem).setEndDate(new LocalDate(2018, 12, 31));
             oneOf(mockLeaseItem).setInvoicingFrequency(InvoicingFrequency.MONTHLY_IN_ADVANCE);
         }});
 
@@ -529,6 +541,7 @@ public class FastnetImportService_Test {
 
         // given
         FastnetImportService service = new FastnetImportService();
+        service.chargingLineRepository = mockChargingLineRepository;
         service.leaseRepository = mockLeaseRepository;
         service.chargeRepository = mockChargeRepository;
         service.messageService = mockMessageService;
@@ -548,7 +561,9 @@ public class FastnetImportService_Test {
         LeaseTermForIndexable leaseTerm = new LeaseTermForIndexable();
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
+            oneOf(mockChargingLineRepository).findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndExportDate(cLine.getKeyToLeaseExternalReference(), cLine.getKeyToChargeReference(), cLine.getExportDate());
+            will(returnValue(Collections.emptyList()));
             oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
             will(returnValue(Arrays.asList(mockLease)));
             oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
@@ -561,7 +576,7 @@ public class FastnetImportService_Test {
             will(returnValue(LeaseItemType.RENT));
             oneOf(mockLeaseItem).getCharge();
             will(returnValue(charge));
-            oneOf(mockLeaseItem).setEndDate(new LocalDate(2018,12,31));
+            oneOf(mockLeaseItem).setEndDate(new LocalDate(2018, 12, 31));
             oneOf(mockLeaseItem).setInvoicingFrequency(InvoicingFrequency.MONTHLY_IN_ADVANCE);
         }});
 
@@ -581,10 +596,11 @@ public class FastnetImportService_Test {
         service.leaseRepository = mockLeaseRepository;
         service.messageService = mockMessageService;
         ChargingLine cLine = new ChargingLine();
+        cLine.setFromDat("2018-01-01");
         cLine.setKeyToLeaseExternalReference("ABCD");
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
             will(returnValue(Arrays.asList()));
             oneOf(mockMessageService).warnUser("Lease with external reference ABCD not found.");
@@ -604,11 +620,12 @@ public class FastnetImportService_Test {
         service.chargeRepository = mockChargeRepository;
         service.messageService = mockMessageService;
         ChargingLine cLine = new ChargingLine();
+        cLine.setFromDat("2018-01-01");
         cLine.setKeyToLeaseExternalReference("ABCD");
         cLine.setKeyToChargeReference("SE123-4");
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
             will(returnValue(Arrays.asList(new Lease())));
             oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
@@ -730,12 +747,12 @@ public class FastnetImportService_Test {
     public void handle_ChargingLines_With_Same_Charge_works_when_no_overlap() throws Exception {
 
         // given
-        FastnetImportService service = new FastnetImportService(){
+        FastnetImportService service = new FastnetImportService() {
 
             int order = 1; // used to check order
 
             @Override
-            ImportStatus createItemAndTerm(final ChargingLine cLine, final Lease lease, final Charge charge){
+            ImportStatus createItemAndTerm(final ChargingLine cLine, final Lease lease, final Charge charge) {
                 cLine.setImportStatus(ImportStatus.LEASE_ITEM_CREATED);
                 cLine.setEnhetAndr(order); // used to check order
                 order++;
@@ -760,7 +777,7 @@ public class FastnetImportService_Test {
         List<ChargingLine> linesWithSameCharge = Arrays.asList(line2, line3, line1); // order is shifted
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockLease).findFirstItemOfTypeAndCharge(LeaseItemType.RENT, charge);
             will(returnValue(null));
         }});
@@ -801,7 +818,7 @@ public class FastnetImportService_Test {
         List<ChargingLine> linesWithSameCharge = Arrays.asList(line1, line2);
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockMessageService).warnUser("Charging line for lease ABCD with charge SE123-4 has no start date (fromdat) while also multiple lines with this charge found. Please handle manually.");
         }});
 
@@ -834,7 +851,7 @@ public class FastnetImportService_Test {
         List<ChargingLine> linesWithSameCharge = Arrays.asList(line2, line1);
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockMessageService).warnUser("Multiple lines for lease ABCD with charge SE123-4 found that could not be aggregated. Please handle manually.");
         }});
 
@@ -842,9 +859,6 @@ public class FastnetImportService_Test {
         service.handleChargingLinesWithSameCharge(linesWithSameCharge, lease, charge);
 
     }
-
-    @Mock
-    ChargingLineRepository mockChargingLineRepository;
 
     @Test
     public void handle_ChargingLines_With_Same_Charge_works_when_same_fromdat_and_no_tomdat() throws Exception {
@@ -871,7 +885,7 @@ public class FastnetImportService_Test {
         List<ChargingLine> linesWithSameCharge = Arrays.asList(line2, line1);
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockChargingLineRepository).persist(with(any(ChargingLine.class)));
         }});
 
@@ -910,7 +924,7 @@ public class FastnetImportService_Test {
         List<ChargingLine> linesWithSameCharge = Arrays.asList(line2, line1);
 
         // expect
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             oneOf(mockChargingLineRepository).persist(with(any(ChargingLine.class)));
         }});
 
@@ -971,6 +985,25 @@ public class FastnetImportService_Test {
         // when, then
         assertThat(service.getMaxTomDatAsString(lines)).isEqualTo("2017-01-02");
 
+    }
+
+    @Test
+    public void chargingLineMustHaveFromDat() throws Exception {
+        // given
+        FastnetImportService service = new FastnetImportService();
+        service.leaseRepository = mockLeaseRepository;
+        service.messageService = mockMessageService;
+        ChargingLine cLine = new ChargingLine();
+        cLine.setKeyToChargeReference("SE123-1");
+        cLine.setKeyToLeaseExternalReference("ABCD");
+
+        // expect
+        context.checking(new Expectations() {{
+            oneOf(mockMessageService).warnUser("Charging line for lease ABCD with charge SE123-1 has no start date (fromdat).");
+        }});
+
+        // when
+        service.updateOrCreateItemAndTerm(cLine);
     }
 
 }
