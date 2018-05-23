@@ -79,9 +79,10 @@ public class FastnetImportService {
         // end of rent roll datalines analysis //////////////////////
 
         List<FastNetChargingOnLeaseDataLine> chargingDataLines = chargingOnLeaseDataLineRepo.findNonDiscardedAndNonAppliedByExportDate(exportDate);
+        List<FastNetChargingOnLeaseDataLine> chargingDataLinesForActiveLeasesNotInImport = chargingOnLeaseDataLineRepo.findByExportDate(exportDate);
         long chargingDatalines = System.currentTimeMillis();
 
-        List<Lease> activeLeasesNotInImport = getLeasesNotInImport(chargingDataLines);
+        List<Lease> activeLeasesNotInImport = getLeasesNotInImport(chargingDataLinesForActiveLeasesNotInImport);
         List<LeaseViewModel> toViewmodels = activeLeasesNotInImport.stream().filter(x -> !x.getReference().startsWith("Z-")).map(x -> new LeaseViewModel(x.getReference(), x.getExternalReference())).collect(Collectors.toList());
         fastnetImportManager.getActiveLeasesNotInImport().addAll(toViewmodels);
         long activeleasesnotinimport = System.currentTimeMillis();
@@ -347,7 +348,7 @@ public class FastnetImportService {
 
         final List<ChargingLine> linesWithSameChargeNotYetAggregated = chargingLineRepository.findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndExportDate(cLine.getKeyToLeaseExternalReference(), cLine.getKeyToChargeReference(), cLine.getExportDate())
                 .stream()
-                .filter(cl -> cl.getImportStatus() != ImportStatus.AGGREGATED && !cl.discardedOrApplied())
+                .filter(cl -> cl.getImportStatus() != ImportStatus.AGGREGATED && !cl.discardedOrAggregatedOrApplied())
                 .collect(Collectors.toList());
 
         if (linesWithSameChargeNotYetAggregated.size() > 1) {
@@ -505,10 +506,9 @@ public class FastnetImportService {
         }
         termToUpdate = updateLeaseTermValue(itemToUpdate, cLine.getArsBel(), termToUpdate);
         final String tomDat = cLine.getTomDat();
-        if (tomDat != null) {
-            termToUpdate.setEndDate(stringToDate(tomDat));
-            itemToUpdate.setEndDate(stringToDate(tomDat));
-        }
+        termToUpdate.setEndDate(stringToDate(tomDat));
+        itemToUpdate.setEndDate(stringToDate(tomDat));
+
         final InvoicingFrequency frequency = mapToFrequency(cLine.getDebPer());
         if (frequency != null) {
             itemToUpdate.setInvoicingFrequency(frequency);
@@ -608,9 +608,9 @@ public class FastnetImportService {
 
     LeaseTerm createNewTermAndCloseExistingIfOverlappingAndOpenEnded(final LeaseItem leaseItem, final BigDecimal amount, final LocalDate startDate, final LocalDate endDate) {
 
-        if (endDate == null) { //TODO: WHY THIS CHECK - do we only support open ending ??
-            closeOverlappingOpenEndedExistingTerms(leaseItem, startDate, endDate);
-        }
+
+        closeOverlappingOpenEndedExistingTerms(leaseItem, startDate, endDate);
+
         LeaseTerm leaseTerm = leaseItem.newTerm(startDate, endDate);
         return updateLeaseTermValue(leaseItem, amount, leaseTerm);
     }

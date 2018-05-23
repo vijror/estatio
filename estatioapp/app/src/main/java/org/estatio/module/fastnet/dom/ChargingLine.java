@@ -275,9 +275,9 @@ public class ChargingLine implements Importable {
 
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
     public ImportStatus apply(){
-        if (!discardedOrApplied()) {
+        if (!discardedOrAggregatedOrApplied()) {
             ImportStatus result = fastnetImportService.updateOrCreateItemAndTerm(this);
-            if (result != null) {
+            if (result != null && getImportStatus()!=ImportStatus.AGGREGATED) { // extra guard really needed !!
                 setApplied(clockService.now());
                 setImportStatus(result);
             }
@@ -288,28 +288,28 @@ public class ChargingLine implements Importable {
     }
 
     public boolean hideApply(){
-        if (discardedOrApplied())
+        if (discardedOrAggregatedOrApplied())
             return true;
         return false;
     }
 
     @Action(semantics = SemanticsOf.IDEMPOTENT)
     public ChargingLine discard(){
-        if (!discardedOrApplied()) {
+        if (!discardedOrAggregatedOrApplied()) {
             setImportStatus(ImportStatus.DISCARDED);
         }
         return this;
     }
 
     public boolean hideDiscard(){
-        if (discardedOrApplied())
+        if (discardedOrAggregatedOrApplied())
             return true;
         return false;
     }
 
     @Action(semantics = SemanticsOf.IDEMPOTENT)
     public ChargingLine noUpdate(){
-        if (!discardedOrApplied()) {
+        if (!discardedOrAggregatedOrApplied()) {
             setImportStatus(ImportStatus.NO_UPDATE_NEEDED);
             setApplied(clockService.now());
         }
@@ -317,13 +317,13 @@ public class ChargingLine implements Importable {
     }
 
     public boolean hideNoUpdate(){
-        if (discardedOrApplied())
+        if (discardedOrAggregatedOrApplied())
             return true;
         return false;
     }
 
-    boolean discardedOrApplied() {
-        if (getImportStatus()== ImportStatus.DISCARDED || getApplied()!=null){
+    boolean discardedOrAggregatedOrApplied() {
+        if (getImportStatus()== ImportStatus.DISCARDED || getImportStatus()== ImportStatus.AGGREGATED || getApplied()!=null){
             return true;
         }
         return false;
