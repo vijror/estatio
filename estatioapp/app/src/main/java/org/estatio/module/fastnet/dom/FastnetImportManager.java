@@ -55,8 +55,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class FastnetImportManager {
 
-
-
     public String title() {
         return "Fastnet Import " + getExportDate().toString("yyyy-MM-dd");
     }
@@ -167,13 +165,16 @@ public class FastnetImportManager {
     public void doImport() {
 
         getLinesForItemUpdate().forEach(cdl -> {
-            fastnetImportService.updateItem(cdl, getExportDate());
+            fastnetImportService.updateOrCreateItem(cdl, getExportDate());
         });
         getLinesForItemCreation().forEach(cdl -> {
-            fastnetImportService.createItem(cdl);
+            fastnetImportService.updateOrCreateItem(cdl, getExportDate());
         });
         getDiscardedLines().forEach(cdl -> {
             fastnetImportService.discard(cdl);
+        });
+        getDuplicateChargeReferences().forEach(cdl -> {
+            fastnetImportService.updateOrCreateItem(cdl, getExportDate());
         });
         getNoUpdateNeeded().forEach(cdl -> {
             fastnetImportService.noUpdate(cdl);

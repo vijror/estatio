@@ -299,17 +299,17 @@ public class FastnetImportService {
 
         switch (debper) {
 
-        case "Månad":
-            return InvoicingFrequency.MONTHLY_IN_ADVANCE;
+            case "Månad":
+                return InvoicingFrequency.MONTHLY_IN_ADVANCE;
 
-        case "Kvartal":
-            return InvoicingFrequency.QUARTERLY_IN_ADVANCE;
+            case "Kvartal":
+                return InvoicingFrequency.QUARTERLY_IN_ADVANCE;
 
-        case "Halvår":
-            return InvoicingFrequency.SEMI_YEARLY_IN_ADVANCE;
+            case "Halvår":
+                return InvoicingFrequency.SEMI_YEARLY_IN_ADVANCE;
 
-        case "Helår":
-            return InvoicingFrequency.YEARLY_IN_ADVANCE;
+            case "Helår":
+                return InvoicingFrequency.YEARLY_IN_ADVANCE;
 
         }
         return null;
@@ -319,7 +319,7 @@ public class FastnetImportService {
         return dateString != null ? LocalDate.parse(dateString) : null;
     }
 
-    void updateItem(final FastNetChargingOnLeaseDataLine cdl, final LocalDate exportDate) {
+    void updateOrCreateItem(final FastNetChargingOnLeaseDataLine cdl, final LocalDate exportDate) {
         final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate());
         cLine.apply();
     }
@@ -345,9 +345,13 @@ public class FastnetImportService {
         if (chargeGroup.getReference().equals("SE_DISCARD"))
             return null;
 
-        final List<ChargingLine> linesWithSameCharge = chargingLineRepository.findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndExportDate(cLine.getKeyToLeaseExternalReference(), cLine.getKeyToChargeReference(), cLine.getExportDate());
-        if (linesWithSameCharge.size() > 1) {
-            return handleChargingLinesWithSameCharge(linesWithSameCharge, lease, charge);
+        final List<ChargingLine> linesWithSameChargeNotYetAggregated = chargingLineRepository.findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndExportDate(cLine.getKeyToLeaseExternalReference(), cLine.getKeyToChargeReference(), cLine.getExportDate())
+                .stream()
+                .filter(cl -> cl.getImportStatus() != ImportStatus.AGGREGATED && !cl.discardedOrApplied())
+                .collect(Collectors.toList());
+
+        if (linesWithSameChargeNotYetAggregated.size() > 1) {
+            return handleChargingLinesWithSameCharge(linesWithSameChargeNotYetAggregated, lease, charge);
         }
 
         LeaseItem itemToUpdate = lease.findFirstItemOfTypeAndCharge(mapToLeaseItemType(charge), charge);
@@ -431,13 +435,36 @@ public class FastnetImportService {
         aggregatedLine.setKeyToChargeReference(firstLine.getKeyToChargeReference());
         aggregatedLine.setExportDate(firstLine.getExportDate());
         aggregatedLine.setArsBel(summedArsBel(linesWithSameCharge));
+        aggregatedLine.setKlientKod(firstLine.getKlientKod());
+        aggregatedLine.setKlientNamn(firstLine.getKlientNamn());
+        aggregatedLine.setFastighetsNr(firstLine.getFastighetsNr());
+        aggregatedLine.setFastighetsBeteckning(firstLine.getFastighetsBeteckning());
+        aggregatedLine.setObjektNr(firstLine.getObjektNr());
+        aggregatedLine.setKontraktNr(firstLine.getKontraktNr());
+        aggregatedLine.setKundNr(firstLine.getKundNr());
+        aggregatedLine.setKod(firstLine.getKod());
+        aggregatedLine.setKod2(firstLine.getKod2());
+        aggregatedLine.setKontText(firstLine.getKontText());
+        aggregatedLine.setKontText2(firstLine.getKontText2());
+        aggregatedLine.setPerBel(firstLine.getPerBel());
+        aggregatedLine.setDebPer(firstLine.getDebPer());
+        aggregatedLine.setImportDate(firstLine.getImportDate());
+        aggregatedLine.setEvdInSd(firstLine.getEvdInSd());
+
+        aggregatedLine.setImportStatus(ImportStatus.COMPOUNDED);
         aggregatedLine = chargingLineRepository.persist(aggregatedLine);
-        linesWithSameCharge.forEach(line->line.setImportStatus(ImportStatus.AGGREGATED));
+        linesWithSameCharge.forEach(line -> line.setImportStatus(ImportStatus.AGGREGATED));
+
+        final ImportStatus compoundedStatus = aggregatedLine.apply();
+        if (compoundedStatus != null) {
+            final LocalDate appliedDate = aggregatedLine.getApplied();
+            linesWithSameCharge.forEach(line -> line.setApplied(appliedDate));
+        }
 
         return aggregatedLine;
     }
 
-    BigDecimal summedArsBel(final List<ChargingLine> linesWithSameCharge){
+    BigDecimal summedArsBel(final List<ChargingLine> linesWithSameCharge) {
         return linesWithSameCharge.stream().map(ChargingLine::getArsBel).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
@@ -492,11 +519,6 @@ public class FastnetImportService {
             return null;
         }
         return ImportStatus.LEASE_ITEM_UPDATED;
-    }
-
-    public void createItem(final FastNetChargingOnLeaseDataLine cdl) {
-        final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate());
-        cLine.apply();
     }
 
     public void discard(final FastNetChargingOnLeaseDataLine cdl) {
@@ -597,59 +619,59 @@ public class FastnetImportService {
         final BigDecimal value = amount.setScale(2, RoundingMode.HALF_UP);
         switch (leaseItem.getType()) {
 
-        case RENT:
-            LeaseTermForIndexable termForIndexable;
+            case RENT:
+                LeaseTermForIndexable termForIndexable;
 
-            termForIndexable = (LeaseTermForIndexable) leaseTerm;
-            termForIndexable.setSettledValue(value);
-            if (leaseItem.getCharge().getReference().endsWith("-1")) {
-                // we assume that the first line always contains the base rent
-                termForIndexable.setBaseValue(value);
-            }
+                termForIndexable = (LeaseTermForIndexable) leaseTerm;
+                termForIndexable.setSettledValue(value);
+                if (leaseItem.getCharge().getReference().endsWith("-1")) {
+                    // we assume that the first line always contains the base rent
+                    termForIndexable.setBaseValue(value);
+                }
 
-            return termForIndexable;
+                return termForIndexable;
 
-        case TURNOVER_RENT_FIXED:
-            LeaseTermForFixed termForTurnoverRent;
-            termForTurnoverRent = (LeaseTermForFixed) leaseTerm;
-            termForTurnoverRent.setValue(value);
+            case TURNOVER_RENT_FIXED:
+                LeaseTermForFixed termForTurnoverRent;
+                termForTurnoverRent = (LeaseTermForFixed) leaseTerm;
+                termForTurnoverRent.setValue(value);
 
-            return termForTurnoverRent;
+                return termForTurnoverRent;
 
-        case SERVICE_CHARGE:
-            LeaseTermForServiceCharge termForServiceCharge;
-            termForServiceCharge = (LeaseTermForServiceCharge) leaseTerm;
-            termForServiceCharge.setBudgetedValue(value);
-            return termForServiceCharge;
+            case SERVICE_CHARGE:
+                LeaseTermForServiceCharge termForServiceCharge;
+                termForServiceCharge = (LeaseTermForServiceCharge) leaseTerm;
+                termForServiceCharge.setBudgetedValue(value);
+                return termForServiceCharge;
 
-        case PROPERTY_TAX:
-            LeaseTermForServiceCharge termForPropertyTax;
-            termForPropertyTax = (LeaseTermForServiceCharge) leaseTerm;
-            termForPropertyTax.setBudgetedValue(value);
-            return termForPropertyTax;
+            case PROPERTY_TAX:
+                LeaseTermForServiceCharge termForPropertyTax;
+                termForPropertyTax = (LeaseTermForServiceCharge) leaseTerm;
+                termForPropertyTax.setBudgetedValue(value);
+                return termForPropertyTax;
 
-        case MARKETING:
-            LeaseTermForServiceCharge termForMarketing;
-            termForMarketing = (LeaseTermForServiceCharge) leaseTerm;
-            termForMarketing.setBudgetedValue(value);
-            return termForMarketing;
+            case MARKETING:
+                LeaseTermForServiceCharge termForMarketing;
+                termForMarketing = (LeaseTermForServiceCharge) leaseTerm;
+                termForMarketing.setBudgetedValue(value);
+                return termForMarketing;
 
-        case RENT_DISCOUNT_FIXED:
-            LeaseTermForFixed termForRentDiscount;
-            termForRentDiscount = (LeaseTermForFixed) leaseTerm;
-            termForRentDiscount.setValue(value);
+            case RENT_DISCOUNT_FIXED:
+                LeaseTermForFixed termForRentDiscount;
+                termForRentDiscount = (LeaseTermForFixed) leaseTerm;
+                termForRentDiscount.setValue(value);
 
-            return termForRentDiscount;
+                return termForRentDiscount;
 
-        case RENT_FIXED:
-            LeaseTermForFixed termForRentFixed;
-            termForRentFixed = (LeaseTermForFixed) leaseTerm;
-            termForRentFixed.setValue(value);
+            case RENT_FIXED:
+                LeaseTermForFixed termForRentFixed;
+                termForRentFixed = (LeaseTermForFixed) leaseTerm;
+                termForRentFixed.setValue(value);
 
-            return termForRentFixed;
+                return termForRentFixed;
 
-        default:
-            // TODO: add support for other types when the time is right
+            default:
+                // TODO: add support for other types when the time is right
         }
         return null;
     }

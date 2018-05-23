@@ -109,7 +109,7 @@ import lombok.Setter;
 @Uniques({
         @Unique(
                 name = "ChargingLine_unique_UNQ",
-                members = { "keyToLeaseExternalReference", "keyToChargeReference", "fromDat", "tomDat", "arsBel", "exportDate" }
+                members = { "keyToLeaseExternalReference", "keyToChargeReference", "fromDat", "tomDat", "arsBel", "exportDate", "importStatus" }
         )
 })
 @DomainObject(

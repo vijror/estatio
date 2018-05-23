@@ -8,6 +8,7 @@ public enum ImportStatus {
     LEASE_CREATED,
     NO_UPDATE_NEEDED,
     DISCARDED,
-    AGGREGATED;
+    AGGREGATED,
+    COMPOUNDED
 
 }
