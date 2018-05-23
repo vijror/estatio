@@ -319,7 +319,7 @@ public class FastnetImportService {
         return dateString != null ? LocalDate.parse(dateString) : null;
     }
 
-    void updateOrCreateItem(final FastNetChargingOnLeaseDataLine cdl, final LocalDate exportDate) {
+    void updateOrCreateItem(final FastNetChargingOnLeaseDataLine cdl) {
         final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate());
         cLine.apply();
     }
