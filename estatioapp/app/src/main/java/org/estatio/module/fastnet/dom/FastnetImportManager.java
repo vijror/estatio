@@ -165,16 +165,16 @@ public class FastnetImportManager {
     public void doImport() {
 
         getLinesForItemUpdate().forEach(cdl -> {
-            fastnetImportService.updateOrCreateItem(cdl, getExportDate());
+            fastnetImportService.updateOrCreateItem(cdl);
         });
         getLinesForItemCreation().forEach(cdl -> {
-            fastnetImportService.updateOrCreateItem(cdl, getExportDate());
+            fastnetImportService.updateOrCreateItem(cdl);
+        });
+        getDuplicateChargeReferences().forEach(cdl -> {
+            fastnetImportService.updateOrCreateItem(cdl);
         });
         getDiscardedLines().forEach(cdl -> {
             fastnetImportService.discard(cdl);
-        });
-        getDuplicateChargeReferences().forEach(cdl -> {
-            fastnetImportService.updateOrCreateItem(cdl, getExportDate());
         });
         getNoUpdateNeeded().forEach(cdl -> {
             fastnetImportService.noUpdate(cdl);

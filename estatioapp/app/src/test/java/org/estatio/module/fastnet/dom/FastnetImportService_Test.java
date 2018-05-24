@@ -432,6 +432,7 @@ public class FastnetImportService_Test {
             oneOf(mockLeaseItem).getCharge();
             will(returnValue(charge));
             oneOf(mockLeaseItem).setInvoicingFrequency(InvoicingFrequency.MONTHLY_IN_ADVANCE);
+            oneOf(mockLeaseItem).setEndDate(null);
         }});
 
         // when
@@ -479,6 +480,7 @@ public class FastnetImportService_Test {
             will(returnValue(LeaseItemType.RENT));
             oneOf(mockLeaseItem).getCharge();
             will(returnValue(charge));
+            oneOf(mockLeaseItem).setEndDate(null);
             oneOf(mockMessageService).warnUser("Value debPer some_thing_not_recognized could not be mapped to invoicing frequency for charge SE123-4 on lease ABCD.");
         }});
 

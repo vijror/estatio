@@ -25,35 +25,35 @@ public class ChargingLineTest {
         // given
         ChargingLine line = new ChargingLine();
         // then
-        Assertions.assertThat(line.discardedOrApplied()).isFalse();
+        Assertions.assertThat(line.discardedOrAggregatedOrApplied()).isFalse();
 
         // and when
         line.setImportStatus(ImportStatus.DISCARDED);
         // then
-        Assertions.assertThat(line.discardedOrApplied()).isTrue();
+        Assertions.assertThat(line.discardedOrAggregatedOrApplied()).isTrue();
 
         // and when
         line.setImportStatus(ImportStatus.LEASE_ITEM_CREATED);
         // then
-        Assertions.assertThat(line.discardedOrApplied()).isFalse();
+        Assertions.assertThat(line.discardedOrAggregatedOrApplied()).isFalse();
 
         // and when
         line.setImportStatus(null);
         line.setApplied(new LocalDate());
         // then
-        Assertions.assertThat(line.discardedOrApplied()).isTrue();
+        Assertions.assertThat(line.discardedOrAggregatedOrApplied()).isTrue();
 
         // and when
         line.setImportStatus(ImportStatus.LEASE_ITEM_CREATED);
         line.setApplied(new LocalDate());
         // then
-        Assertions.assertThat(line.discardedOrApplied()).isTrue();
+        Assertions.assertThat(line.discardedOrAggregatedOrApplied()).isTrue();
 
         // and when
         line.setImportStatus(ImportStatus.DISCARDED);
         line.setApplied(new LocalDate());
         // then
-        Assertions.assertThat(line.discardedOrApplied()).isTrue();
+        Assertions.assertThat(line.discardedOrAggregatedOrApplied()).isTrue();
 
     }
 
