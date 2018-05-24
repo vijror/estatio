@@ -524,13 +524,17 @@ public class RentRollLine implements Importable {
         return chargingLineRepository.findByKeyToLeaseExternalReferenceAndExportDate(getKeyToLeaseExternalReference(), getExportDate());
     }
 
-
-    @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
-    public RentRollLine apply(){
-        getChargingLines().forEach(line->line.apply());
+    @Action(semantics = SemanticsOf.NON_IDEMPOTENT, associateWith = "chargingLines", associateWithSequence = "1")
+    public RentRollLine apply(List<ChargingLine> lines) {
+        lines.forEach(ChargingLine::apply);
         return this;
     }
 
+    @Action(semantics = SemanticsOf.NON_IDEMPOTENT, associateWith = "chargingLines", associateWithSequence = "2")
+    public RentRollLine discard(List<ChargingLine> lines) {
+        lines.forEach(ChargingLine::discard);
+        return this;
+    }
 
     @Override
     public List<Object> importData(final Object previousRow) {
@@ -542,8 +546,8 @@ public class RentRollLine implements Importable {
         return Collections.emptyList();
     }
 
-    String keyToLeaseExternalReference(){
-        return getKontraktNr()!=null ? getKontraktNr().substring(2) : null;
+    String keyToLeaseExternalReference() {
+        return getKontraktNr() != null ? getKontraktNr().substring(2) : null;
     }
 
     private LocalDate stringToDate(final String dateString) {
