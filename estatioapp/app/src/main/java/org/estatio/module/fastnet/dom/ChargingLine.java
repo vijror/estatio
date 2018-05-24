@@ -27,10 +27,18 @@ import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.Editing;
 import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.annotation.SemanticsOf;
+import org.apache.isis.applib.annotation.Where;
 import org.apache.isis.applib.services.clock.ClockService;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
 import org.estatio.module.base.dom.Importable;
+import org.estatio.module.charge.dom.Charge;
+import org.estatio.module.charge.dom.ChargeRepository;
+import org.estatio.module.lease.dom.Lease;
+import org.estatio.module.lease.dom.LeaseItem;
+import org.estatio.module.lease.dom.LeaseItemRepository;
+import org.estatio.module.lease.dom.LeaseItemType;
+import org.estatio.module.lease.dom.LeaseRepository;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -273,11 +281,23 @@ public class ChargingLine implements Importable {
     @Column(allowsNull = "true")
     private ImportStatus importStatus;
 
+    @PropertyLayout(hidden = Where.PARENTED_TABLES)
+    public Lease getLease() {
+        final List<Lease> matches = leaseRepository.matchLeaseByExternalReference(getKeyToLeaseExternalReference());
+        return matches.size() == 1 ? matches.get(0) : null;
+    }
+
+    public LeaseItem getLeaseItem() {
+        final Charge charge = chargeRepository.findByReference(getKeyToChargeReference());
+        final LeaseItemType type = charge == null ? null : LeaseItemType.valueOf(charge.getGroup().getReference().replace("SE_", ""));
+        return leaseItemRepository.findByLeaseAndTypeAndCharge(getLease(), type, charge);
+    }
+
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT)
-    public ImportStatus apply(){
+    public ImportStatus apply() {
         if (!discardedOrAggregatedOrApplied()) {
             ImportStatus result = fastnetImportService.updateOrCreateItemAndTerm(this);
-            if (result != null && getImportStatus()!=ImportStatus.AGGREGATED) { // extra guard really needed !!
+            if (result != null && getImportStatus() != ImportStatus.AGGREGATED) { // extra guard really needed !!
                 setApplied(clockService.now());
                 setImportStatus(result);
             }
@@ -287,28 +307,28 @@ public class ChargingLine implements Importable {
         }
     }
 
-    public boolean hideApply(){
+    public boolean hideApply() {
         if (discardedOrAggregatedOrApplied())
             return true;
         return false;
     }
 
     @Action(semantics = SemanticsOf.IDEMPOTENT)
-    public ChargingLine discard(){
+    public ChargingLine discard() {
         if (!discardedOrAggregatedOrApplied()) {
             setImportStatus(ImportStatus.DISCARDED);
         }
         return this;
     }
 
-    public boolean hideDiscard(){
+    public boolean hideDiscard() {
         if (discardedOrAggregatedOrApplied())
             return true;
         return false;
     }
 
     @Action(semantics = SemanticsOf.IDEMPOTENT)
-    public ChargingLine noUpdate(){
+    public ChargingLine noUpdate() {
         if (!discardedOrAggregatedOrApplied()) {
             setImportStatus(ImportStatus.NO_UPDATE_NEEDED);
             setApplied(clockService.now());
@@ -316,14 +336,14 @@ public class ChargingLine implements Importable {
         return this;
     }
 
-    public boolean hideNoUpdate(){
+    public boolean hideNoUpdate() {
         if (discardedOrAggregatedOrApplied())
             return true;
         return false;
     }
 
     boolean discardedOrAggregatedOrApplied() {
-        if (getImportStatus()== ImportStatus.DISCARDED || getImportStatus()== ImportStatus.AGGREGATED || getApplied()!=null){
+        if (getImportStatus() == ImportStatus.DISCARDED || getImportStatus() == ImportStatus.AGGREGATED || getApplied() != null) {
             return true;
         }
         return false;
@@ -359,5 +379,14 @@ public class ChargingLine implements Importable {
 
     @Inject
     ClockService clockService;
+
+    @Inject
+    LeaseRepository leaseRepository;
+
+    @Inject
+    ChargeRepository chargeRepository;
+
+    @Inject
+    LeaseItemRepository leaseItemRepository;
 
 }

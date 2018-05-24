@@ -27,9 +27,13 @@ import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.Editing;
 import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.annotation.SemanticsOf;
+import org.apache.isis.applib.annotation.Where;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
 import org.estatio.module.base.dom.Importable;
+import org.estatio.module.charge.dom.ChargeRepository;
+import org.estatio.module.lease.dom.Lease;
+import org.estatio.module.lease.dom.LeaseRepository;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -524,6 +528,12 @@ public class RentRollLine implements Importable {
         return chargingLineRepository.findByKeyToLeaseExternalReferenceAndExportDate(getKeyToLeaseExternalReference(), getExportDate());
     }
 
+    @PropertyLayout(hidden = Where.PARENTED_TABLES)
+    public Lease getLease() {
+        final List<Lease> matches = leaseRepository.matchLeaseByExternalReference(getKeyToLeaseExternalReference());
+        return matches.size() == 1 ? matches.get(0) : null;
+    }
+
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT, associateWith = "chargingLines", associateWithSequence = "1")
     public RentRollLine apply(List<ChargingLine> lines) {
         lines.forEach(ChargingLine::apply);
@@ -562,5 +572,8 @@ public class RentRollLine implements Importable {
 
     @Inject
     ChargingLineRepository chargingLineRepository;
+
+    @Inject
+    LeaseRepository leaseRepository;
 
 }
