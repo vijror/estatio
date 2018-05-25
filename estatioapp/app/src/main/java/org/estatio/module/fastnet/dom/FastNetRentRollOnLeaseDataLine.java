@@ -14,6 +14,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.joda.time.LocalDate;
 
 import org.apache.isis.applib.annotation.DomainObject;
+import org.apache.isis.applib.annotation.MemberOrder;
 import org.apache.isis.schema.utils.jaxbadapters.JodaLocalDateStringAdapter;
 
 import lombok.AllArgsConstructor;
@@ -127,7 +128,6 @@ import lombok.Setter;
                 "leaseStartDate",
                 "leaseEndDate"
 
-
         }
 )
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -136,41 +136,55 @@ import lombok.Setter;
 @Getter @Setter
 public class FastNetRentRollOnLeaseDataLine {
 
-        // key 2
-        private String keyToLeaseExternalReference;
+    @MemberOrder(sequence = "1")
+    private ImportStatus importStatus;
 
-        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
-        private LocalDate exportDate;
+    @MemberOrder(sequence = "2")
+    @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
+    private LocalDate applied;
 
-        // rent roll 8
-        private String kontraktNr;
+    @MemberOrder(sequence = "3")
+    private String keyToLeaseExternalReference;
 
-        private String hyresgast;
+    @MemberOrder(sequence = "4")
+    @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
+    private LocalDate exportDate;
 
-        private String kundNr;
+    @MemberOrder(sequence = "5")
+    private String leaseReference;
 
-        private BigDecimal arshyra;
+    @MemberOrder(sequence = "6")
+    private String externalReference;
 
-        private String kontraktFrom;
+    @MemberOrder(sequence = "7")
+    @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
+    private LocalDate leaseStartDate;
 
-        private String kontraktTom;
+    @MemberOrder(sequence = "8")
+    @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
+    private LocalDate leaseEndDate;
 
-        private boolean futureRentRollLine;
+    @MemberOrder(sequence = "9")
+    private String kontraktNr;
 
-        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
-        private LocalDate applied;
+    @MemberOrder(sequence = "10")
+    private String kundNr;
 
-        private ImportStatus importStatus;
+    @MemberOrder(sequence = "11")
+    private BigDecimal arshyra;
 
-        // lease 4
-        private String leaseReference;
+    @MemberOrder(sequence = "12")
+    private String hyresgast;
 
-        private String externalReference;
+    @MemberOrder(sequence = "13")
+    private String kontraktFrom;
 
-        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
-        private LocalDate leaseStartDate;
+    @MemberOrder(sequence = "14")
+    private String kontraktTom;
 
-        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
-        private LocalDate leaseEndDate;
+    @MemberOrder(sequence = "15")
+    private boolean futureRentRollLine;
+
+
 
 }

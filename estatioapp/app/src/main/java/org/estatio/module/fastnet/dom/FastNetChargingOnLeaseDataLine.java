@@ -14,6 +14,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.joda.time.LocalDate;
 
 import org.apache.isis.applib.annotation.DomainObject;
+import org.apache.isis.applib.annotation.MemberOrder;
 import org.apache.isis.schema.utils.jaxbadapters.JodaLocalDateStringAdapter;
 
 import lombok.Getter;
@@ -245,99 +246,128 @@ import lombok.Setter;
 @Getter @Setter
 public class FastNetChargingOnLeaseDataLine {
 
-        // keys 3
-        private String keyToLeaseExternalReference;
+    @MemberOrder(sequence = "1")
+    private ImportStatus importStatus;
 
-        private String keyToChargeReference;
+    @MemberOrder(sequence = "2")
+    @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
+    private LocalDate applied;
 
-        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
-        private LocalDate exportDate;
+    @MemberOrder(sequence = "3")
+    private String keyToLeaseExternalReference;
 
-        // charging 12
+    @MemberOrder(sequence = "4")
+    private String keyToChargeReference;
 
-        private String kontraktNr;
+    @MemberOrder(sequence = "5")
+    @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
+    private LocalDate exportDate;
 
-        private String kundNr;
+    @MemberOrder(sequence = "6")
+    private String leaseReference;
 
-        private String kod;
+    @MemberOrder(sequence = "7")
+    private String externalReference;
 
-        private String kod2;
+    @MemberOrder(sequence = "8")
+    private String leaseStatus;
 
-        private String kontText;
+    @MemberOrder(sequence = "9")
+    private String tenantName;
 
-        private String kontText2;
+    @MemberOrder(sequence = "10")
+    private String tenantReference;
 
-        private String fromDat;
+    @MemberOrder(sequence = "11")
+    @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
+    private LocalDate tenancyStartDate;
 
-        private String tomDat;
+    @MemberOrder(sequence = "12")
+    @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
+    private LocalDate tenancyEndDate;
 
-        private String debPer;
+    @MemberOrder(sequence = "13")
+    @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
+    private LocalDate leaseStartDate;
 
-        private String firstPosStart;
+    @MemberOrder(sequence = "14")
+    @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
+    private LocalDate leaseEndDate;
 
-        private BigDecimal arsBel;
+    @MemberOrder(sequence = "15")
+    private String leaseItemType;
 
-        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
-        private LocalDate applied;
+    @MemberOrder(sequence = "16")
+    private String invoicingFrequency;
 
-        private ImportStatus importStatus;
+    @MemberOrder(sequence = "17")
+    @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
+    private LocalDate leaseItemStartDate;
 
-        // lease 9
+    @MemberOrder(sequence = "18")
+    @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
+    private LocalDate leaseItemEndDate;
 
-        private String leaseReference;
+    @MemberOrder(sequence = "19")
+    private String chargeReference;
 
-        private String externalReference;
+    @MemberOrder(sequence = "20")
+    private String chargeGroupReference;
 
-        private String tenantName;
+    @MemberOrder(sequence = "21")
+    @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
+    private LocalDate leaseTermStartDate;
 
-        private String tenantReference;
+    @MemberOrder(sequence = "22")
+    @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
+    private LocalDate leaseTermEndDate;
 
-        private String leaseStatus;
+    @MemberOrder(sequence = "23")
+    private String leaseTermStatus;
 
-        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
-        private LocalDate tenancyStartDate;
+    @MemberOrder(sequence = "24")
+    private BigDecimal value;
 
-        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
-        private LocalDate tenancyEndDate;
+    @MemberOrder(sequence = "25")
+    private BigDecimal baseValue;
 
-        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
-        private LocalDate leaseStartDate;
+    @MemberOrder(sequence = "26")
+    private BigDecimal settledValue;
 
-        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
-        private LocalDate leaseEndDate;
+    @MemberOrder(sequence = "27")
+    private BigDecimal budgetedValue;
 
-        // lease item 6
+    @MemberOrder(sequence = "28")
+    private String kontraktNr;
 
-        private String leaseItemType;
+    @MemberOrder(sequence = "29")
+    private String kundNr;
 
-        private String invoicingFrequency;
+    @MemberOrder(sequence = "30")
+    private String kod;
 
-        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
-        private LocalDate leaseItemStartDate;
+    @MemberOrder(sequence = "31")
+    private String kontText;
 
-        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
-        private LocalDate leaseItemEndDate;
+    @MemberOrder(sequence = "32")
+    private String kod2;
 
-        private String chargeReference;
+    @MemberOrder(sequence = "33")
+    private String kontText2;
 
-        private String chargeGroupReference;
+    @MemberOrder(sequence = "34")
+    private String fromDat;
 
-        // lease term 7
+    @MemberOrder(sequence = "35")
+    private String tomDat;
 
-        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
-        private LocalDate leaseTermStartDate;
+    @MemberOrder(sequence = "36")
+    private BigDecimal arsBel;
 
-        @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
-        private LocalDate leaseTermEndDate;
+    @MemberOrder(sequence = "37")
+    private String debPer;
 
-        private String leaseTermStatus;
-
-        private BigDecimal baseValue;
-
-        private BigDecimal settledValue;
-
-        private BigDecimal value;
-
-        private BigDecimal budgetedValue;
+    @MemberOrder(sequence = "38")
+    private String firstPosStart;
 
 }
