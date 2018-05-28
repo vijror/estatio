@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.NatureOfService;
+import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.services.message.MessageService;
 
 import org.incode.module.base.dom.valuetypes.LocalDateInterval;
@@ -577,8 +578,12 @@ public class FastnetImportService {
         return lease;
     }
 
-    LeaseItemType mapToLeaseItemType(final Charge charge) {
-        return LeaseItemType.valueOf(charge.getGroup().getReference().replace("SE_", "")); // by convention
+    @Programmatic
+    public LeaseItemType mapToLeaseItemType(final Charge charge) {
+        if (!charge.getGroup().getReference().equals("SE_DISCARD")){
+            return LeaseItemType.valueOf(charge.getGroup().getReference().replace("SE_", "")); // by convention
+        }
+        return null;
     }
 
     LeaseItem findOrCreateLeaseItemForTypeAndCharge(final Lease lease, final LeaseItemType leaseItemType, final Charge charge, final InvoicingFrequency invoicingFrequency, final LocalDate startDate) {

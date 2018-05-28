@@ -289,7 +289,7 @@ public class ChargingLine implements Importable {
 
     public LeaseItem getLeaseItem() {
         final Charge charge = chargeRepository.findByReference(getKeyToChargeReference());
-        final LeaseItemType type = charge == null ? null : LeaseItemType.valueOf(charge.getGroup().getReference().replace("SE_", ""));
+        final LeaseItemType type = charge == null ? null : fastnetImportService.mapToLeaseItemType(charge);
         return leaseItemRepository.findByLeaseAndTypeAndCharge(getLease(), type, charge);
     }
 
