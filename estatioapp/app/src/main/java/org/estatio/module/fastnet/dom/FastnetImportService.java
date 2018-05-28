@@ -259,21 +259,21 @@ public class FastnetImportService {
             if (!partialMatchedLeases.isEmpty()) {
                 partialMatchedLeases.forEach(lease -> {
                     FastNetRentRollOnLeaseDataLine lineForPartial = new FastNetRentRollOnLeaseDataLine(
+                            line.getImportStatus(),
+                            line.getApplied(),
                             line.getKeyToLeaseExternalReference(),
                             line.getExportDate(),
-                            line.getKontraktNr(),
-                            line.getHyresgast(),
-                            line.getKundNr(),
-                            line.getArshyra(),
-                            line.getKontraktFrom(),
-                            line.getKontraktTom(),
-                            line.isFutureRentRollLine(),
-                            line.getApplied(),
-                            line.getImportStatus(),
                             line.getLeaseReference(),
                             line.getExternalReference(),
                             line.getLeaseStartDate(),
-                            line.getLeaseEndDate()
+                            line.getLeaseEndDate(),
+                            line.getKontraktNr(),
+                            line.getKundNr(),
+                            line.getArshyra(),
+                            line.getHyresgast(),
+                            line.getKontraktFrom(),
+                            line.getKontraktTom(),
+                            line.isFutureRentRollLine()
                     );
                     lineForPartial.setLeaseReference(lease.getReference());
                     lineForPartial.setExternalReference(lease.getExternalReference());
