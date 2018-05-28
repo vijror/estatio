@@ -488,7 +488,14 @@ public class FastnetImportService {
             return null;
         }
         final LocalDate startDate = stringToDate(cLine.getFromDat());
-        LeaseTerm termToUpdate = itemToUpdate.findTerm(startDate);
+        final LocalDate endDate = stringToDate(cLine.getTomDat());
+        LeaseTerm termToUpdate = findActiveTermInInterval(itemToUpdate, startDate, endDate);
+        if (termToUpdate!=null && termToUpdate.getEndDate()!=null && !termToUpdate.getEndDate().equals(endDate) && termToUpdate.getNext()!=null){
+            final String message = String.format("Term for charge %s on lease %s with start date %s cannot be updated; please try manually.", charge.getReference(), cLine.getKeyToLeaseExternalReference(), termToUpdate.getStartDate());
+            messageService.warnUser(message);
+            logger.warn(message);
+            return null;
+        }
         if (termToUpdate == null) {
             final String message = String.format("Term with start date %s not found for charge %s on lease %s; creating new term.", cLine.getFromDat(), charge.getReference(), cLine.getKeyToLeaseExternalReference());
             messageService.informUser(message);
@@ -506,9 +513,9 @@ public class FastnetImportService {
             cLine.setArsBel(BigDecimal.ZERO);
         }
         termToUpdate = updateLeaseTermValue(itemToUpdate, cLine.getArsBel(), termToUpdate);
-        final String tomDat = cLine.getTomDat();
-        termToUpdate.setEndDate(stringToDate(tomDat));
-        itemToUpdate.setEndDate(stringToDate(tomDat));
+        termToUpdate.setStartDate(startDate);
+        termToUpdate.setEndDate(endDate);
+        itemToUpdate.setEndDate(endDate);
 
         final InvoicingFrequency frequency = mapToFrequency(cLine.getDebPer());
         if (frequency != null) {
@@ -520,6 +527,16 @@ public class FastnetImportService {
             return null;
         }
         return ImportStatus.LEASE_ITEM_UPDATED;
+    }
+
+    LeaseTerm findActiveTermInInterval(final LeaseItem leaseItem, final LocalDate startDate, final LocalDate endDate){
+        LocalDateInterval cLineInterval = new LocalDateInterval(startDate, endDate);
+        for (LeaseTerm term : leaseItem.getTerms()){
+            if (term.getInterval().overlaps(cLineInterval)){
+                return term;
+            }
+        }
+        return null;
     }
 
     public void discard(final FastNetChargingOnLeaseDataLine cdl) {

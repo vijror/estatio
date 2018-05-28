@@ -392,7 +392,12 @@ public class FastnetImportService_Test {
     public void update_item_and_term_when_term_not_found() throws Exception {
 
         // given
-        FastnetImportService service = new FastnetImportService();
+        FastnetImportService service = new FastnetImportService(){
+            @Override
+            LeaseTerm findActiveTermInInterval(final LeaseItem leaseItem, final LocalDate startDate, final LocalDate endDate){
+                return null;
+            }
+        };
         service.chargingLineRepository = mockChargingLineRepository;
         service.leaseRepository = mockLeaseRepository;
         service.chargeRepository = mockChargeRepository;
@@ -420,8 +425,6 @@ public class FastnetImportService_Test {
             will(returnValue(charge));
             oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
             will(returnValue(mockLeaseItem));
-            oneOf(mockLeaseItem).findTerm(service.stringToDate(cLine.getFromDat()));
-            will(returnValue(null));
             oneOf(mockMessageService).informUser("Term with start date 2018-01-01 not found for charge SE123-4 on lease ABCD; creating new term.");
             allowing(mockLeaseItem).getTerms();
             will(returnValue(new TreeSet<>(Arrays.asList(oldTerm))));
@@ -447,7 +450,13 @@ public class FastnetImportService_Test {
     public void update_item_and_term_when_frequency_not_found() throws Exception {
 
         // given
-        FastnetImportService service = new FastnetImportService();
+        LeaseTerm leaseTerm = new LeaseTermForIndexable();
+        FastnetImportService service = new FastnetImportService(){
+            @Override
+            LeaseTerm findActiveTermInInterval(final LeaseItem leaseItem, final LocalDate startDate, final LocalDate endDate){
+                return leaseTerm;
+            }
+        };
         service.chargingLineRepository = mockChargingLineRepository;
         service.leaseRepository = mockLeaseRepository;
         service.chargeRepository = mockChargeRepository;
@@ -462,7 +471,7 @@ public class FastnetImportService_Test {
         ChargeGroup chargeGroup = new ChargeGroup();
         chargeGroup.setReference("SE_RENT");
         charge.setGroup(chargeGroup);
-        LeaseTerm leaseTerm = new LeaseTermForIndexable();
+
 
         // expect
         context.checking(new Expectations() {{
@@ -474,8 +483,6 @@ public class FastnetImportService_Test {
             will(returnValue(charge));
             oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
             will(returnValue(mockLeaseItem));
-            oneOf(mockLeaseItem).findTerm(service.stringToDate(cLine.getFromDat()));
-            will(returnValue(leaseTerm));
             oneOf(mockLeaseItem).getType();
             will(returnValue(LeaseItemType.RENT));
             oneOf(mockLeaseItem).getCharge();
@@ -493,7 +500,13 @@ public class FastnetImportService_Test {
     public void update_item_and_term_when_value_not_found() throws Exception {
 
         // given
-        FastnetImportService service = new FastnetImportService();
+        LeaseTermForIndexable leaseTerm = new LeaseTermForIndexable();
+        FastnetImportService service = new FastnetImportService(){
+            @Override
+            LeaseTerm findActiveTermInInterval(final LeaseItem leaseItem, final LocalDate startDate, final LocalDate endDate){
+                return leaseTerm;
+            }
+        };
         service.chargingLineRepository = mockChargingLineRepository;
         service.leaseRepository = mockLeaseRepository;
         service.chargeRepository = mockChargeRepository;
@@ -509,7 +522,6 @@ public class FastnetImportService_Test {
         ChargeGroup chargeGroup = new ChargeGroup();
         chargeGroup.setReference("SE_RENT");
         charge.setGroup(chargeGroup);
-        LeaseTermForIndexable leaseTerm = new LeaseTermForIndexable();
 
         // expect
         context.checking(new Expectations() {{
@@ -521,8 +533,6 @@ public class FastnetImportService_Test {
             will(returnValue(charge));
             oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
             will(returnValue(mockLeaseItem));
-            oneOf(mockLeaseItem).findTerm(service.stringToDate(cLine.getFromDat()));
-            will(returnValue(leaseTerm));
             oneOf(mockLeaseItem).getType();
             will(returnValue(LeaseItemType.RENT));
             oneOf(mockLeaseItem).getCharge();
@@ -539,10 +549,64 @@ public class FastnetImportService_Test {
     }
 
     @Test
+    public void update_item_and_term_when_term_cannot_be_updated() throws Exception {
+
+        // given
+        LeaseTermForIndexable leaseTerm = new LeaseTermForIndexable();
+        LeaseTermForIndexable nextTerm = new LeaseTermForIndexable();
+        leaseTerm.setNext(nextTerm);
+        leaseTerm.setEndDate(new LocalDate(2018,12, 30));
+
+        FastnetImportService service = new FastnetImportService(){
+            @Override
+            LeaseTerm findActiveTermInInterval(final LeaseItem leaseItem, final LocalDate startDate, final LocalDate endDate){
+                return leaseTerm;
+            }
+        };
+        service.chargingLineRepository = mockChargingLineRepository;
+        service.leaseRepository = mockLeaseRepository;
+        service.chargeRepository = mockChargeRepository;
+        service.messageService = mockMessageService;
+        ChargingLine cLine = new ChargingLine();
+        cLine.setKeyToLeaseExternalReference("ABCD");
+        cLine.setKeyToChargeReference("SE123-4");
+        cLine.setFromDat("2018-01-01");
+        cLine.setTomDat("2018-12-31");
+        Charge charge = new Charge();
+        charge.setReference(cLine.getKeyToChargeReference());
+        ChargeGroup chargeGroup = new ChargeGroup();
+        chargeGroup.setReference("SE_RENT");
+        charge.setGroup(chargeGroup);
+
+        // expect
+        context.checking(new Expectations() {{
+            oneOf(mockChargingLineRepository).findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndExportDate(cLine.getKeyToLeaseExternalReference(), cLine.getKeyToChargeReference(), cLine.getExportDate());
+            will(returnValue(Collections.emptyList()));
+            oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
+            will(returnValue(Arrays.asList(mockLease)));
+            oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
+            will(returnValue(charge));
+            oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
+            will(returnValue(mockLeaseItem));
+            oneOf(mockMessageService).warnUser("Term for charge SE123-4 on lease ABCD with start date null cannot be updated; please try manually.");
+        }});
+
+        // when
+        service.updateOrCreateItemAndTerm(cLine);
+    }
+
+
+    @Test
     public void update_item_and_term_when_all_is_fine() throws Exception {
 
         // given
-        FastnetImportService service = new FastnetImportService();
+        LeaseTermForIndexable leaseTerm = new LeaseTermForIndexable();
+        FastnetImportService service = new FastnetImportService(){
+            @Override
+            LeaseTerm findActiveTermInInterval(final LeaseItem leaseItem, final LocalDate startDate, final LocalDate endDate){
+                return leaseTerm;
+            }
+        };
         service.chargingLineRepository = mockChargingLineRepository;
         service.leaseRepository = mockLeaseRepository;
         service.chargeRepository = mockChargeRepository;
@@ -560,7 +624,6 @@ public class FastnetImportService_Test {
         ChargeGroup chargeGroup = new ChargeGroup();
         chargeGroup.setReference("SE_RENT");
         charge.setGroup(chargeGroup);
-        LeaseTermForIndexable leaseTerm = new LeaseTermForIndexable();
 
         // expect
         context.checking(new Expectations() {{
@@ -572,8 +635,6 @@ public class FastnetImportService_Test {
             will(returnValue(charge));
             oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
             will(returnValue(mockLeaseItem));
-            oneOf(mockLeaseItem).findTerm(service.stringToDate(cLine.getFromDat()));
-            will(returnValue(leaseTerm));
             oneOf(mockLeaseItem).getType();
             will(returnValue(LeaseItemType.RENT));
             oneOf(mockLeaseItem).getCharge();
