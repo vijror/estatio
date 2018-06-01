@@ -133,9 +133,8 @@ public class ChargingLine implements Importable {
 
     public String title(){
         return TitleBuilder.start()
-                .withReference(getKeyToLeaseExternalReference())
-                .withReference(getKeyToChargeReference())
-                .withName(getExportDate())
+                .withReference(getKeyToChargeReference().concat(" ").concat(getKeyToLeaseExternalReference()))
+                .withName("SEK ")
                 .withName(getArsBel())
                 .toString();
     }
