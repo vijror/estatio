@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.TreeSet;
 
-import org.assertj.core.api.Assertions;
 import org.jmock.Expectations;
 import org.jmock.auto.Mock;
 import org.joda.time.LocalDate;
@@ -32,6 +31,7 @@ import org.estatio.module.lease.dom.LeaseTerm;
 import org.estatio.module.lease.dom.LeaseTermForFixed;
 import org.estatio.module.lease.dom.LeaseTermForIndexable;
 import org.estatio.module.lease.dom.LeaseTermForServiceCharge;
+import org.estatio.module.lease.dom.LeaseTermForTesting;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -389,71 +389,13 @@ public class FastnetImportService_Test {
     ChargingLineRepository mockChargingLineRepository;
 
     @Test
-    public void update_item_and_term_when_term_not_found() throws Exception {
-
-        // given
-        FastnetImportService service = new FastnetImportService(){
-            @Override
-            LeaseTerm findActiveTermInInterval(final LeaseItem leaseItem, final LocalDate startDate, final LocalDate endDate){
-                return null;
-            }
-        };
-        service.chargingLineRepository = mockChargingLineRepository;
-        service.leaseRepository = mockLeaseRepository;
-        service.chargeRepository = mockChargeRepository;
-        service.messageService = mockMessageService;
-        ChargingLine cLine = new ChargingLine();
-        cLine.setKeyToLeaseExternalReference("ABCD");
-        cLine.setKeyToChargeReference("SE123-4");
-        cLine.setFromDat("2018-01-01");
-        cLine.setDebPer("Månad");
-        Charge charge = new Charge();
-        charge.setReference(cLine.getKeyToChargeReference());
-        ChargeGroup chargeGroup = new ChargeGroup();
-        chargeGroup.setReference("SE_RENT");
-        charge.setGroup(chargeGroup);
-        LeaseTerm oldTerm = new LeaseTermForIndexable();
-        LeaseTerm newTerm = new LeaseTermForIndexable();
-
-        // expect
-        context.checking(new Expectations() {{
-            oneOf(mockChargingLineRepository).findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndExportDate(cLine.getKeyToLeaseExternalReference(), cLine.getKeyToChargeReference(), cLine.getExportDate());
-            will(returnValue(Collections.emptyList()));
-            oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
-            will(returnValue(Arrays.asList(mockLease)));
-            oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
-            will(returnValue(charge));
-            oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
-            will(returnValue(mockLeaseItem));
-            oneOf(mockMessageService).informUser("Term with start date 2018-01-01 not found for charge SE123-4 on lease ABCD; creating new term.");
-            allowing(mockLeaseItem).getTerms();
-            will(returnValue(new TreeSet<>(Arrays.asList(oldTerm))));
-            oneOf(mockLeaseItem).newTerm(new LocalDate(2018, 1, 1), null);
-            will(returnValue(newTerm));
-            oneOf(mockLeaseItem).getType();
-            will(returnValue(LeaseItemType.RENT));
-            oneOf(mockLeaseItem).getCharge();
-            will(returnValue(charge));
-            oneOf(mockLeaseItem).setInvoicingFrequency(InvoicingFrequency.MONTHLY_IN_ADVANCE);
-            oneOf(mockLeaseItem).setEndDate(null);
-        }});
-
-        // when
-        service.updateOrCreateItemAndTerm(cLine);
-
-        // then
-        Assertions.assertThat(oldTerm.getEndDate()).isEqualTo(new LocalDate(2017, 12, 31));
-
-    }
-
-    @Test
     public void update_item_and_term_when_frequency_not_found() throws Exception {
 
         // given
         LeaseTerm leaseTerm = new LeaseTermForIndexable();
         FastnetImportService service = new FastnetImportService(){
             @Override
-            LeaseTerm findActiveTermInInterval(final LeaseItem leaseItem, final LocalDate startDate, final LocalDate endDate){
+            LeaseTerm findOrCreateTermToUpdate(final LeaseItem itemToUpdate, final ChargingLine cLine){
                 return leaseTerm;
             }
         };
@@ -472,7 +414,6 @@ public class FastnetImportService_Test {
         chargeGroup.setReference("SE_RENT");
         charge.setGroup(chargeGroup);
 
-
         // expect
         context.checking(new Expectations() {{
             oneOf(mockChargingLineRepository).findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndExportDate(cLine.getKeyToLeaseExternalReference(), cLine.getKeyToChargeReference(), cLine.getExportDate());
@@ -483,11 +424,6 @@ public class FastnetImportService_Test {
             will(returnValue(charge));
             oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
             will(returnValue(mockLeaseItem));
-            oneOf(mockLeaseItem).getType();
-            will(returnValue(LeaseItemType.RENT));
-            oneOf(mockLeaseItem).getCharge();
-            will(returnValue(charge));
-            oneOf(mockLeaseItem).setEndDate(null);
             oneOf(mockMessageService).warnUser("Value debPer some_thing_not_recognized could not be mapped to invoicing frequency for charge SE123-4 on lease ABCD.");
         }});
 
@@ -500,10 +436,12 @@ public class FastnetImportService_Test {
     public void update_item_and_term_when_value_not_found() throws Exception {
 
         // given
+        LeaseTermForIndexable lastTerm = new LeaseTermForIndexable();
+        lastTerm.setEndDate(new LocalDate(2018, 12, 31));
         LeaseTermForIndexable leaseTerm = new LeaseTermForIndexable();
         FastnetImportService service = new FastnetImportService(){
             @Override
-            LeaseTerm findActiveTermInInterval(final LeaseItem leaseItem, final LocalDate startDate, final LocalDate endDate){
+            LeaseTerm findOrCreateTermToUpdate(final LeaseItem itemToUpdate, final ChargingLine cLine){
                 return leaseTerm;
             }
         };
@@ -533,12 +471,12 @@ public class FastnetImportService_Test {
             will(returnValue(charge));
             oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
             will(returnValue(mockLeaseItem));
-            oneOf(mockLeaseItem).getType();
-            will(returnValue(LeaseItemType.RENT));
-            oneOf(mockLeaseItem).getCharge();
-            will(returnValue(charge));
             oneOf(mockLeaseItem).setEndDate(new LocalDate(2018, 12, 31));
             oneOf(mockLeaseItem).setInvoicingFrequency(InvoicingFrequency.MONTHLY_IN_ADVANCE);
+            oneOf(mockLeaseItem).getTerms();
+            will(returnValue(new TreeSet<>(Arrays.asList(lastTerm))));
+            oneOf(mockLeaseItem).getType();
+            will(returnValue(LeaseItemType.RENT));
         }});
 
         // when
@@ -549,61 +487,15 @@ public class FastnetImportService_Test {
     }
 
     @Test
-    public void update_item_and_term_when_term_cannot_be_updated() throws Exception {
-
-        // given
-        LeaseTermForIndexable leaseTerm = new LeaseTermForIndexable();
-        LeaseTermForIndexable nextTerm = new LeaseTermForIndexable();
-        leaseTerm.setNext(nextTerm);
-        leaseTerm.setEndDate(new LocalDate(2018,12, 30));
-
-        FastnetImportService service = new FastnetImportService(){
-            @Override
-            LeaseTerm findActiveTermInInterval(final LeaseItem leaseItem, final LocalDate startDate, final LocalDate endDate){
-                return leaseTerm;
-            }
-        };
-        service.chargingLineRepository = mockChargingLineRepository;
-        service.leaseRepository = mockLeaseRepository;
-        service.chargeRepository = mockChargeRepository;
-        service.messageService = mockMessageService;
-        ChargingLine cLine = new ChargingLine();
-        cLine.setKeyToLeaseExternalReference("ABCD");
-        cLine.setKeyToChargeReference("SE123-4");
-        cLine.setFromDat("2018-01-01");
-        cLine.setTomDat("2018-12-31");
-        Charge charge = new Charge();
-        charge.setReference(cLine.getKeyToChargeReference());
-        ChargeGroup chargeGroup = new ChargeGroup();
-        chargeGroup.setReference("SE_RENT");
-        charge.setGroup(chargeGroup);
-
-        // expect
-        context.checking(new Expectations() {{
-            oneOf(mockChargingLineRepository).findByKeyToLeaseExternalReferenceAndKeyToChargeReferenceAndExportDate(cLine.getKeyToLeaseExternalReference(), cLine.getKeyToChargeReference(), cLine.getExportDate());
-            will(returnValue(Collections.emptyList()));
-            oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
-            will(returnValue(Arrays.asList(mockLease)));
-            oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
-            will(returnValue(charge));
-            oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
-            will(returnValue(mockLeaseItem));
-            oneOf(mockMessageService).warnUser("Term for charge SE123-4 on lease ABCD with start date null cannot be updated; please try manually.");
-        }});
-
-        // when
-        service.updateOrCreateItemAndTerm(cLine);
-    }
-
-
-    @Test
     public void update_item_and_term_when_all_is_fine() throws Exception {
 
         // given
+        LeaseTermForIndexable lastTerm = new LeaseTermForIndexable();
+        lastTerm.setEndDate(new LocalDate(2018, 12, 31));
         LeaseTermForIndexable leaseTerm = new LeaseTermForIndexable();
         FastnetImportService service = new FastnetImportService(){
             @Override
-            LeaseTerm findActiveTermInInterval(final LeaseItem leaseItem, final LocalDate startDate, final LocalDate endDate){
+            LeaseTerm findOrCreateTermToUpdate(final LeaseItem itemToUpdate, final ChargingLine cLine){
                 return leaseTerm;
             }
         };
@@ -637,10 +529,10 @@ public class FastnetImportService_Test {
             will(returnValue(mockLeaseItem));
             oneOf(mockLeaseItem).getType();
             will(returnValue(LeaseItemType.RENT));
-            oneOf(mockLeaseItem).getCharge();
-            will(returnValue(charge));
             oneOf(mockLeaseItem).setEndDate(new LocalDate(2018, 12, 31));
             oneOf(mockLeaseItem).setInvoicingFrequency(InvoicingFrequency.MONTHLY_IN_ADVANCE);
+            oneOf(mockLeaseItem).getTerms();
+            will(returnValue(new TreeSet<>(Arrays.asList(lastTerm))));
         }});
 
         // when
@@ -648,7 +540,6 @@ public class FastnetImportService_Test {
 
         // then
         assertThat(leaseTerm.getSettledValue()).isEqualTo(arsBel);
-        assertThat(leaseTerm.getEndDate()).isEqualTo(new LocalDate(2018, 12, 31));
     }
 
     @Test
@@ -706,29 +597,16 @@ public class FastnetImportService_Test {
 
         // given
         FastnetImportService service = new FastnetImportService();
-        LeaseItem item = new LeaseItem();
-        Charge charge = new Charge();
-        charge.setReference("123-1");
-        item.setCharge(charge);
-        item.setType(LeaseItemType.RENT);
+        LeaseItemType type = LeaseItemType.RENT;
         LeaseTermForIndexable term = new LeaseTermForIndexable();
         BigDecimal amount = new BigDecimal("123.45");
 
         // when
-        service.updateLeaseTermValue(item, amount, term);
+        service.updateLeaseTermValue(type, amount, term);
 
         // then
         assertThat(term.getBaseValue()).isEqualTo(amount);
         assertThat(term.getSettledValue()).isEqualTo(amount);
-
-        // and when
-        LeaseTermForIndexable term2 = new LeaseTermForIndexable();
-        charge.setReference("123-X");
-        service.updateLeaseTermValue(item, amount, term2);
-
-        // then
-        assertThat(term2.getBaseValue()).isNull();
-        assertThat(term2.getSettledValue()).isEqualTo(amount);
 
     }
 
@@ -737,13 +615,12 @@ public class FastnetImportService_Test {
 
         // given
         FastnetImportService service = new FastnetImportService();
-        LeaseItem item = new LeaseItem();
-        item.setType(LeaseItemType.SERVICE_CHARGE);
+        LeaseItemType type = LeaseItemType.SERVICE_CHARGE;
         LeaseTermForServiceCharge term = new LeaseTermForServiceCharge();
         BigDecimal amount = new BigDecimal("123.45");
 
         // when
-        service.updateLeaseTermValue(item, amount, term);
+        service.updateLeaseTermValue(type, amount, term);
 
         // then
         assertThat(term.getBudgetedValue()).isEqualTo(amount);
@@ -755,13 +632,12 @@ public class FastnetImportService_Test {
 
         // given
         FastnetImportService service = new FastnetImportService();
-        LeaseItem item = new LeaseItem();
-        item.setType(LeaseItemType.RENT_FIXED);
+        LeaseItemType type = LeaseItemType.RENT_FIXED;
         LeaseTermForFixed term = new LeaseTermForFixed();
         BigDecimal amount = new BigDecimal("123.45");
 
         // when
-        service.updateLeaseTermValue(item, amount, term);
+        service.updateLeaseTermValue(type, amount, term);
 
         // then
         assertThat(term.getValue()).isEqualTo(amount);
@@ -1067,6 +943,247 @@ public class FastnetImportService_Test {
 
         // when
         service.updateOrCreateItemAndTerm(cLine);
+    }
+
+    @Test
+    public void findOrCreateTermToUpdate_works_when_no_terms_on_item() throws Exception {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        LeaseItem item = mockLeaseItem;
+        final LocalDate expectedStartDate = new LocalDate(2017, 1, 1);
+        final LocalDate expectedEndDate = new LocalDate(2017, 6, 30);
+        ChargingLine cLine = new ChargingLine();
+        cLine.setFromDat("2017-01-01");
+        cLine.setTomDat("2017-06-30");
+
+        // expect
+        context.checking(new Expectations() {{
+            oneOf(mockLeaseItem).getTerms();
+            will(returnValue(Collections.emptySortedSet()));
+            oneOf(mockLeaseItem).newTerm(expectedStartDate, expectedEndDate);
+        }});
+
+        // when
+        service.findOrCreateTermToUpdate(item, cLine);
+
+    }
+
+    @Test
+    public void deriveTermToUpdateFromLastTerm_works_when_term_interval_open_ended() throws Exception {
+
+        // given
+        LeaseItem item = mockLeaseItem;
+        LeaseTerm lastTerm = new LeaseTermForTesting();
+        lastTerm.setLeaseItem(item);
+
+        ChargingLine cLine = new ChargingLine();
+
+        LocalDate expectedLastTermEndDate;
+
+        // no new term scenario's ////////////////////////////////////////////////////////////////
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), null);
+        initDatesChargingLine(cLine, new LocalDate(2017, 1, 1), null);
+        testWhenNoNewTermIsCreated(lastTerm, cLine, "2017-01-01/----------");
+
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), null);
+        initDatesChargingLine(cLine, new LocalDate(2016, 12, 31), null);
+        testWhenNoNewTermIsCreated(lastTerm, cLine, "2017-01-01/----------");
+
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), null);
+        initDatesChargingLine(cLine, new LocalDate(2017, 1, 1), new LocalDate(2017, 6, 30));
+        testWhenNoNewTermIsCreated(lastTerm, cLine, "2017-01-01/2017-07-01");
+
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), null);
+        initDatesChargingLine(cLine, new LocalDate(2016, 12, 31), new LocalDate(2017, 6, 30));
+        testWhenNoNewTermIsCreated(lastTerm, cLine, "2017-01-01/2017-07-01");
+
+        // new term scenario's ////////////////////////////////////////////////////////////////
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), null);
+        initDatesChargingLine(cLine, new LocalDate(2017,2,1), null);
+        expectedLastTermEndDate = new LocalDate(2017, 1, 31);
+        testWhenNewTermIsCreated(lastTerm, cLine, expectedLastTermEndDate);
+
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), null);
+        initDatesChargingLine(cLine, new LocalDate(2017,2,1), new LocalDate(2017, 6, 30));
+        expectedLastTermEndDate = new LocalDate(2017, 1, 31);
+        testWhenNewTermIsCreated(lastTerm, cLine, expectedLastTermEndDate);
+
+
+        // no overlap, cLine interval before term ////////////////////////////////////////////////////////////////
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), null);
+        initDatesChargingLine(cLine, new LocalDate(2016,1,1), new LocalDate(2016, 12, 31));
+        testWhenNoOverlapAndClineBeforeLastTerm(lastTerm, cLine);
+
+    }
+
+    @Test
+    public void deriveTermToUpdateFromLastTerm_works_when_term_interval_closed() throws Exception {
+
+        // given
+        LeaseItem item = mockLeaseItem;
+        LeaseTerm lastTerm = new LeaseTermForTesting();
+        lastTerm.setLeaseItem(item);
+
+        ChargingLine cLine = new ChargingLine();
+
+        LocalDate expectedLastTermEndDate;
+
+        // no new term scenario's ////////////////////////////////////////////////////////////////
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), new LocalDate(2017,4,30));
+        initDatesChargingLine(cLine, new LocalDate(2017, 1, 1), null);
+        testWhenNoNewTermIsCreated(lastTerm, cLine, "2017-01-01/----------");
+
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), new LocalDate(2017,4,30));
+        initDatesChargingLine(cLine, new LocalDate(2016, 12, 31), null);
+        testWhenNoNewTermIsCreated(lastTerm, cLine, "2017-01-01/----------");
+
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), new LocalDate(2017,4,30));
+        initDatesChargingLine(cLine, new LocalDate(2017, 1, 1), new LocalDate(2017, 6, 30));
+        testWhenNoNewTermIsCreated(lastTerm, cLine, "2017-01-01/2017-07-01");
+
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), new LocalDate(2017,4,30));
+        initDatesChargingLine(cLine, new LocalDate(2016, 12, 31), new LocalDate(2017, 6, 30));
+        testWhenNoNewTermIsCreated(lastTerm, cLine, "2017-01-01/2017-07-01");
+
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), new LocalDate(2017,4,30));
+        initDatesChargingLine(cLine, new LocalDate(2017, 1, 1), new LocalDate(2017, 4, 1));
+        testWhenNoNewTermIsCreated(lastTerm, cLine, "2017-01-01/2017-05-01");
+
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), new LocalDate(2017,4,30));
+        initDatesChargingLine(cLine, new LocalDate(2016, 12, 31), new LocalDate(2017, 4, 1));
+        testWhenNoNewTermIsCreated(lastTerm, cLine, "2017-01-01/2017-05-01");
+
+        // new term scenario's ////////////////////////////////////////////////////////////////
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), new LocalDate(2017,4,30));
+        initDatesChargingLine(cLine, new LocalDate(2017,2,1), null);
+        expectedLastTermEndDate = new LocalDate(2017, 1, 31);
+        testWhenNewTermIsCreated(lastTerm, cLine, expectedLastTermEndDate);
+
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), new LocalDate(2017,4,30));
+        initDatesChargingLine(cLine, new LocalDate(2017,2,1), new LocalDate(2017, 6, 30));
+        expectedLastTermEndDate = new LocalDate(2017, 1, 31);
+        testWhenNewTermIsCreated(lastTerm, cLine, expectedLastTermEndDate);
+
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), new LocalDate(2017,4,30));
+        initDatesChargingLine(cLine, new LocalDate(2017,2,1), new LocalDate(2017, 4, 1));
+        expectedLastTermEndDate = new LocalDate(2017, 1, 31);
+        LocalDate expectedResultEndDate = lastTerm.getEndDate();
+        testWhenNewTermIsCreatedAndClineEndDateBeforeTermEndDate(lastTerm, cLine, expectedLastTermEndDate, expectedResultEndDate);
+
+        // no overlap, cLine interval before term ////////////////////////////////////////////////////////////////
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), new LocalDate(2017,4,30));
+        initDatesChargingLine(cLine, new LocalDate(2016,1,1), new LocalDate(2016, 12, 31));
+        testWhenNoOverlapAndClineBeforeLastTerm(lastTerm, cLine);
+
+        // no overlap, cLine interval after term ////////////////////////////////////////////////////////////////
+        initDatesLastTerm(lastTerm, new LocalDate(2017,1,1), new LocalDate(2017,4,30));
+        initDatesChargingLine(cLine, new LocalDate(2017,5,15), new LocalDate(2017, 12, 31));
+        expectedLastTermEndDate = lastTerm.getEndDate();
+        testWhenNoOverlapAndClineAfterLastTerm(lastTerm, cLine, expectedLastTermEndDate);
+
+    }
+
+    LeaseTerm initDatesLastTerm(LeaseTerm lastTerm, final LocalDate termStartDate, final LocalDate termEndDate){
+        lastTerm.setStartDate(termStartDate);
+        lastTerm.setEndDate(termEndDate);
+        return lastTerm;
+    }
+
+    ChargingLine initDatesChargingLine(ChargingLine cLine, final LocalDate clineFromDat, final LocalDate clineTomdat){
+        cLine.setFromDat(clineFromDat.toString("yyyy-MM-dd"));
+        cLine.setTomDat(clineTomdat == null ? null : clineTomdat.toString("yyyy-MM-dd"));
+        return cLine;
+    }
+
+
+    void testWhenNoNewTermIsCreated(LeaseTerm lastTerm, ChargingLine cLine, String expectedIntervalOnLastTerm) {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        // when
+        LeaseTerm result = service.deriveTermToUpdateFromLastTerm(lastTerm, cLine);
+        // then
+        assertThat(result.getInterval().toString()).isEqualTo(expectedIntervalOnLastTerm);
+        assertThat(lastTerm.getInterval().toString()).isEqualTo(expectedIntervalOnLastTerm);
+
+    }
+
+    void testWhenNewTermIsCreated(LeaseTerm lastTerm, ChargingLine cLine, LocalDate expectedLastTermEndDate) {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        LeaseTerm newTerm = new LeaseTermForTesting();
+
+        // expect
+        context.checking(new Expectations() {{
+            oneOf(mockLeaseItem).newTerm(service.stringToDate(cLine.getFromDat()), service.stringToDate(cLine.getTomDat()));
+            will(returnValue(newTerm));
+        }});
+
+        // when
+        service.deriveTermToUpdateFromLastTerm(lastTerm, cLine);
+
+        // then
+        assertThat(lastTerm.getEndDate()).isEqualTo(expectedLastTermEndDate);
+
+    }
+
+    void testWhenNewTermIsCreatedAndClineEndDateBeforeTermEndDate(LeaseTerm lastTerm, ChargingLine cLine, LocalDate expectedLastTermEndDate, LocalDate expectedResultEndDate) {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        LeaseTerm newTerm = new LeaseTermForTesting();
+
+        // expect
+        context.checking(new Expectations() {{
+            oneOf(mockLeaseItem).newTerm(service.stringToDate(cLine.getFromDat()), expectedResultEndDate);
+            will(returnValue(newTerm));
+        }});
+
+        // when
+        service.deriveTermToUpdateFromLastTerm(lastTerm, cLine);
+
+        // then
+        assertThat(lastTerm.getEndDate()).isEqualTo(expectedLastTermEndDate);
+
+    }
+
+    void testWhenNoOverlapAndClineBeforeLastTerm(LeaseTerm lastTerm, ChargingLine cLine) {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+        service.messageService = mockMessageService;
+
+        // expect
+        context.checking(new Expectations(){{
+            oneOf(mockMessageService).warnUser("Item with charge null for lease null cannot be updated. FromDat 2016-01-01 is before last term start date 2017-01-01");
+        }});
+
+        // when
+        service.deriveTermToUpdateFromLastTerm(lastTerm, cLine);
+
+    }
+
+    void testWhenNoOverlapAndClineAfterLastTerm(LeaseTerm lastTerm, ChargingLine cLine, LocalDate expectedLastTermEndDate) {
+
+        // given
+        FastnetImportService service = new FastnetImportService();
+
+        LeaseTerm newTerm = new LeaseTermForTesting();
+
+        // expect
+        context.checking(new Expectations() {{
+            oneOf(mockLeaseItem).newTerm(service.stringToDate(cLine.getFromDat()), service.stringToDate(cLine.getTomDat()));
+            will(returnValue(newTerm));
+        }});
+
+        // when
+        service.deriveTermToUpdateFromLastTerm(lastTerm, cLine);
+
+        // then
+        assertThat(lastTerm.getEndDate()).isEqualTo(expectedLastTermEndDate);
+
     }
 
 }

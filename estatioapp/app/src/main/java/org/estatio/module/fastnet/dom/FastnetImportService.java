@@ -376,7 +376,8 @@ public class FastnetImportService {
         }
         linesWithSameCharge.sort((a, b) -> stringToDate(a.getFromDat()).compareTo(stringToDate(b.getFromDat())));
 
-        LocalDateInterval previous = new LocalDateInterval(null, new LocalDate(1999, 12, 31));
+        final LocalDateInterval previousCenturies = new LocalDateInterval(null, new LocalDate(1999, 12, 31));
+        LocalDateInterval previous = previousCenturies;
         boolean overlapFound = false;
         for (ChargingLine cLine : linesWithSameCharge) {
             LocalDateInterval next = new LocalDateInterval(stringToDate(cLine.getFromDat()), stringToDate(cLine.getTomDat()));
@@ -481,41 +482,13 @@ public class FastnetImportService {
     }
 
     ImportStatus updateItemAndTerm(final ChargingLine cLine, final Charge charge, LeaseItem itemToUpdate) {
+
         if (itemToUpdate == null) {
             final String message = String.format("Item with charge %s not found for lease %s.", charge.getReference(), cLine.getKeyToLeaseExternalReference());
             messageService.warnUser(message);
             logger.warn(message);
             return null;
         }
-        final LocalDate startDate = stringToDate(cLine.getFromDat());
-        final LocalDate endDate = stringToDate(cLine.getTomDat());
-        LeaseTerm termToUpdate = findActiveTermInInterval(itemToUpdate, startDate, endDate);
-        if (termToUpdate!=null && termToUpdate.getEndDate()!=null && !termToUpdate.getEndDate().equals(endDate) && termToUpdate.getNext()!=null){
-            final String message = String.format("Term for charge %s on lease %s with start date %s cannot be updated; please try manually.", charge.getReference(), cLine.getKeyToLeaseExternalReference(), termToUpdate.getStartDate());
-            messageService.warnUser(message);
-            logger.warn(message);
-            return null;
-        }
-        if (termToUpdate == null) {
-            final String message = String.format("Term with start date %s not found for charge %s on lease %s; creating new term.", cLine.getFromDat(), charge.getReference(), cLine.getKeyToLeaseExternalReference());
-            messageService.informUser(message);
-            logger.info(message);
-            LeaseTerm last = null;
-            if (!itemToUpdate.getTerms().isEmpty()) {
-                last = itemToUpdate.getTerms().last();
-            }
-            termToUpdate = itemToUpdate.newTerm(startDate, null);
-            if (last != null) {
-                last.setEndDate(startDate.minusDays(1));
-            }
-        }
-        if (cLine.getArsBel() == null) {
-            cLine.setArsBel(BigDecimal.ZERO);
-        }
-        termToUpdate = updateLeaseTermValue(itemToUpdate, cLine.getArsBel(), termToUpdate);
-        termToUpdate.setStartDate(startDate);
-        termToUpdate.setEndDate(endDate);
-        itemToUpdate.setEndDate(endDate);
 
         final InvoicingFrequency frequency = mapToFrequency(cLine.getDebPer());
         if (frequency != null) {
@@ -526,18 +499,99 @@ public class FastnetImportService {
             logger.warn(message);
             return null;
         }
+
+        LeaseTerm termToUpdate = findOrCreateTermToUpdate(itemToUpdate, cLine);
+
+        itemToUpdate.setEndDate(itemToUpdate.getTerms().last().getEndDate());
+
+        if (cLine.getArsBel() == null) {
+            cLine.setArsBel(BigDecimal.ZERO);
+        }
+        updateLeaseTermValue(itemToUpdate.getType(), cLine.getArsBel(), termToUpdate);
+
         return ImportStatus.LEASE_ITEM_UPDATED;
     }
 
-    LeaseTerm findActiveTermInInterval(final LeaseItem leaseItem, final LocalDate startDate, final LocalDate endDate){
-        LocalDateInterval cLineInterval = new LocalDateInterval(startDate, endDate);
-        for (LeaseTerm term : leaseItem.getTerms()){
-            if (term.getInterval().overlaps(cLineInterval)){
-                return term;
-            }
+    LeaseTerm findOrCreateTermToUpdate(final LeaseItem itemToUpdate, final ChargingLine cLine){
+
+        if (itemToUpdate.getTerms().isEmpty()){
+            return itemToUpdate.newTerm(stringToDate(cLine.getFromDat()), stringToDate(cLine.getTomDat()));
         }
-        return null;
+
+        return deriveTermToUpdateFromLastTerm(itemToUpdate.getTerms().last(), cLine);
     }
+
+    LeaseTerm deriveTermToUpdateFromLastTerm(LeaseTerm lastTerm, final ChargingLine cLine) {
+
+        LeaseTerm termToUpdate = null;
+
+        final LocalDate cLineStartDate = stringToDate(cLine.getFromDat());
+        final LocalDate cLineEndDate = stringToDate(cLine.getTomDat());
+        final LocalDateInterval cLineInterval = LocalDateInterval.including(cLineStartDate, cLineEndDate);
+
+        final LocalDateInterval lastTermInterval = lastTerm.getInterval();
+
+        if (!cLineInterval.overlaps(lastTermInterval)) {
+
+            if (cLineStartDate.isBefore(lastTerm.getStartDate())) {
+                final String message = String.format("Item with charge %s for lease %s cannot be updated. FromDat %s is before last term start date %s", cLine.getKeyToChargeReference(), cLine.getKeyToLeaseExternalReference(), cLine.getFromDat(), lastTerm.getStartDate().toString("yyyy-MM-dd"));
+                messageService.warnUser(message);
+                logger.warn(message);
+                return null;
+            } else {
+                LocalDate ltEnd = lastTerm.getEndDate();
+                termToUpdate = lastTerm.getLeaseItem().newTerm(cLineStartDate, cLineEndDate);
+                lastTerm.setEndDate(ltEnd); // this line may be superfluous ??
+            }
+
+        } else {
+
+            // case: term has no enddate
+            if (lastTermInterval.isOpenEnded()){
+
+                if (cLineStartDate.isAfter(lastTerm.getStartDate())){
+                    termToUpdate = lastTerm.getLeaseItem().newTerm(cLineStartDate, cLineEndDate);
+                    lastTerm.setEndDate(cLineStartDate.minusDays(1)); // this line may be superfluous ??
+                } else {
+                    termToUpdate = lastTerm;
+                    lastTerm.setEndDate(cLineEndDate);
+                }
+
+            } else {
+
+                // case: term has enddate while cLine has not
+                if (cLineInterval.isOpenEnded()){
+
+                    if (cLineStartDate.isAfter(lastTerm.getStartDate())){
+                        termToUpdate = lastTerm.getLeaseItem().newTerm(cLineStartDate, cLineEndDate);
+                        lastTerm.setEndDate(cLineStartDate.minusDays(1)); // this line may be superfluous ??
+                    } else {
+                        termToUpdate = lastTerm;
+                        termToUpdate.setEndDate(cLineEndDate);
+                    }
+
+                } else {
+                    // case: both term and cLine have enddate
+
+                    if (cLineStartDate.isAfter(lastTerm.getStartDate())){
+                        LocalDate endDateToUse = cLineEndDate.isBefore(lastTerm.getEndDate()) ? lastTerm.getEndDate() : cLineEndDate;
+                        termToUpdate = lastTerm.getLeaseItem().newTerm(cLineStartDate, endDateToUse);
+                        lastTerm.setEndDate(cLineStartDate.minusDays(1)); // this line may be superfluous ??
+                    } else {
+                        termToUpdate = lastTerm;
+                        LocalDate endDateToUse = cLineEndDate.isBefore(lastTerm.getEndDate()) ? lastTerm.getEndDate() : cLineEndDate;
+                        termToUpdate.setEndDate(endDateToUse);
+                    }
+
+                }
+
+            }
+
+        }
+
+        return termToUpdate;
+    }
+
 
     public void discard(final FastNetChargingOnLeaseDataLine cdl) {
         final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate());
@@ -634,22 +688,19 @@ public class FastnetImportService {
         closeOverlappingOpenEndedExistingTerms(leaseItem, startDate, endDate);
 
         LeaseTerm leaseTerm = leaseItem.newTerm(startDate, endDate);
-        return updateLeaseTermValue(leaseItem, amount, leaseTerm);
+        return updateLeaseTermValue(leaseItem.getType(), amount, leaseTerm);
     }
 
-    LeaseTerm updateLeaseTermValue(final LeaseItem leaseItem, final BigDecimal amount, final LeaseTerm leaseTerm) {
+    LeaseTerm updateLeaseTermValue(final LeaseItemType leaseItemType, final BigDecimal amount, final LeaseTerm leaseTerm) {
         final BigDecimal value = amount.setScale(2, RoundingMode.HALF_UP);
-        switch (leaseItem.getType()) {
+        switch (leaseItemType) {
 
             case RENT:
                 LeaseTermForIndexable termForIndexable;
 
                 termForIndexable = (LeaseTermForIndexable) leaseTerm;
                 termForIndexable.setSettledValue(value);
-                if (leaseItem.getCharge().getReference().endsWith("-1")) {
-                    // we assume that the first line always contains the base rent
-                    termForIndexable.setBaseValue(value);
-                }
+                termForIndexable.setBaseValue(value); // also for index values (charge SExxx-2 or higher), to prevent falling back to 0 when autocreating new terms
 
                 return termForIndexable;
 
