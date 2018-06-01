@@ -30,8 +30,9 @@ import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.annotation.Where;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
+import org.incode.module.base.dom.utils.TitleBuilder;
+
 import org.estatio.module.base.dom.Importable;
-import org.estatio.module.charge.dom.ChargeRepository;
 import org.estatio.module.lease.dom.Lease;
 import org.estatio.module.lease.dom.LeaseRepository;
 
@@ -90,6 +91,13 @@ import lombok.Setter;
 public class RentRollLine implements Importable {
 
     public RentRollLine() {
+    }
+
+    public String title(){
+        return TitleBuilder.start()
+                .withReference(getKeyToLeaseExternalReference())
+                .withName(getExportDate())
+                .toString();
     }
 
     @Getter @Setter

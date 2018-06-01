@@ -31,6 +31,8 @@ import org.apache.isis.applib.annotation.Where;
 import org.apache.isis.applib.services.clock.ClockService;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
+import org.incode.module.base.dom.utils.TitleBuilder;
+
 import org.estatio.module.base.dom.Importable;
 import org.estatio.module.charge.dom.Charge;
 import org.estatio.module.charge.dom.ChargeRepository;
@@ -127,6 +129,15 @@ import lombok.Setter;
 public class ChargingLine implements Importable {
 
     public ChargingLine() {
+    }
+
+    public String title(){
+        return TitleBuilder.start()
+                .withReference(getKeyToLeaseExternalReference())
+                .withReference(getKeyToChargeReference())
+                .withName(getExportDate())
+                .withName(getArsBel())
+                .toString();
     }
 
     @Getter @Setter
