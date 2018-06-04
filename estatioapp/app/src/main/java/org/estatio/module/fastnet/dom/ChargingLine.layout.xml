@@ -21,6 +21,7 @@
                 <cpt:property id="leaseItem"/>
                 <cpt:property id="exportDate"/>
                 <cpt:property id="importStatus"/>
+                <cpt:property id="importLog"/>
                 <cpt:property id="applied"/>
                 <cpt:property id="kontraktNr"/>
                 <cpt:property id="kundNr"/>

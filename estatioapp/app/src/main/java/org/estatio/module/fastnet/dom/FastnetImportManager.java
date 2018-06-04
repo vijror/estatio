@@ -3,6 +3,7 @@ package org.estatio.module.fastnet.dom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -19,7 +20,6 @@ import org.apache.isis.applib.annotation.ActionLayout;
 import org.apache.isis.applib.annotation.CollectionLayout;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.Programmatic;
-import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.annotation.Publishing;
 import org.apache.isis.applib.value.Blob;
 import org.apache.isis.schema.utils.jaxbadapters.JodaLocalDateStringAdapter;
@@ -64,10 +64,6 @@ public class FastnetImportManager {
     @Getter @Setter
     @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
     private LocalDate exportDate;
-
-    @Getter @Setter
-    @PropertyLayout(multiLine = 20)
-    private String importLog;
 
     @Setter
     private List<FastNetRentRollOnLeaseDataLine> nonMatchingDataLines = new ArrayList<>();
@@ -168,7 +164,7 @@ public class FastnetImportManager {
     @Action(associateWith = "readyForImport", publishing = Publishing.DISABLED)
     @ActionLayout(named = "import")
     @CollectionLayout(defaultView = "excel")
-    public void doImport() {
+    public FastnetImportManager doImport() {
 
         getLinesForItemUpdate().forEach(cdl -> {
             fastnetImportService.updateOrCreateItem(cdl);
@@ -186,21 +182,7 @@ public class FastnetImportManager {
             fastnetImportService.noUpdate(cdl);
         });
 
-        for (ChargingLine line : chargingLineRepository.findByExportDate(getExportDate())){
-            if (line.getImportStatus()==null){
-                if (line.getImportLog()!=null){
-                    if (this.getImportLog()==null){
-                        setImportLog(line.getImportLog());
-                    } else {
-                        String nwLog = this.getImportLog();
-                        nwLog.concat("\n\r");
-                        nwLog.concat(line.getImportLog());
-                        this.setImportLog(nwLog);
-                    }
-                }
-            }
-        }
-
+        return this;
     }
 
     @Action()
@@ -228,6 +210,17 @@ public class FastnetImportManager {
         WorksheetSpec spec10 = new WorksheetSpec(FastNetChargingOnLeaseDataLine.class, "discardedLines");
         WorksheetContent content10 = new WorksheetContent(getDiscardedLines(), spec10);
         return excelService.toExcel(Arrays.asList(content0, content1, content2, content3, content4, content5, content6, content7, content8, content9, content10), "analysis export date " + getExportDate().toString("yyyy-MM-dd") + ".xlsx");
+    }
+
+    @Action
+    public Blob downloadImportLog(){
+        List<ChargingLine> linesWithLogMessage = chargingLineRepository.findByExportDate(getExportDate())
+                .stream()
+                .filter(line->line.getImportLog()!=null)
+                .collect(Collectors.toList());
+        WorksheetSpec spec0 = new WorksheetSpec(ChargingLine.class, "lines with log message");
+        WorksheetContent content0 = new WorksheetContent(linesWithLogMessage, spec0);
+        return excelService.toExcel(content0, "import log " + getExportDate().toString("yyyy-MM-dd") + ".xlsx");
     }
 
     @XmlTransient
