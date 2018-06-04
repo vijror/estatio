@@ -330,7 +330,8 @@ public class FastnetImportService {
 
         if (cLine.getFromDat() == null) {
             final String message = String.format("Charging line for lease %s with charge %s has no start date (fromdat).", cLine.getKeyToLeaseExternalReference(), cLine.getKeyToChargeReference());
-            messageService.warnUser(message);
+//            messageService.warnUser(message);
+            cLine.appendImportLog(message);
             logger.warn(message);
             return null;
         }
@@ -369,7 +370,8 @@ public class FastnetImportService {
         for (ChargingLine cLine : linesWithSameCharge) {
             if (cLine.getFromDat() == null) {
                 final String message = String.format("Charging line for lease %s with charge %s has no start date (fromdat) while also multiple lines with this charge found. Please handle manually.", cLine.getKeyToLeaseExternalReference(), cLine.getKeyToChargeReference());
-                messageService.warnUser(message);
+//                messageService.warnUser(message);
+                cLine.appendImportLog(message);
                 logger.warn(message);
                 return null;
             }
@@ -407,7 +409,10 @@ public class FastnetImportService {
                 }
             }
             final String message = String.format("Multiple lines for lease %s with charge %s found that could not be aggregated. Please handle manually.", linesWithSameCharge.get(0).getKeyToLeaseExternalReference(), linesWithSameCharge.get(0).getKeyToChargeReference());
-            messageService.warnUser(message);
+            // messageService.warnUser(message);
+            for (ChargingLine cLine : linesWithSameCharge) {
+                cLine.appendImportLog(message);
+            }
             logger.warn(message);
             return null;
 
@@ -485,7 +490,8 @@ public class FastnetImportService {
 
         if (itemToUpdate == null) {
             final String message = String.format("Item with charge %s not found for lease %s.", charge.getReference(), cLine.getKeyToLeaseExternalReference());
-            messageService.warnUser(message);
+//            messageService.warnUser(message);
+            cLine.appendImportLog(message);
             logger.warn(message);
             return null;
         }
@@ -495,12 +501,16 @@ public class FastnetImportService {
             itemToUpdate.setInvoicingFrequency(frequency);
         } else {
             final String message = String.format("Value debPer %s could not be mapped to invoicing frequency for charge %s on lease %s.", cLine.getDebPer(), charge.getReference(), cLine.getKeyToLeaseExternalReference());
-            messageService.warnUser(message);
+//            messageService.warnUser(message);
+            cLine.appendImportLog(message);
             logger.warn(message);
             return null;
         }
 
         LeaseTerm termToUpdate = findOrCreateTermToUpdate(itemToUpdate, cLine);
+        if (termToUpdate==null){
+            return null;
+        }
 
         itemToUpdate.setEndDate(itemToUpdate.getTerms().last().getEndDate());
 
@@ -535,7 +545,8 @@ public class FastnetImportService {
 
             if (cLineStartDate.isBefore(lastTerm.getStartDate())) {
                 final String message = String.format("Item with charge %s for lease %s cannot be updated. FromDat %s is before last term start date %s", cLine.getKeyToChargeReference(), cLine.getKeyToLeaseExternalReference(), cLine.getFromDat(), lastTerm.getStartDate().toString("yyyy-MM-dd"));
-                messageService.warnUser(message);
+//                messageService.warnUser(message);
+                cLine.appendImportLog(message);
                 logger.warn(message);
                 return null;
             } else {
@@ -619,7 +630,8 @@ public class FastnetImportService {
         final Charge charge = chargeRepository.findByReference(cLine.getKeyToChargeReference());
         if (charge == null) {
             final String message = String.format("Charge with reference %s not found for lease %s.", cLine.getKeyToChargeReference(), cLine.getKeyToLeaseExternalReference());
-            messageService.warnUser(message);
+//            messageService.warnUser(message);
+            cLine.appendImportLog(message);
             logger.warn(message);
             return null;
         }
@@ -630,13 +642,15 @@ public class FastnetImportService {
         final List<Lease> canditateLeaseForUpdate = leaseRepository.matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
         if (canditateLeaseForUpdate.isEmpty()) {
             final String message = String.format("Lease with external reference %s not found.", cLine.getKeyToLeaseExternalReference());
-            messageService.warnUser(message);
+//            messageService.warnUser(message);
+            cLine.appendImportLog(message);
             logger.warn(message);
             return null;
         }
         if (canditateLeaseForUpdate.size() > 1) {
             final String message = String.format("Multiple leases with external reference %s found.", cLine.getKeyToLeaseExternalReference());
-            messageService.warnUser(message);
+//            messageService.warnUser(message);
+            cLine.appendImportLog(message);
             logger.warn(message);
             return null;
         }

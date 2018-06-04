@@ -10,11 +10,12 @@ import java.util.TreeSet;
 import org.jmock.Expectations;
 import org.jmock.auto.Mock;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import org.apache.isis.applib.services.message.MessageService;
+import org.apache.isis.applib.services.clock.ClockService;
 import org.apache.isis.core.unittestsupport.jmocking.JUnitRuleMockery2;
 
 import org.estatio.module.charge.dom.Charge;
@@ -327,7 +328,7 @@ public class FastnetImportService_Test {
 
     }
 
-    @Mock MessageService mockMessageService;
+    @Mock ClockService mockClockService;
 
     @Test
     public void update_item_and_term_when_lease_not_found() throws Exception {
@@ -335,8 +336,9 @@ public class FastnetImportService_Test {
         // given
         FastnetImportService service = new FastnetImportService();
         service.leaseRepository = mockLeaseRepository;
-        service.messageService = mockMessageService;
         ChargingLine cLine = new ChargingLine();
+        cLine.clockService = mockClockService;
+
         cLine.setFromDat("2018-01-01");
         cLine.setKeyToLeaseExternalReference("ABCD");
 
@@ -344,11 +346,15 @@ public class FastnetImportService_Test {
         context.checking(new Expectations() {{
             oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
             will(returnValue(Arrays.asList()));
-            oneOf(mockMessageService).warnUser("Lease with external reference ABCD not found.");
+            oneOf(mockClockService).nowAsLocalDateTime();
+            will(returnValue(LocalDateTime.parse("2018-01-01")));
         }});
 
         // when
         service.updateOrCreateItemAndTerm(cLine);
+
+        // then
+        assertThat(cLine.getImportLog()).isEqualTo("2018-01-01 00:00:00 Lease with external reference ABCD not found.");
 
     }
 
@@ -359,8 +365,8 @@ public class FastnetImportService_Test {
         FastnetImportService service = new FastnetImportService();
         service.leaseRepository = mockLeaseRepository;
         service.chargeRepository = mockChargeRepository;
-        service.messageService = mockMessageService;
         ChargingLine cLine = new ChargingLine();
+        cLine.clockService = mockClockService;
         cLine.setFromDat("2018-01-01");
         cLine.setKeyToLeaseExternalReference("ABCD");
         cLine.setKeyToChargeReference("SE123-4");
@@ -371,11 +377,16 @@ public class FastnetImportService_Test {
             will(returnValue(Arrays.asList(new Lease())));
             oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
             will(returnValue(null));
-            oneOf(mockMessageService).warnUser("Charge with reference SE123-4 not found for lease ABCD.");
+            oneOf(mockClockService).nowAsLocalDateTime();
+            will(returnValue(LocalDateTime.parse("2018-01-01")));
+//            oneOf(mockMessageService).warnUser("Charge with reference SE123-4 not found for lease ABCD.");
         }});
 
         // when
         service.updateOrCreateItemAndTerm(cLine);
+
+        // then
+        assertThat(cLine.getImportLog()).isEqualTo("2018-01-01 00:00:00 Charge with reference SE123-4 not found for lease ABCD.");
 
     }
 
@@ -402,8 +413,8 @@ public class FastnetImportService_Test {
         service.chargingLineRepository = mockChargingLineRepository;
         service.leaseRepository = mockLeaseRepository;
         service.chargeRepository = mockChargeRepository;
-        service.messageService = mockMessageService;
         ChargingLine cLine = new ChargingLine();
+        cLine.clockService = mockClockService;
         cLine.setKeyToLeaseExternalReference("ABCD");
         cLine.setKeyToChargeReference("SE123-4");
         cLine.setFromDat("2018-01-01");
@@ -424,11 +435,16 @@ public class FastnetImportService_Test {
             will(returnValue(charge));
             oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
             will(returnValue(mockLeaseItem));
-            oneOf(mockMessageService).warnUser("Value debPer some_thing_not_recognized could not be mapped to invoicing frequency for charge SE123-4 on lease ABCD.");
+            oneOf(mockClockService).nowAsLocalDateTime();
+            will(returnValue(LocalDateTime.parse("2018-01-01")));
+//            oneOf(mockMessageService).warnUser("Value debPer some_thing_not_recognized could not be mapped to invoicing frequency for charge SE123-4 on lease ABCD.");
         }});
 
         // when
         service.updateOrCreateItemAndTerm(cLine);
+        // then
+        assertThat(cLine.getImportLog()).isEqualTo("2018-01-01 00:00:00 Value debPer some_thing_not_recognized could not be mapped to invoicing frequency for charge SE123-4 on lease ABCD.");
+
 
     }
 
@@ -448,7 +464,6 @@ public class FastnetImportService_Test {
         service.chargingLineRepository = mockChargingLineRepository;
         service.leaseRepository = mockLeaseRepository;
         service.chargeRepository = mockChargeRepository;
-        service.messageService = mockMessageService;
         ChargingLine cLine = new ChargingLine();
         cLine.setKeyToLeaseExternalReference("ABCD");
         cLine.setKeyToChargeReference("SE123-4");
@@ -502,7 +517,6 @@ public class FastnetImportService_Test {
         service.chargingLineRepository = mockChargingLineRepository;
         service.leaseRepository = mockLeaseRepository;
         service.chargeRepository = mockChargeRepository;
-        service.messageService = mockMessageService;
         ChargingLine cLine = new ChargingLine();
         cLine.setKeyToLeaseExternalReference("ABCD");
         cLine.setKeyToChargeReference("SE123-4");
@@ -548,8 +562,8 @@ public class FastnetImportService_Test {
         // given
         FastnetImportService service = new FastnetImportService();
         service.leaseRepository = mockLeaseRepository;
-        service.messageService = mockMessageService;
         ChargingLine cLine = new ChargingLine();
+        cLine.clockService = mockClockService;
         cLine.setFromDat("2018-01-01");
         cLine.setKeyToLeaseExternalReference("ABCD");
 
@@ -557,11 +571,16 @@ public class FastnetImportService_Test {
         context.checking(new Expectations() {{
             oneOf(mockLeaseRepository).matchLeaseByExternalReference(cLine.getKeyToLeaseExternalReference());
             will(returnValue(Arrays.asList()));
-            oneOf(mockMessageService).warnUser("Lease with external reference ABCD not found.");
+            oneOf(mockClockService).nowAsLocalDateTime();
+            will(returnValue(LocalDateTime.parse("2018-01-01")));
+
+//            oneOf(mockMessageService).warnUser("Lease with external reference ABCD not found.");
         }});
 
         // when
         service.updateOrCreateItemAndTerm(cLine);
+        // then
+        assertThat(cLine.getImportLog()).isEqualTo("2018-01-01 00:00:00 Lease with external reference ABCD not found.");
 
     }
 
@@ -572,8 +591,8 @@ public class FastnetImportService_Test {
         FastnetImportService service = new FastnetImportService();
         service.leaseRepository = mockLeaseRepository;
         service.chargeRepository = mockChargeRepository;
-        service.messageService = mockMessageService;
         ChargingLine cLine = new ChargingLine();
+        cLine.clockService = mockClockService;
         cLine.setFromDat("2018-01-01");
         cLine.setKeyToLeaseExternalReference("ABCD");
         cLine.setKeyToChargeReference("SE123-4");
@@ -584,11 +603,15 @@ public class FastnetImportService_Test {
             will(returnValue(Arrays.asList(new Lease())));
             oneOf(mockChargeRepository).findByReference(cLine.getKeyToChargeReference());
             will(returnValue(null));
-            oneOf(mockMessageService).warnUser("Charge with reference SE123-4 not found for lease ABCD.");
+            oneOf(mockClockService).nowAsLocalDateTime();
+            will(returnValue(LocalDateTime.parse("2018-01-01")));
+//            oneOf(mockMessageService).warnUser("Charge with reference SE123-4 not found for lease ABCD.");
         }});
 
         // when
         service.updateOrCreateItemAndTerm(cLine);
+        // then
+        assertThat(cLine.getImportLog()).isEqualTo("2018-01-01 00:00:00 Charge with reference SE123-4 not found for lease ABCD.");
 
     }
 
@@ -740,7 +763,6 @@ public class FastnetImportService_Test {
     public void handle_ChargingLines_With_Same_Charge_works_when_no_start_date() throws Exception {
 
         FastnetImportService service = new FastnetImportService();
-        service.messageService = mockMessageService;
         Lease lease = new Lease();
         Charge charge = new Charge();
         ChargeGroup group = new ChargeGroup();
@@ -748,21 +770,28 @@ public class FastnetImportService_Test {
         charge.setGroup(group);
 
         ChargingLine line1 = new ChargingLine();
+        line1.clockService = mockClockService;
         line1.setTomDat("2017-12-31");
         line1.setKeyToLeaseExternalReference("ABCD");
         line1.setKeyToChargeReference("SE123-4");
         ChargingLine line2 = new ChargingLine();
+        line2.clockService = mockClockService;
         line2.setFromDat("2017-01-01");
 
         List<ChargingLine> linesWithSameCharge = Arrays.asList(line1, line2);
 
         // expect
         context.checking(new Expectations() {{
-            oneOf(mockMessageService).warnUser("Charging line for lease ABCD with charge SE123-4 has no start date (fromdat) while also multiple lines with this charge found. Please handle manually.");
+            allowing(mockClockService).nowAsLocalDateTime();
+            will(returnValue(LocalDateTime.parse("2018-01-01")));
+//            oneOf(mockMessageService).warnUser("Charging line for lease ABCD with charge SE123-4 has no start date (fromdat) while also multiple lines with this charge found. Please handle manually.");
         }});
 
         // when
         service.handleChargingLinesWithSameCharge(linesWithSameCharge, lease, charge);
+        // then
+        assertThat(line1.getImportLog()).isEqualTo("2018-01-01 00:00:00 Charging line for lease ABCD with charge SE123-4 has no start date (fromdat) while also multiple lines with this charge found. Please handle manually.");
+        assertThat(line2.getImportLog()).isNull();
 
     }
 
@@ -771,7 +800,6 @@ public class FastnetImportService_Test {
 
         // given
         FastnetImportService service = new FastnetImportService();
-        service.messageService = mockMessageService;
         Lease lease = new Lease();
         Charge charge = new Charge();
         ChargeGroup group = new ChargeGroup();
@@ -779,11 +807,13 @@ public class FastnetImportService_Test {
         charge.setGroup(group);
 
         ChargingLine line1 = new ChargingLine();
+        line1.clockService = mockClockService;
         line1.setFromDat("2017-1-1");
         line1.setTomDat("2017-12-31");
         line1.setKeyToLeaseExternalReference("ABCD");
         line1.setKeyToChargeReference("SE123-4");
         ChargingLine line2 = new ChargingLine();
+        line2.clockService = mockClockService;
         line2.setFromDat("2017-12-31");
         line2.setTomDat("2018-06-20");
 
@@ -791,11 +821,16 @@ public class FastnetImportService_Test {
 
         // expect
         context.checking(new Expectations() {{
-            oneOf(mockMessageService).warnUser("Multiple lines for lease ABCD with charge SE123-4 found that could not be aggregated. Please handle manually.");
+            allowing(mockClockService).nowAsLocalDateTime();
+            will(returnValue(LocalDateTime.parse("2018-01-01")));
+//            oneOf(mockMessageService).warnUser("Multiple lines for lease ABCD with charge SE123-4 found that could not be aggregated. Please handle manually.");
         }});
 
         // when
         service.handleChargingLinesWithSameCharge(linesWithSameCharge, lease, charge);
+        // then
+        assertThat(line1.getImportLog()).isEqualTo("2018-01-01 00:00:00 Multiple lines for lease ABCD with charge SE123-4 found that could not be aggregated. Please handle manually.");
+        assertThat(line2.getImportLog()).isEqualTo("2018-01-01 00:00:00 Multiple lines for lease ABCD with charge SE123-4 found that could not be aggregated. Please handle manually.");
 
     }
 
@@ -805,7 +840,6 @@ public class FastnetImportService_Test {
         // given
         FastnetImportService service = new FastnetImportService();
         service.chargingLineRepository = mockChargingLineRepository;
-        service.messageService = mockMessageService;
         Lease lease = new Lease();
         Charge charge = new Charge();
         ChargeGroup group = new ChargeGroup();
@@ -842,7 +876,6 @@ public class FastnetImportService_Test {
         // given
         FastnetImportService service = new FastnetImportService();
         service.chargingLineRepository = mockChargingLineRepository;
-        service.messageService = mockMessageService;
         Lease lease = new Lease();
         Charge charge = new Charge();
         ChargeGroup group = new ChargeGroup();
@@ -931,18 +964,23 @@ public class FastnetImportService_Test {
         // given
         FastnetImportService service = new FastnetImportService();
         service.leaseRepository = mockLeaseRepository;
-        service.messageService = mockMessageService;
         ChargingLine cLine = new ChargingLine();
+        cLine.clockService = mockClockService;
         cLine.setKeyToChargeReference("SE123-1");
         cLine.setKeyToLeaseExternalReference("ABCD");
 
         // expect
         context.checking(new Expectations() {{
-            oneOf(mockMessageService).warnUser("Charging line for lease ABCD with charge SE123-1 has no start date (fromdat).");
+            oneOf(mockClockService).nowAsLocalDateTime();
+            will(returnValue(LocalDateTime.parse("2018-01-01")));
+//            oneOf(mockMessageService).warnUser("Charging line for lease ABCD with charge SE123-1 has no start date (fromdat).");
         }});
 
         // when
         service.updateOrCreateItemAndTerm(cLine);
+        // then
+        assertThat(cLine.getImportLog()).isEqualTo("2018-01-01 00:00:00 Charging line for lease ABCD with charge SE123-1 has no start date (fromdat).");
+
     }
 
     @Test
@@ -1153,15 +1191,19 @@ public class FastnetImportService_Test {
 
         // given
         FastnetImportService service = new FastnetImportService();
-        service.messageService = mockMessageService;
+        cLine.clockService = mockClockService;
 
         // expect
         context.checking(new Expectations(){{
-            oneOf(mockMessageService).warnUser("Item with charge null for lease null cannot be updated. FromDat 2016-01-01 is before last term start date 2017-01-01");
+            oneOf(mockClockService).nowAsLocalDateTime();
+            will(returnValue(LocalDateTime.parse("2018-01-01")));
+//            oneOf(mockMessageService).warnUser("Item with charge null for lease null cannot be updated. FromDat 2016-01-01 is before last term start date 2017-01-01");
         }});
 
         // when
         service.deriveTermToUpdateFromLastTerm(lastTerm, cLine);
+        // then
+        assertThat(cLine.getImportLog()).isEqualTo("2018-01-01 00:00:00 Item with charge null for lease null cannot be updated. FromDat 2016-01-01 is before last term start date 2017-01-01");
 
     }
 

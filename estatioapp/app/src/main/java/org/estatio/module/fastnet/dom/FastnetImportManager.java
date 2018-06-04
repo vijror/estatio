@@ -19,6 +19,7 @@ import org.apache.isis.applib.annotation.ActionLayout;
 import org.apache.isis.applib.annotation.CollectionLayout;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.Programmatic;
+import org.apache.isis.applib.annotation.PropertyLayout;
 import org.apache.isis.applib.annotation.Publishing;
 import org.apache.isis.applib.value.Blob;
 import org.apache.isis.schema.utils.jaxbadapters.JodaLocalDateStringAdapter;
@@ -35,6 +36,7 @@ import lombok.Setter;
 @XmlType(
         propOrder = {
                 "exportDate",
+                "importLog",
                 "nonMatchingDataLines",
                 "partialMatchingDataLines",
                 "linesWithoutKontraktNr",
@@ -62,6 +64,10 @@ public class FastnetImportManager {
     @Getter @Setter
     @XmlJavaTypeAdapter(JodaLocalDateStringAdapter.ForJaxb.class)
     private LocalDate exportDate;
+
+    @Getter @Setter
+    @PropertyLayout(multiLine = 20)
+    private String importLog;
 
     @Setter
     private List<FastNetRentRollOnLeaseDataLine> nonMatchingDataLines = new ArrayList<>();
@@ -180,6 +186,21 @@ public class FastnetImportManager {
             fastnetImportService.noUpdate(cdl);
         });
 
+        for (ChargingLine line : chargingLineRepository.findByExportDate(getExportDate())){
+            if (line.getImportStatus()==null){
+                if (line.getImportLog()!=null){
+                    if (this.getImportLog()==null){
+                        setImportLog(line.getImportLog());
+                    } else {
+                        String nwLog = this.getImportLog();
+                        nwLog.concat("\n\r");
+                        nwLog.concat(line.getImportLog());
+                        this.setImportLog(nwLog);
+                    }
+                }
+            }
+        }
+
     }
 
     @Action()
@@ -216,5 +237,9 @@ public class FastnetImportManager {
     @XmlTransient
     @Inject
     FastnetImportService fastnetImportService;
+
+    @XmlTransient
+    @Inject
+    ChargingLineRepository chargingLineRepository;
 
 }

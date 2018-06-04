@@ -291,6 +291,25 @@ public class ChargingLine implements Importable {
     @Column(allowsNull = "true")
     private ImportStatus importStatus;
 
+    @Getter @Setter
+    @Column(allowsNull = "true", length = 255)
+    @PropertyLayout(multiLine = 5)
+    private String importLog;
+
+    void appendImportLog(final String msg){
+        final String prefix = clockService.nowAsLocalDateTime().toString("yyyy-MM-dd HH:mm:ss") + " ";
+        String nwContent = prefix;
+        if (getImportLog()!=null) {
+            nwContent = nwContent.concat(msg).concat(" ").concat(getImportLog());
+        } else {
+            nwContent = nwContent.concat(msg);
+        }
+        if (nwContent.length()>254) {
+            nwContent = nwContent.substring(0,254);
+        }
+        setImportLog(nwContent);
+    }
+
     @PropertyLayout(hidden = Where.PARENTED_TABLES)
     public Lease getLease() {
         final List<Lease> matches = leaseRepository.matchLeaseByExternalReference(getKeyToLeaseExternalReference());
