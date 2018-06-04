@@ -2,6 +2,7 @@ package org.estatio.module.fastnet.dom;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -160,12 +161,22 @@ public class ChargingLineRepository {
             x.importData(null);
         });
         try {
-            List<ChargingLine> chargingFutureLinesIncluded =
+            List<ChargingLine> chargingFutureLines =
                     excelService.fromExcel(spreadsheet, ChargingLine.class, "Charging (2)", Mode.RELAXED);
-            chargingFutureLinesIncluded.forEach(x -> {
-                serviceRegistry2.injectServicesInto(x);
-                x.importData(null);
-            });
+            if (!chargingFutureLines.isEmpty()) {
+                LocalDate exportDate = chargingFutureLines.get(0).getImportDate().toLocalDate();
+                List<String> futureKontrakts = rentRollLineRepository.findByExportDate(exportDate)
+                        .stream()
+                        .filter(l -> l.isFutureRentRollLine())
+                        .map(l -> l.getKontraktNr())
+                        .collect(Collectors.toList());
+                chargingFutureLines.forEach(x -> {
+                    if (futureKontrakts.contains(x.getKontraktNr())) {
+                        serviceRegistry2.injectServicesInto(x);
+                        x.importData(null);
+                    }
+                });
+            }
         } catch (IllegalArgumentException e){
             // do nothing
         }
@@ -187,5 +198,8 @@ public class ChargingLineRepository {
 
     @Inject
     ExcelService excelService;
+
+    @Inject
+    RentRollLineRepository rentRollLineRepository;
 
 }
