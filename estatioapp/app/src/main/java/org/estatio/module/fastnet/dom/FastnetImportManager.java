@@ -213,11 +213,23 @@ public class FastnetImportManager {
 
     @Action
     public Blob downloadImportLog(){
-        List<ChargingLine> linesWithLogMessage = chargingLineRepository.findByExportDate(getExportDate())
+        List<ChargingLineLogViewModel> linesWithLogMessage = chargingLineRepository.findByExportDate(getExportDate())
                 .stream()
                 .filter(line->line.getImportLog()!=null)
+                .map(line->new ChargingLineLogViewModel(
+                        line.getImportLog(),
+                        line.getApplied(),
+                        line.getImportStatus(),
+                        line.getLease()!=null ? line.getLease().getReference() : null,
+                        line.getKeyToLeaseExternalReference(),
+                        line.getKeyToChargeReference(),
+                        line.getFromDat(),
+                        line.getTomDat(),
+                        line.getArsBel(),
+                        line.getExportDate()
+                        ))
                 .collect(Collectors.toList());
-        WorksheetSpec spec0 = new WorksheetSpec(ChargingLine.class, "lines with log message");
+        WorksheetSpec spec0 = new WorksheetSpec(ChargingLineLogViewModel.class, "lines with log message");
         WorksheetContent content0 = new WorksheetContent(linesWithLogMessage, spec0);
         return excelService.toExcel(content0, "import log " + getExportDate().toString("yyyy-MM-dd") + ".xlsx");
     }
