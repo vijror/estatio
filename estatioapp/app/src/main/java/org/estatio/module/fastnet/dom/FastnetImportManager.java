@@ -36,7 +36,6 @@ import lombok.Setter;
 @XmlType(
         propOrder = {
                 "exportDate",
-                "importLog",
                 "nonMatchingDataLines",
                 "partialMatchingDataLines",
                 "linesWithoutKontraktNr",
