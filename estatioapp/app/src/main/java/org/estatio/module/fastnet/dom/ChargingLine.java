@@ -305,7 +305,7 @@ public class ChargingLine implements Importable {
 
     @Getter @Setter
     @Column(allowsNull = "true", length = 255)
-    @PropertyLayout(multiLine = 5)
+    @PropertyLayout(multiLine = 5, hidden = Where.ALL_TABLES)
     private String importLog;
 
     void appendImportLog(final String msg){
