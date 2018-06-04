@@ -322,8 +322,8 @@ public class FastnetImportService {
     }
 
     void updateOrCreateItem(final FastNetChargingOnLeaseDataLine cdl) {
-        final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate());
-        cLine.apply();
+        final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate(), null);
+        if (cLine!=null) cLine.apply();
     }
 
     public ImportStatus updateOrCreateItemAndTerm(final ChargingLine cLine) {
@@ -605,13 +605,13 @@ public class FastnetImportService {
 
 
     public void discard(final FastNetChargingOnLeaseDataLine cdl) {
-        final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate());
-        cLine.discard();
+        final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate(), null);
+        if (cLine!=null) cLine.discard();
     }
 
     public void noUpdate(final FastNetChargingOnLeaseDataLine cdl) {
-        final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate());
-        cLine.noUpdate();
+        final ChargingLine cLine = chargingLineRepository.findUnique(cdl.getKeyToLeaseExternalReference(), cdl.getKeyToChargeReference(), cdl.getFromDat(), cdl.getTomDat(), cdl.getArsBel(), cdl.getExportDate(), null);
+        if (cLine!=null) cLine.noUpdate();
     }
 
     ImportStatus createItemAndTerm(final ChargingLine cLine, final Lease lease, final Charge charge) {

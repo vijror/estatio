@@ -116,11 +116,33 @@ public class ChargingLineRepository {
             final String fromDat,
             final String tomDat,
             final BigDecimal arsBel,
-            final LocalDate exportDate) {
+            final LocalDate exportDate,
+            final ImportStatus importStatus) {
         return repositoryService.uniqueMatch(
                 new QueryDefault<>(
                         ChargingLine.class,
                         "findUnique",
+                        "keyToLeaseExternalReference", externalReference,
+                        "keyToChargeReference", chargeReference,
+                        "fromDat", fromDat,
+                        "tomDat", tomDat,
+                        "arsBel", arsBel,
+                        "exportDate", exportDate,
+                        "importStatus", importStatus));
+    }
+
+    @Programmatic
+    public ChargingLine findUniqueDiscardingStatus(
+            final String externalReference,
+            final String chargeReference,
+            final String fromDat,
+            final String tomDat,
+            final BigDecimal arsBel,
+            final LocalDate exportDate) {
+        return repositoryService.firstMatch(
+                new QueryDefault<>(
+                        ChargingLine.class,
+                        "findUniqueDiscardingStatus",
                         "keyToLeaseExternalReference", externalReference,
                         "keyToChargeReference", chargeReference,
                         "fromDat", fromDat,

@@ -110,11 +110,23 @@ import lombok.Setter;
                         + "fromDat == :fromDat && "
                         + "tomDat == :tomDat && "
                         + "arsBel == :arsBel && "
+                        + "exportDate == :exportDate && "
+                        + "importStatus == :importStatus "),
+        @Query(
+                name = "findUniqueDiscardingStatus", language = "JDOQL",
+                value = "SELECT "
+                        + "FROM org.estatio.module.fastnet.dom.ChargingLine "
+                        + "WHERE keyToLeaseExternalReference == :keyToLeaseExternalReference && "
+                        + "keyToChargeReference == :keyToChargeReference && "
+                        + "fromDat == :fromDat && "
+                        + "tomDat == :tomDat && "
+                        + "arsBel == :arsBel && "
                         + "exportDate == :exportDate "),
 })
 @Indices({
         @Index(name = "ChargingLine_keyToExternalRef_IDX", members = { "keyToLeaseExternalReference" }),
-        @Index(name = "ChargingLine_keyToExternalRef_keyToChargeRef_IDX", members = { "keyToLeaseExternalReference", "keyToChargeReference" })
+        @Index(name = "ChargingLine_keyToExternalRef_keyToChargeRef_IDX", members = { "keyToLeaseExternalReference", "keyToChargeReference" }),
+        @Index(name = "ChargingLine_unqiue_discarding_status_IDX", members = { "keyToLeaseExternalReference", "keyToChargeReference", "fromDat", "tomDat", "arsBel", "exportDate" })
 })
 @Uniques({
         @Unique(
@@ -383,7 +395,7 @@ public class ChargingLine implements Importable {
         setKeyToLeaseExternalReference(keyToLeaseExternalReference());
         setKeyToChargeReference(keyToChargeReference());
         setExportDate(getImportDate().toLocalDate());
-        if (chargingLineRepository.findUnique(keyToLeaseExternalReference(), keyToChargeReference(), getFromDat(), getTomDat(), getArsBel(), getExportDate()) == null) {
+        if (chargingLineRepository.findUniqueDiscardingStatus(keyToLeaseExternalReference(), keyToChargeReference(), getFromDat(), getTomDat(), getArsBel(), getExportDate()) == null) {
             repositoryService.persistAndFlush(this);
         }
         return Collections.emptyList();
