@@ -51,4 +51,53 @@ public class LeaseTermForFixed_Test {
         }
 
     }
+
+    public static class Align extends LeaseTermForFixed_Test {
+
+        @Test
+        public void align_works_when_autocreate_is_true() throws Exception {
+
+            // given
+            LeaseTermForFixed term = new LeaseTermForFixed();
+            LeaseItem leaseItem = new LeaseItem();
+            leaseItem.setType(LeaseItemType.RENT_INDEX);
+            term.setLeaseItem(leaseItem);
+
+            LeaseTermForFixed previousTerm = new LeaseTermForFixed();
+            previousTerm.setValue(new BigDecimal("100.00"));
+            term.setPrevious(previousTerm);
+
+            // when
+            assertThat(term.getLeaseItem().getType().autoCreateTerms()).isTrue();
+            term.doAlign();
+
+            // then
+            assertThat(term.getValue()).isEqualTo(previousTerm.getValue());
+
+        }
+
+        @Test
+        public void align_works_when_autocreate_is_false() throws Exception {
+
+            // given
+            LeaseTermForFixed term = new LeaseTermForFixed();
+            LeaseItem leaseItem = new LeaseItem();
+            leaseItem.setType(LeaseItemType.RENT_FIXED);
+            term.setLeaseItem(leaseItem);
+
+            LeaseTermForFixed previousTerm = new LeaseTermForFixed();
+            previousTerm.setValue(new BigDecimal("100.00"));
+            term.setPrevious(previousTerm);
+
+            // when
+            assertThat(term.getLeaseItem().getType().autoCreateTerms()).isFalse();
+            term.doAlign();
+
+            // then
+            assertThat(term.getValue()).isNull();
+
+        }
+
+    }
+
 }

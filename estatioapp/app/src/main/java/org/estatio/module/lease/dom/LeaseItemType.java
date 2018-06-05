@@ -32,6 +32,7 @@ import org.incode.module.base.dom.utils.StringUtils;
 public enum LeaseItemType implements PowerType<LeaseTerm> {
 
     RENT(LeaseTermForIndexable.class, true, false, true),
+    RENT_INDEX(LeaseTermForFixed.class, true, false, true),
     RENT_FIXED(LeaseTermForFixed.class, false, false, true),
     RENT_DISCOUNT(LeaseTermForIndexable.class, false, false, true),
     RENT_DISCOUNT_FIXED(LeaseTermForFixed.class, false, false, true),
