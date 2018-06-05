@@ -69,10 +69,17 @@ public class LeaseTermForFixed_Test {
 
             // when
             assertThat(term.getLeaseItem().getType().autoCreateTerms()).isTrue();
+            assertThat(term.getValue()).isNull(); // only then the value will be set when aligning
             term.doAlign();
 
             // then
             assertThat(term.getValue()).isEqualTo(previousTerm.getValue());
+
+            // and when
+            term.setValue(new BigDecimal("12.34"));
+            term.doAlign();
+            // then
+            assertThat(term.getValue()).isEqualTo(new BigDecimal("12.34"));
 
         }
 
