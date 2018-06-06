@@ -39,7 +39,6 @@ import org.estatio.module.lease.dom.LeaseItemType;
 import org.estatio.module.lease.dom.LeaseRepository;
 import org.estatio.module.lease.dom.LeaseTerm;
 import org.estatio.module.lease.dom.LeaseTermForFixed;
-import org.estatio.module.lease.dom.LeaseTermForIndexable;
 import org.estatio.module.lease.dom.LeaseTermForServiceCharge;
 
 @DomainService(nature = NatureOfService.DOMAIN)
@@ -660,12 +659,19 @@ public class FastnetImportService {
     Lease closeAllItemsOfTypeActiveOnEpochDate(final Lease lease, final LeaseItemType leaseItemType) {
         throwExceptionIfLeaseItemTypeIsNotYetImplemented(leaseItemType);
         lease.findItemsOfType(leaseItemType).stream().filter(x -> x.getInterval().contains(EPOCH_DATE_FASTNET_IMPORT.minusDays(1))).forEach(x -> x.setEndDate(EPOCH_DATE_FASTNET_IMPORT.minusDays(1)));
+        // this is needed now since we map rent items to rent fixed.
+        if (leaseItemType.equals(LeaseItemType.RENT_FIXED)){
+            lease.findItemsOfType(LeaseItemType.RENT).stream().filter(x -> x.getInterval().contains(EPOCH_DATE_FASTNET_IMPORT.minusDays(1))).forEach(x -> x.setEndDate(EPOCH_DATE_FASTNET_IMPORT.minusDays(1)));
+        }
         return lease;
     }
 
     @Programmatic
     public LeaseItemType mapToLeaseItemType(final Charge charge) {
         if (!charge.getGroup().getReference().equals("SE_DISCARD")){
+
+            if (charge.getGroup().getReference().equals("SE_RENT_INDEX")) return LeaseItemType.RENT_FIXED; // this charge group is used to distinguish value of indexation from the value of base rent
+
             return LeaseItemType.valueOf(charge.getGroup().getReference().replace("SE_", "")); // by convention
         }
         return null;
@@ -691,7 +697,7 @@ public class FastnetImportService {
     }
 
     private void throwExceptionIfLeaseItemTypeIsNotYetImplemented(final LeaseItemType leaseItemType) {
-        if (!Arrays.asList(LeaseItemType.RENT, LeaseItemType.RENT_INDEX, LeaseItemType.TURNOVER_RENT_FIXED, LeaseItemType.SERVICE_CHARGE, LeaseItemType.PROPERTY_TAX, LeaseItemType.MARKETING, LeaseItemType.RENT_DISCOUNT_FIXED, LeaseItemType.RENT_FIXED).contains(leaseItemType)) {
+        if (!Arrays.asList(LeaseItemType.RENT_FIXED, LeaseItemType.TURNOVER_RENT_FIXED, LeaseItemType.SERVICE_CHARGE, LeaseItemType.PROPERTY_TAX, LeaseItemType.MARKETING, LeaseItemType.RENT_DISCOUNT_FIXED).contains(leaseItemType)) {
             throw new RuntimeException("Type  " + leaseItemType + " not yet supported");
         }
     }
@@ -709,60 +715,44 @@ public class FastnetImportService {
         final BigDecimal value = amount.setScale(2, RoundingMode.HALF_UP);
         switch (leaseItemType) {
 
-            case RENT:
-                LeaseTermForIndexable termForIndexable;
+            case RENT_FIXED:
+            LeaseTermForFixed termForRentFixed;
+            termForRentFixed = (LeaseTermForFixed) leaseTerm;
+            termForRentFixed.setValue(value);
 
-                termForIndexable = (LeaseTermForIndexable) leaseTerm;
-                termForIndexable.setSettledValue(value);
-                termForIndexable.setBaseValue(value); // also for index values (charge SExxx-2 or higher), to prevent falling back to 0 when autocreating new terms
-
-                return termForIndexable;
-
-            case RENT_INDEX:
-                LeaseTermForFixed termForRentIndex;
-                termForRentIndex = (LeaseTermForFixed) leaseTerm;
-                termForRentIndex.setValue(value);
-
-                return termForRentIndex;
+            return termForRentFixed;
 
             case TURNOVER_RENT_FIXED:
-                LeaseTermForFixed termForTurnoverRent;
-                termForTurnoverRent = (LeaseTermForFixed) leaseTerm;
-                termForTurnoverRent.setValue(value);
+            LeaseTermForFixed termForTurnoverRent;
+            termForTurnoverRent = (LeaseTermForFixed) leaseTerm;
+            termForTurnoverRent.setValue(value);
 
-                return termForTurnoverRent;
+            return termForTurnoverRent;
 
             case SERVICE_CHARGE:
-                LeaseTermForServiceCharge termForServiceCharge;
-                termForServiceCharge = (LeaseTermForServiceCharge) leaseTerm;
-                termForServiceCharge.setBudgetedValue(value);
-                return termForServiceCharge;
+            LeaseTermForServiceCharge termForServiceCharge;
+            termForServiceCharge = (LeaseTermForServiceCharge) leaseTerm;
+            termForServiceCharge.setBudgetedValue(value);
+            return termForServiceCharge;
 
             case PROPERTY_TAX:
-                LeaseTermForServiceCharge termForPropertyTax;
-                termForPropertyTax = (LeaseTermForServiceCharge) leaseTerm;
-                termForPropertyTax.setBudgetedValue(value);
-                return termForPropertyTax;
+            LeaseTermForServiceCharge termForPropertyTax;
+            termForPropertyTax = (LeaseTermForServiceCharge) leaseTerm;
+            termForPropertyTax.setBudgetedValue(value);
+            return termForPropertyTax;
 
             case MARKETING:
-                LeaseTermForServiceCharge termForMarketing;
-                termForMarketing = (LeaseTermForServiceCharge) leaseTerm;
-                termForMarketing.setBudgetedValue(value);
-                return termForMarketing;
+            LeaseTermForServiceCharge termForMarketing;
+            termForMarketing = (LeaseTermForServiceCharge) leaseTerm;
+            termForMarketing.setBudgetedValue(value);
+            return termForMarketing;
 
             case RENT_DISCOUNT_FIXED:
-                LeaseTermForFixed termForRentDiscount;
-                termForRentDiscount = (LeaseTermForFixed) leaseTerm;
-                termForRentDiscount.setValue(value);
+            LeaseTermForFixed termForRentDiscount;
+            termForRentDiscount = (LeaseTermForFixed) leaseTerm;
+            termForRentDiscount.setValue(value);
 
-                return termForRentDiscount;
-
-            case RENT_FIXED:
-                LeaseTermForFixed termForRentFixed;
-                termForRentFixed = (LeaseTermForFixed) leaseTerm;
-                termForRentFixed.setValue(value);
-
-                return termForRentFixed;
+            return termForRentDiscount;
 
             default:
                 // TODO: add support for other types when the time is right

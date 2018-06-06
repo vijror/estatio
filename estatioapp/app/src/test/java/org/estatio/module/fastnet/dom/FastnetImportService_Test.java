@@ -78,14 +78,14 @@ public class FastnetImportService_Test {
         // given
         FastnetImportService service = new FastnetImportService();
         LeaseItem leaseItem = new LeaseItem();
-        LeaseItemType itemType = LeaseItemType.RENT;
+        LeaseItemType itemType = LeaseItemType.RENT_FIXED;
         Charge charge = new Charge();
         InvoicingFrequency frequency = InvoicingFrequency.QUARTERLY_IN_ADVANCE;
         LocalDate startdate = new LocalDate(2018, 01, 01);
 
         // expect
         context.checking(new Expectations() {{
-            oneOf(mockLease).findItemsOfType(LeaseItemType.RENT);
+            oneOf(mockLease).findItemsOfType(LeaseItemType.RENT_FIXED);
             will(Expectations.returnValue(Arrays.asList()));
             oneOf(mockLease).newItem(itemType, LeaseAgreementRoleTypeEnum.LANDLORD, charge, frequency, PaymentMethod.BANK_TRANSFER, startdate);
             will(Expectations.returnValue(leaseItem));
@@ -109,12 +109,12 @@ public class FastnetImportService_Test {
         leaseItem.setCharge(charge);
         LocalDate startdate = new LocalDate(2018, 01, 01);
         leaseItem.setStartDate(startdate);
-        LeaseItemType itemType = LeaseItemType.RENT;
+        LeaseItemType itemType = LeaseItemType.RENT_FIXED;
         InvoicingFrequency frequency = InvoicingFrequency.QUARTERLY_IN_ADVANCE;
 
         // expect
         context.checking(new Expectations() {{
-            oneOf(mockLease).findItemsOfType(LeaseItemType.RENT);
+            oneOf(mockLease).findItemsOfType(LeaseItemType.RENT_FIXED);
             will(Expectations.returnValue(Arrays.asList(leaseItem)));
         }});
 
@@ -137,12 +137,12 @@ public class FastnetImportService_Test {
         leaseItem2.setCharge(charge);
         leaseItem1.setStartDate(startdate);
         leaseItem2.setStartDate(startdate);
-        LeaseItemType itemType = LeaseItemType.RENT;
+        LeaseItemType itemType = LeaseItemType.RENT_FIXED;
         InvoicingFrequency frequency = InvoicingFrequency.QUARTERLY_IN_ADVANCE;
 
         // expect
         context.checking(new Expectations() {{
-            oneOf(mockLease).findItemsOfType(LeaseItemType.RENT);
+            oneOf(mockLease).findItemsOfType(LeaseItemType.RENT_FIXED);
             will(Expectations.returnValue(Arrays.asList(leaseItem1, leaseItem2)));
             oneOf(mockLease).getReference();
             will(Expectations.returnValue("LEASE_REF"));
@@ -150,7 +150,7 @@ public class FastnetImportService_Test {
 
         // then
         expectedException.expect(RuntimeException.class);
-        expectedException.expectMessage("Multiple lease items of type RENT and charge CH_REF found for lease LEASE_REF");
+        expectedException.expectMessage("Multiple lease items of type RENT_FIXEDs and charge CH_REF found for lease LEASE_REF");
 
         // when
         service.findOrCreateLeaseItemForTypeAndCharge(mockLease, itemType, charge, frequency, startdate);
@@ -452,9 +452,9 @@ public class FastnetImportService_Test {
     public void update_item_and_term_when_value_not_found() throws Exception {
 
         // given
-        LeaseTermForIndexable lastTerm = new LeaseTermForIndexable();
+        LeaseTermForFixed lastTerm = new LeaseTermForFixed();
         lastTerm.setEndDate(new LocalDate(2018, 12, 31));
-        LeaseTermForIndexable leaseTerm = new LeaseTermForIndexable();
+        LeaseTermForFixed leaseTerm = new LeaseTermForFixed();
         FastnetImportService service = new FastnetImportService(){
             @Override
             LeaseTerm findOrCreateTermToUpdate(final LeaseItem itemToUpdate, final ChargingLine cLine){
@@ -473,7 +473,7 @@ public class FastnetImportService_Test {
         Charge charge = new Charge();
         charge.setReference(cLine.getKeyToChargeReference());
         ChargeGroup chargeGroup = new ChargeGroup();
-        chargeGroup.setReference("SE_RENT");
+        chargeGroup.setReference("SE_RENT_FIXED");
         charge.setGroup(chargeGroup);
 
         // expect
@@ -491,23 +491,23 @@ public class FastnetImportService_Test {
             oneOf(mockLeaseItem).getTerms();
             will(returnValue(new TreeSet<>(Arrays.asList(lastTerm))));
             oneOf(mockLeaseItem).getType();
-            will(returnValue(LeaseItemType.RENT));
+            will(returnValue(LeaseItemType.RENT_FIXED));
         }});
 
         // when
         service.updateOrCreateItemAndTerm(cLine);
 
         // then
-        assertThat(leaseTerm.getSettledValue()).isEqualTo(BigDecimal.ZERO.setScale(2));
+        assertThat(leaseTerm.getValue()).isEqualTo(BigDecimal.ZERO.setScale(2));
     }
 
     @Test
     public void update_item_and_term_when_all_is_fine() throws Exception {
 
         // given
-        LeaseTermForIndexable lastTerm = new LeaseTermForIndexable();
+        LeaseTermForFixed lastTerm = new LeaseTermForFixed();
         lastTerm.setEndDate(new LocalDate(2018, 12, 31));
-        LeaseTermForIndexable leaseTerm = new LeaseTermForIndexable();
+        LeaseTermForFixed leaseTerm = new LeaseTermForFixed();
         FastnetImportService service = new FastnetImportService(){
             @Override
             LeaseTerm findOrCreateTermToUpdate(final LeaseItem itemToUpdate, final ChargingLine cLine){
@@ -528,7 +528,7 @@ public class FastnetImportService_Test {
         Charge charge = new Charge();
         charge.setReference(cLine.getKeyToChargeReference());
         ChargeGroup chargeGroup = new ChargeGroup();
-        chargeGroup.setReference("SE_RENT");
+        chargeGroup.setReference("SE_RENT_FIXED");
         charge.setGroup(chargeGroup);
 
         // expect
@@ -542,7 +542,7 @@ public class FastnetImportService_Test {
             oneOf(mockLease).findFirstItemOfTypeAndCharge(service.mapToLeaseItemType(charge), charge);
             will(returnValue(mockLeaseItem));
             oneOf(mockLeaseItem).getType();
-            will(returnValue(LeaseItemType.RENT));
+            will(returnValue(LeaseItemType.RENT_FIXED));
             oneOf(mockLeaseItem).setEndDate(new LocalDate(2018, 12, 31));
             oneOf(mockLeaseItem).setInvoicingFrequency(InvoicingFrequency.MONTHLY_IN_ADVANCE);
             oneOf(mockLeaseItem).getTerms();
@@ -553,7 +553,7 @@ public class FastnetImportService_Test {
         service.updateOrCreateItemAndTerm(cLine);
 
         // then
-        assertThat(leaseTerm.getSettledValue()).isEqualTo(arsBel);
+        assertThat(leaseTerm.getValue()).isEqualTo(arsBel);
     }
 
     @Test
@@ -616,24 +616,6 @@ public class FastnetImportService_Test {
     }
 
     @Test
-    public void update_lease_term_value_works_for_indexable() throws Exception {
-
-        // given
-        FastnetImportService service = new FastnetImportService();
-        LeaseItemType type = LeaseItemType.RENT;
-        LeaseTermForIndexable term = new LeaseTermForIndexable();
-        BigDecimal amount = new BigDecimal("123.45");
-
-        // when
-        service.updateLeaseTermValue(type, amount, term);
-
-        // then
-        assertThat(term.getBaseValue()).isEqualTo(amount);
-        assertThat(term.getSettledValue()).isEqualTo(amount);
-
-    }
-
-    @Test
     public void update_lease_term_value_works_for_service_charge() throws Exception {
 
         // given
@@ -674,7 +656,7 @@ public class FastnetImportService_Test {
         FastnetImportService service = new FastnetImportService();
         final LocalDate epochDateFastnetImport = service.EPOCH_DATE_FASTNET_IMPORT;
 
-        LeaseItemType leaseItemType = LeaseItemType.RENT;
+        LeaseItemType leaseItemType = LeaseItemType.RENT_FIXED;
         Lease lease = new Lease();
 
         LeaseItem itemToBeClosed = new LeaseItem();

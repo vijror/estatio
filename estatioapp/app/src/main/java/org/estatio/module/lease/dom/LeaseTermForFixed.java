@@ -85,11 +85,4 @@ public class LeaseTermForFixed extends LeaseTerm {
         return LeaseTermValueType.FIXED;
     }
 
-    @Override
-    public void doAlign(){
-        if (getLeaseItem().getType().autoCreateTerms() && getPrevious()!=null && getValue()==null){
-            setValue(getPrevious().getEffectiveValue());
-        }
-    }
-
 }
