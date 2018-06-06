@@ -150,7 +150,7 @@ public class FastnetImportService_Test {
 
         // then
         expectedException.expect(RuntimeException.class);
-        expectedException.expectMessage("Multiple lease items of type RENT_FIXEDs and charge CH_REF found for lease LEASE_REF");
+        expectedException.expectMessage("Multiple lease items of type RENT_FIXED and charge CH_REF found for lease LEASE_REF");
 
         // when
         service.findOrCreateLeaseItemForTypeAndCharge(mockLease, itemType, charge, frequency, startdate);
@@ -722,7 +722,7 @@ public class FastnetImportService_Test {
 
         // expect
         context.checking(new Expectations() {{
-            oneOf(mockLease).findFirstItemOfTypeAndCharge(LeaseItemType.RENT, charge);
+            oneOf(mockLease).findFirstItemOfTypeAndCharge(LeaseItemType.RENT_FIXED, charge);
             will(returnValue(null));
         }});
 

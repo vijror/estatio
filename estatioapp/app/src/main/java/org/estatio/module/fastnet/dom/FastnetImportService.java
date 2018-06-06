@@ -670,7 +670,8 @@ public class FastnetImportService {
     public LeaseItemType mapToLeaseItemType(final Charge charge) {
         if (!charge.getGroup().getReference().equals("SE_DISCARD")){
 
-            if (charge.getGroup().getReference().equals("SE_RENT_INDEX")) return LeaseItemType.RENT_FIXED; // this charge group is used to distinguish value of indexation from the value of base rent
+            if (charge.getGroup().getReference().equals("SE_RENT")) return LeaseItemType.RENT_FIXED; // this charge group is used for base rent
+            if (charge.getGroup().getReference().equals("SE_RENT_INDEX")) return LeaseItemType.RENT_FIXED; // this charge group is used for the amount of the indexation
 
             return LeaseItemType.valueOf(charge.getGroup().getReference().replace("SE_", "")); // by convention
         }
