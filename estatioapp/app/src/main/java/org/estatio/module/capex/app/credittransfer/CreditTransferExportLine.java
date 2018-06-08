@@ -9,6 +9,8 @@ import org.joda.time.LocalDate;
 import org.apache.isis.applib.annotation.MemberOrder;
 import org.apache.isis.applib.annotation.ViewModel;
 
+import org.isisaddons.module.excel.dom.HyperLink;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -81,6 +83,10 @@ public class CreditTransferExportLine {
 
     @MemberOrder(sequence = "17")
     private String invoiceDocumentName;
+
+    @MemberOrder(sequence = "18")
+    @HyperLink
+    private String linkToInvoice;
 
     @MemberOrder(sequence = "15")
     private String invoiceType;
