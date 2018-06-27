@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import org.apache.isis.core.unittestsupport.jmocking.JUnitRuleMockery2;
 
+import org.estatio.module.capex.dom.invoice.IncomingInvoiceType;
 import org.estatio.module.capex.dom.project.Project;
 import org.estatio.module.capex.dom.util.PeriodUtil;
 import org.estatio.module.asset.dom.Property;
@@ -35,10 +36,11 @@ public class Order_Test {
         String result = order.reasonIncomplete();
 
         // then
-        assertThat(result).isEqualTo("order number, buyer, seller, (on item) description, charge, start date, end date, net amount, gross amount required");
+        assertThat(result).isEqualTo("type, order number, buyer, seller, (on item) description, charge, start date, end date, net amount, gross amount required");
 
         // and when
         order.setOrderNumber("123");
+        order.setType(IncomingInvoiceType.CAPEX);
         item1.setNetAmount(new BigDecimal("100"));
         result = order.reasonIncomplete();
 
@@ -68,6 +70,7 @@ public class Order_Test {
         OrderItem item1 = new OrderItem();
         order.getItems().add(item1);
         order.setOrderNumber("123");
+        order.setType(IncomingInvoiceType.CAPEX);
         order.setBuyer(new Organisation());
         order.setSeller(new Organisation());
         item1.setNetAmount(new BigDecimal("100"));
@@ -95,6 +98,7 @@ public class Order_Test {
         OrderItem item1 = new OrderItem();
         order.getItems().add(item1);
         order.setOrderNumber("123");
+        order.setType(IncomingInvoiceType.CAPEX);
         order.setBuyer(new Organisation());
         order.setSeller(new Organisation());
         item1.setNetAmount(new BigDecimal("100"));
@@ -121,6 +125,7 @@ public class Order_Test {
         OrderItem item1 = new OrderItem();
         order.getItems().add(item1);
         order.setOrderNumber("123");
+        order.setType(IncomingInvoiceType.CAPEX);
         order.setBuyer(new Organisation());
         order.setSeller(new Organisation());
         item1.setNetAmount(new BigDecimal("100"));

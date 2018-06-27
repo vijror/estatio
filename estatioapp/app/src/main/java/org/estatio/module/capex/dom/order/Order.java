@@ -63,6 +63,7 @@ import org.estatio.module.capex.dom.documents.BudgetItemChooser;
 import org.estatio.module.capex.dom.documents.LookupAttachedPdfService;
 import org.estatio.module.capex.dom.invoice.IncomingInvoice;
 import org.estatio.module.capex.dom.invoice.IncomingInvoiceRoleTypeEnum;
+import org.estatio.module.capex.dom.invoice.IncomingInvoiceType;
 import org.estatio.module.capex.dom.order.approval.OrderApprovalState;
 import org.estatio.module.capex.dom.order.approval.OrderApprovalStateTransition;
 import org.estatio.module.capex.dom.orderinvoice.OrderItemInvoiceItemLinkRepository;
@@ -261,6 +262,37 @@ public class Order extends UdoDomainObject2<Order> implements Stateful {
         for (OrderItem item : getItems()){
             if (item.isLinkedToInvoiceItem()){
                 return "Property cannot be changed because an item is linked to an invoice";
+            }
+        }
+        return null;
+    }
+
+    @Getter @Setter
+    @Column(allowsNull = "true")
+    private IncomingInvoiceType type;
+
+    @Action(semantics = SemanticsOf.IDEMPOTENT)
+    public Order editType(
+            final IncomingInvoiceType type){
+        setType(type);
+        return this;
+    }
+
+    public String disableEditType(){
+        if (isImmutable()){
+            return orderImmutableReason();
+        }
+        return typeIsImmutableReason();
+    }
+
+    public IncomingInvoiceType default0EditType(){
+        return getType();
+    }
+
+    private String typeIsImmutableReason(){
+        for (OrderItem item : getItems()){
+            if (item.isLinkedToInvoiceItem()){
+                return "Type cannot be changed because an item is linked to an invoice";
             }
         }
         return null;
@@ -915,6 +947,7 @@ public class Order extends UdoDomainObject2<Order> implements Stateful {
     public String reasonIncomplete(){
 
         String orderValidatorResult = new Validator()
+                .checkNotNull(getType(),"type")
                 .checkNotNull(getOrderNumber(),"order number")
                 .checkNotNull(getBuyer(), "buyer")
                 .checkNotNull(getSeller(), "seller")
