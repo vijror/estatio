@@ -955,6 +955,7 @@ public class Order extends UdoDomainObject2<Order> implements Stateful {
                 .checkNotNull(getSeller(), "seller")
                 .checkNotNull(getNetAmount(), "net amount")
                 .checkNotNull(getGrossAmount(), "gross amount")
+                .validateForOrderType(this)
                 .getResult();
 
         return mergeReasonItemsIncomplete(orderValidatorResult);
@@ -988,6 +989,28 @@ public class Order extends UdoDomainObject2<Order> implements Stateful {
             if (mandatoryProperty == null) {
                 setResult(result == null ? propertyName : result.concat(", ").concat(propertyName));
             }
+            return this;
+        }
+
+        Order.Validator validateForOrderType(Order order){
+            if (order == null) return this;
+            if (order.getType() == null) return this;
+
+            String message;
+            switch (order.getType()){
+
+            case CAPEX:
+            case SERVICE_CHARGES:
+            case PROPERTY_EXPENSES:
+                message = "property";
+                if (order.getProperty()==null){
+                    setResult(result==null ? message : result.concat(", ").concat(message));
+                }
+                break;
+
+            default:
+            }
+
             return this;
         }
 

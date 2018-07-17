@@ -41,6 +41,7 @@ public class Order_Test {
         // and when
         order.setOrderNumber("123");
         order.setType(IncomingInvoiceType.CAPEX);
+        order.setProperty(new Property());
         item1.setNetAmount(new BigDecimal("100"));
         result = order.reasonIncomplete();
 
@@ -85,7 +86,7 @@ public class Order_Test {
         String result = order.reasonIncomplete();
 
         // then
-        assertThat(result).isEqualTo("(on item) when project filled in then property required");
+        assertThat(result).isEqualTo("property, (on item) when project filled in then property required");
 
     }
 
@@ -113,7 +114,7 @@ public class Order_Test {
         String result = order.reasonIncomplete();
 
         // then
-        assertThat(result).isEqualTo("(on item) when budget item filled in then property required");
+        assertThat(result).isEqualTo("property, (on item) when budget item filled in then property required");
 
     }
 
@@ -126,6 +127,7 @@ public class Order_Test {
         order.getItems().add(item1);
         order.setOrderNumber("123");
         order.setType(IncomingInvoiceType.CAPEX);
+        order.setProperty(new Property());
         order.setBuyer(new Organisation());
         order.setSeller(new Organisation());
         item1.setNetAmount(new BigDecimal("100"));
