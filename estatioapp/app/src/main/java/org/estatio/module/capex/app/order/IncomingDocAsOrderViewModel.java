@@ -90,6 +90,7 @@ public class IncomingDocAsOrderViewModel extends IncomingDocViewModel<Order> {
     public IncomingDocAsOrderViewModel(final Order order, final Document document) {
         super(document);
         this.domainObject = order;
+        this.orderType = order.getType();
     }
 
     @Property(editing = Editing.DISABLED)

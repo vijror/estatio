@@ -50,7 +50,7 @@ public enum Order_enum
             IncomingCharge_enum.FrMarketing, "marketing stuff", bd("500.00"), bd("105.00"), bd("605.00"), "F2017"
     ),
     fakeOrder3Pdf(
-            IncomingInvoiceType.CAPEX, Person_enum.DylanOfficeAdministratorGb,
+            IncomingInvoiceType.LOCAL_EXPENSES, Person_enum.DylanOfficeAdministratorGb,
             IncomingPdf_enum.FakeOrder2, ApplicationTenancy_enum.Gb, new DateTime(2018, 1, 5, 10, 0), "estatio-user-gb",
             Organisation_enum.TopModelGb, Organisation_enum.HelloWorldGb,
             null, null,

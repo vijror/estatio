@@ -138,7 +138,7 @@ public class OrderBuilder extends BuilderScriptAbstract<Order, OrderBuilder> {
         sudoService.sudo(officeAdministrator.getUsername(), () -> {
 
             final String comment = "";
-            wrap(mixin(Document_categoriseAsOrder.class,document)).act(property, comment);
+            wrap(mixin(Document_categoriseAsOrder.class,document)).act(property, orderType, comment);
 
             // given most/all of the info has been completed  (not using our view model here).
             final String documentName = document.getName();

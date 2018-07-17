@@ -176,6 +176,7 @@ public class Order extends UdoDomainObject2<Order> implements Stateful {
 
     public Order(
             final org.estatio.module.asset.dom.Property property,
+            final IncomingInvoiceType orderType,
             final String orderNumber,
             final String sellerOrderReference,
             final LocalDate entryDate,
@@ -186,6 +187,7 @@ public class Order extends UdoDomainObject2<Order> implements Stateful {
             final OrderApprovalState approvalStateIfAny) {
         this();
         this.property = property;
+        this.type = orderType;
         this.orderNumber = orderNumber;
         this.sellerOrderReference = sellerOrderReference;
         this.entryDate = entryDate;
