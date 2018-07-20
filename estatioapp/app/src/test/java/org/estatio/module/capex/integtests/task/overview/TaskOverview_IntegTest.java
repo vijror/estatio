@@ -11,6 +11,8 @@ import org.apache.isis.applib.fixtures.TickingFixtureClock;
 import org.apache.isis.applib.fixturescripts.FixtureScript;
 import org.apache.isis.applib.services.clock.ClockService;
 
+import org.isisaddons.module.command.dom.CommandServiceJdoRepository;
+
 import org.estatio.module.asset.fixtures.person.enums.Person_enum;
 import org.estatio.module.capex.app.taskreminder.TaskOverview;
 import org.estatio.module.capex.app.taskreminder.TaskReminderService;
@@ -69,6 +71,55 @@ public class TaskOverview_IntegTest extends CapexModuleIntegTestAbstract {
             // then
             assertThat(overview.getListOfTasksOverdue()).hasSize(2);
         }
+
+        @Inject
+        private TaskRepository taskRepository;
+
+        @Inject
+        private ClockService clockService;
+
+        @Inject
+        private TaskReminderService taskReminderService;
+
+    }
+
+    public static class SendReminder extends TaskOverview_IntegTest {
+
+        @Before
+        public void setupData() {
+            runFixtureScript(new FixtureScript() {
+                @Override
+                protected void execute(final ExecutionContext executionContext) {
+                    executionContext.executeChild(this, new CapexChargeHierarchyXlsxFixture());
+                    executionContext.executeChild(this, new DocumentTypesAndTemplatesForCapexFixture());
+                    executionContext.executeChild(this, IncomingInvoice_enum.fakeInvoice2Pdf.builder());
+                    executionContext.executeChild(this, Person_enum.ThibaultOfficerAdministratorFr.builder());
+                    executionContext.executeChild(this, Person_enum.FleuretteRenaudFr.builder());
+                }
+            });
+        }
+
+        @Test
+        public void overdueTasks() {
+            // given
+            final Person person = Person_enum.FleuretteRenaudFr.findUsing(serviceRegistry);
+            final List<Task> unassigned = taskRepository.findIncompleteByUnassigned();
+            assertThat(unassigned).hasSize(2);
+
+            unassigned.forEach(task -> task.setPersonAssignedTo(person));
+            TickingFixtureClock.replaceExisting().addDate(0, 0, 20);
+            final TaskOverview overview = new TaskOverview(person, unassigned, clockService, taskReminderService);
+            assertThat(overview.getListOfTasksOverdue()).hasSize(2);
+
+            // when
+            overview.sendReminder();
+
+            // then
+//            assertThat(commandRepository.)
+        }
+
+        @Inject
+        private CommandServiceJdoRepository commandRepository;
 
         @Inject
         private TaskRepository taskRepository;

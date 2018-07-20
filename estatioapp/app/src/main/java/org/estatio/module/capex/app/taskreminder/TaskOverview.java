@@ -13,7 +13,6 @@ import javax.xml.bind.annotation.XmlType;
 import org.apache.isis.applib.annotation.Action;
 import org.apache.isis.applib.annotation.Collection;
 import org.apache.isis.applib.annotation.CollectionLayout;
-import org.apache.isis.applib.annotation.CommandReification;
 import org.apache.isis.applib.annotation.DomainObject;
 import org.apache.isis.applib.annotation.Property;
 import org.apache.isis.applib.annotation.SemanticsOf;
@@ -83,10 +82,7 @@ public class TaskOverview {
                 .collect(Collectors.toList());
     }
 
-    @Action(
-            semantics = SemanticsOf.NON_IDEMPOTENT_ARE_YOU_SURE,
-            command = CommandReification.ENABLED
-    )
+    @Action(semantics = SemanticsOf.NON_IDEMPOTENT_ARE_YOU_SURE)
     public TaskOverview sendReminder() {
         taskReminderService.sendReminder(person, getListOfTasksOverdue());
         return this;
