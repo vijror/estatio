@@ -10,8 +10,16 @@ import org.junit.Test;
 import org.apache.isis.applib.fixtures.TickingFixtureClock;
 import org.apache.isis.applib.fixturescripts.FixtureScript;
 import org.apache.isis.applib.services.clock.ClockService;
+import org.apache.isis.applib.services.linking.DeepLinkService;
+import org.apache.isis.applib.services.registry.ServiceRegistry2;
+import org.apache.isis.applib.services.wrapper.DisabledException;
+import org.apache.isis.applib.services.wrapper.InvalidException;
 
 import org.isisaddons.module.command.dom.CommandServiceJdoRepository;
+
+import org.incode.module.communications.dom.impl.commchannel.CommunicationChannelRepository;
+import org.incode.module.communications.dom.impl.commchannel.CommunicationChannelType;
+import org.incode.platform.dom.communications.integtests.app.services.fakeemail.FakeEmailService;
 
 import org.estatio.module.asset.fixtures.person.enums.Person_enum;
 import org.estatio.module.capex.app.taskreminder.TaskOverview;
@@ -48,9 +56,7 @@ public class TaskOverview_IntegTest extends CapexModuleIntegTestAbstract {
         public void noOverdueTasks() {
             // given
             final Person person = Person_enum.ThibaultOfficerAdministratorFr.findUsing(serviceRegistry);
-            final List<Task> assignedTasks = taskRepository.findIncompleteByPersonAssignedTo(person);
-
-            final TaskOverview overview = new TaskOverview(person, assignedTasks, clockService, taskReminderService);
+            final TaskOverview overview = serviceRegistry.injectServicesInto(new TaskOverview(person));
 
             //   then
             assertThat(overview.getListOfTasksOverdue()).isEmpty();
@@ -66,21 +72,11 @@ public class TaskOverview_IntegTest extends CapexModuleIntegTestAbstract {
             // when
             unassigned.forEach(task -> task.setPersonAssignedTo(person));
             TickingFixtureClock.replaceExisting().addDate(0, 0, 20);
-            final TaskOverview overview = new TaskOverview(person, unassigned, clockService, taskReminderService);
+            final TaskOverview overview = serviceRegistry.injectServicesInto(new TaskOverview(person));
 
             // then
             assertThat(overview.getListOfTasksOverdue()).hasSize(2);
         }
-
-        @Inject
-        private TaskRepository taskRepository;
-
-        @Inject
-        private ClockService clockService;
-
-        @Inject
-        private TaskReminderService taskReminderService;
-
     }
 
     public static class SendReminder extends TaskOverview_IntegTest {
@@ -99,8 +95,25 @@ public class TaskOverview_IntegTest extends CapexModuleIntegTestAbstract {
             });
         }
 
+//        @Test
+//        public void happyCase() {
+//            // given
+//            final Person person = Person_enum.FleuretteRenaudFr.findUsing(serviceRegistry);
+//            communicationChannelRepository.newEmail(person, CommunicationChannelType.EMAIL_ADDRESS, "fleuretterenaud@acme.org");
+//            final List<Task> unassigned = taskRepository.findIncompleteByUnassigned();
+//            assertThat(unassigned).hasSize(2);
+//
+//            unassigned.forEach(task -> task.setPersonAssignedTo(person));
+//            TickingFixtureClock.replaceExisting().addDate(0, 0, 20);
+//            final TaskOverview overview = serviceRegistry.injectServicesInto(new TaskOverview(person));
+////            overview.taskReminderService.emailService = fakeEmailService;
+//
+//            // when
+//            wrap(overview).sendReminder();
+//        }
+
         @Test
-        public void overdueTasks() {
+        public void sadCase_noEmailAddress() {
             // given
             final Person person = Person_enum.FleuretteRenaudFr.findUsing(serviceRegistry);
             final List<Task> unassigned = taskRepository.findIncompleteByUnassigned();
@@ -108,28 +121,44 @@ public class TaskOverview_IntegTest extends CapexModuleIntegTestAbstract {
 
             unassigned.forEach(task -> task.setPersonAssignedTo(person));
             TickingFixtureClock.replaceExisting().addDate(0, 0, 20);
-            final TaskOverview overview = new TaskOverview(person, unassigned, clockService, taskReminderService);
+            final TaskOverview overview = serviceRegistry.injectServicesInto(new TaskOverview(person));
             assertThat(overview.getListOfTasksOverdue()).hasSize(2);
 
+            // then
+            expectedExceptions.expect(DisabledException.class);
+            expectedExceptions.expectMessage("No email address is known for Renaud, Fleurette");
+
             // when
-            overview.sendReminder();
+            wrap(overview).sendReminder();
+        }
+
+        @Test
+        public void sadCase_noOverdueTasks() {
+            // given
+            final Person person = Person_enum.FleuretteRenaudFr.findUsing(serviceRegistry);
+            communicationChannelRepository.newEmail(person, CommunicationChannelType.EMAIL_ADDRESS, "fleuretterenaud@acme.org");
+            final TaskOverview overview = serviceRegistry.injectServicesInto(new TaskOverview(person));
 
             // then
-//            assertThat(commandRepository.)
+            expectedExceptions.expect(DisabledException.class);
+            expectedExceptions.expectMessage("Renaud, Fleurette does not have any overdue tasks");
+
+            // when
+            wrap(overview).sendReminder();
         }
 
         @Inject
-        private CommandServiceJdoRepository commandRepository;
-
-        @Inject
-        private TaskRepository taskRepository;
-
-        @Inject
-        private ClockService clockService;
-
-        @Inject
-        private TaskReminderService taskReminderService;
+        CommunicationChannelRepository communicationChannelRepository;
 
     }
+
+    @Inject
+    TaskRepository taskRepository;
+
+    @Inject
+    ClockService clockService;
+
+    @Inject
+    TaskReminderService taskReminderService;
 
 }

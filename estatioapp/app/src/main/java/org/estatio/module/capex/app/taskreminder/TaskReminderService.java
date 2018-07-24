@@ -9,8 +9,15 @@ import javax.inject.Inject;
 import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.NatureOfService;
 import org.apache.isis.applib.annotation.Programmatic;
+import org.apache.isis.applib.services.bookmark.Bookmark;
+import org.apache.isis.applib.services.bookmark.BookmarkService2;
 import org.apache.isis.applib.services.clock.ClockService;
+import org.apache.isis.applib.services.email.EmailService;
 import org.apache.isis.applib.services.linking.DeepLinkService;
+import org.apache.isis.applib.services.metamodel.MetaModelService5;
+import org.apache.isis.applib.services.registry.ServiceRegistry2;
+
+import org.isisaddons.module.command.dom.CommandServiceJdoRepository;
 
 import org.incode.module.communications.dom.impl.commchannel.CommunicationChannelRepository;
 import org.incode.module.communications.dom.impl.commchannel.CommunicationChannelType;
@@ -45,7 +52,7 @@ public class TaskReminderService {
 
     @Programmatic
     public TaskOverview getTaskOverviewForPerson(final Person person) {
-        return new TaskOverview(person, taskRepository.findIncompleteByPersonAssignedTo(person), clockService, this);
+        return serviceRegistry.injectServicesInto(new TaskOverview(person));
     }
 
     @Programmatic
@@ -62,9 +69,14 @@ public class TaskReminderService {
     }
 
     @Programmatic
-    public String validateSendReminder(final Person person, final List<Task> overdueTasks) {
+    public String disableSendReminder(final Person person, final List<Task> overdueTasks, final String memento) {
         if (communicationChannelRepository.findByOwnerAndType(person, CommunicationChannelType.EMAIL_ADDRESS).isEmpty()) {
             return String.format("No email address is known for %s", person.getName());
+        }
+
+        Bookmark bookmark = new Bookmark(metaModelService.toObjectType(TaskOverview.class), memento);
+        if (!commandRepository.findByTargetAndFromAndTo(bookmark, clockService.now(), clockService.now()).isEmpty()) {
+            return String.format("A reminder has been sent to %s today already", person.getName());
         }
 
         return overdueTasks.isEmpty() ? String.format("%s does not have any overdue tasks", person.getName()) : null;
@@ -80,9 +92,21 @@ public class TaskReminderService {
     private ClockService clockService;
 
     @Inject
-    private EmailServiceForEstatio emailService;
+    private EmailService emailService;
 
     @Inject
     private DeepLinkService deepLinkService;
+
+    @Inject
+    private ServiceRegistry2 serviceRegistry;
+
+    @Inject
+    private BookmarkService2 bookmarkService;
+
+    @Inject
+    private CommandServiceJdoRepository commandRepository;
+
+    @Inject
+    private MetaModelService5 metaModelService;
 
 }

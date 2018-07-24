@@ -4,58 +4,50 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
 
+import org.apache.isis.applib.ViewModel;
 import org.apache.isis.applib.annotation.Action;
 import org.apache.isis.applib.annotation.Collection;
 import org.apache.isis.applib.annotation.CollectionLayout;
 import org.apache.isis.applib.annotation.DomainObject;
+import org.apache.isis.applib.annotation.Nature;
 import org.apache.isis.applib.annotation.Property;
 import org.apache.isis.applib.annotation.SemanticsOf;
+import org.apache.isis.applib.services.bookmark.Bookmark;
+import org.apache.isis.applib.services.bookmark.BookmarkService2;
 import org.apache.isis.applib.services.clock.ClockService;
+import org.apache.isis.applib.services.metamodel.MetaModelService5;
 
 import org.estatio.module.capex.dom.task.Task;
+import org.estatio.module.capex.dom.task.TaskRepository;
 import org.estatio.module.party.dom.Person;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@XmlRootElement(name = "TaskOverview")
-@XmlType(
-        propOrder = {
-                "person",
-                "assignedTasks"
-        }
+@DomainObject(
+        nature = Nature.VIEW_MODEL,
+        objectType = "org.estatio.module.capex.app.taskreminder.TaskOverview"
 )
-@XmlAccessorType(XmlAccessType.FIELD)
-@DomainObject(objectType = "org.estatio.module.capex.app.taskreminder.TaskOverview")
 @NoArgsConstructor
-public class TaskOverview {
+public class TaskOverview implements ViewModel {
 
     public TaskOverview(
-            final Person person,
-            final List<Task> assignedTasks,
-            final ClockService clockService,
-            final TaskReminderService taskReminderService) {
+            final Person person) {
         this.person = person;
-        this.assignedTasks = assignedTasks;
-        this.clockService = clockService;
-        this.taskReminderService = taskReminderService;
+    }
+
+    public String title() {
+        return "Task Overview";
     }
 
     @Getter @Setter
     private Person person;
 
-    private List<Task> assignedTasks;
-
     @Property
     public long getTasksOverdue() {
-        return assignedTasks.stream()
+        return taskRepository.findIncompleteByPersonAssignedTo(person).stream()
                 .map(Task::getCreatedOn)
                 .filter(ld -> ld.plusDays(5).isBefore(clockService.nowAsLocalDateTime()))
                 .count();
@@ -63,13 +55,13 @@ public class TaskOverview {
 
     @Property
     public long getTasksNotYetOverdue() {
-        return assignedTasks.size() - getTasksOverdue();
+        return taskRepository.findIncompleteByPersonAssignedTo(person).size() - getTasksOverdue();
     }
 
     @Collection
     @CollectionLayout(named = "Tasks Not Yet Overdue")
     public List<Task> getListOfTasksNotYetOverdue() {
-        return assignedTasks.stream()
+        return taskRepository.findIncompleteByPersonAssignedTo(person).stream()
                 .filter(t -> t.getCreatedOn().plusDays(5).isAfter(clockService.nowAsLocalDateTime()))
                 .collect(Collectors.toList());
     }
@@ -77,7 +69,7 @@ public class TaskOverview {
     @Collection
     @CollectionLayout(named = "Tasks Overdue")
     public List<Task> getListOfTasksOverdue() {
-        return assignedTasks.stream()
+        return taskRepository.findIncompleteByPersonAssignedTo(person).stream()
                 .filter(t -> t.getCreatedOn().plusDays(5).isBefore(clockService.nowAsLocalDateTime()))
                 .collect(Collectors.toList());
     }
@@ -89,15 +81,33 @@ public class TaskOverview {
     }
 
     public String disableSendReminder() {
-        return taskReminderService.validateSendReminder(person, getListOfTasksOverdue());
+        return taskReminderService.disableSendReminder(person, getListOfTasksOverdue(), viewModelMemento());
     }
 
     @Inject
-    @XmlTransient
     private ClockService clockService;
 
     @Inject
-    @XmlTransient
     private TaskReminderService taskReminderService;
+
+    @Inject
+    private BookmarkService2 bookmarkService;
+
+    @Inject
+    private TaskRepository taskRepository;
+
+    @Inject
+    private MetaModelService5 metaModelService;
+
+    @Override
+    public String viewModelMemento() {
+        return bookmarkService.bookmarkFor(getPerson()).getIdentifier();
+    }
+
+    @Override
+    public void viewModelInit(final String memento) {
+        Bookmark bookmark = new Bookmark(metaModelService.toObjectType(Person.class), memento);
+        setPerson(bookmarkService.lookup(bookmark, BookmarkService2.FieldResetPolicy.DONT_RESET, Person.class));
+    }
 }
 
