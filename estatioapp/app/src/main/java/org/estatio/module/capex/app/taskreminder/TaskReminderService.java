@@ -37,6 +37,7 @@ public class TaskReminderService {
     @Programmatic
     private List<Person> getPersonsWithAssignedTasks() {
         return taskRepository.findTasksIncomplete().stream()
+                .filter(task -> task.getPersonAssignedTo() != null)
                 .map(Task::getPersonAssignedTo)
                 .distinct()
                 .collect(Collectors.toList());

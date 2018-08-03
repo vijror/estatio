@@ -95,23 +95,6 @@ public class TaskOverview_IntegTest extends CapexModuleIntegTestAbstract {
             });
         }
 
-//        @Test
-//        public void happyCase() {
-//            // given
-//            final Person person = Person_enum.FleuretteRenaudFr.findUsing(serviceRegistry);
-//            communicationChannelRepository.newEmail(person, CommunicationChannelType.EMAIL_ADDRESS, "fleuretterenaud@acme.org");
-//            final List<Task> unassigned = taskRepository.findIncompleteByUnassigned();
-//            assertThat(unassigned).hasSize(2);
-//
-//            unassigned.forEach(task -> task.setPersonAssignedTo(person));
-//            TickingFixtureClock.replaceExisting().addDate(0, 0, 20);
-//            final TaskOverview overview = serviceRegistry.injectServicesInto(new TaskOverview(person));
-////            overview.taskReminderService.emailService = fakeEmailService;
-//
-//            // when
-//            wrap(overview).sendReminder();
-//        }
-
         @Test
         public void sadCase_noEmailAddress() {
             // given
