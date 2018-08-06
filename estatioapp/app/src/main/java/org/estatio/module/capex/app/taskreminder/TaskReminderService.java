@@ -34,6 +34,9 @@ import org.estatio.module.party.dom.Person;
 )
 public class TaskReminderService {
 
+    public static final String OVERRIDE_FROM_EMAIL = "isis.service.email.override.sender.address.task";
+    public static final String OVERRIDE_FROM_PASSWORD = "isis.service.email.override.sender.password.task";
+
     @Programmatic
     private List<Person> getPersonsWithAssignedTasks() {
         return taskRepository.findTasksIncomplete().stream()
@@ -66,7 +69,7 @@ public class TaskReminderService {
                 .collect(Collectors.joining())
                 + "</ul>";
 
-        emailService.send(Collections.singletonList(address.getEmailAddress()), Collections.emptyList(), Collections.emptyList(), subject, body);
+        emailService.send(Collections.singletonList(address.getEmailAddress()), Collections.emptyList(), Collections.emptyList(), OVERRIDE_FROM_EMAIL, OVERRIDE_FROM_PASSWORD, subject, body);
     }
 
     @Programmatic
@@ -92,8 +95,9 @@ public class TaskReminderService {
     @Inject
     private ClockService clockService;
 
+    // Does not inject interface emailService, since we expanded Estatio's impl with an override for the from address
     @Inject
-    private EmailService emailService;
+    private EmailServiceForEstatio emailService;
 
     @Inject
     private DeepLinkService deepLinkService;

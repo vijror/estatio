@@ -51,11 +51,19 @@ public class EmailServiceForEstatio implements EmailService {
         overrideBcc = configuration.getString(ISIS_SERVICE_EMAIL_OVERRIDE_BCC);
     }
 
-    @Override public boolean send(final List<String> to, final List<String> cc, final List<String> bcc, final String subject, final String body, final DataSource... attachments) {
+    public boolean send(final List<String> to, final List<String> cc, final List<String> bcc, final String overrideEmailFromKey, final String overridePasswordFromKey, final String subject, final String body, final DataSource... attachments) {
         final List<String> actualTo = actually(to, overrideTo);
         final List<String> actualCc = actually(cc, overrideCc);
         final List<String> actualBcc = actually(bcc, overrideBcc);
-        return delegate.send(actualTo, actualCc, actualBcc, subject, body, attachments);
+        return delegate.send(actualTo, actualCc, actualBcc, overrideEmailFromKey, overridePasswordFromKey, subject, body, attachments);
+    }
+
+    @Override
+    public boolean send(final List<String> to, final List<String> cc, final List<String> bcc, final String subject, final String body, final DataSource... attachments) {
+        final List<String> actualTo = actually(to, overrideTo);
+        final List<String> actualCc = actually(cc, overrideCc);
+        final List<String> actualBcc = actually(bcc, overrideBcc);
+        return delegate.send(actualTo, actualCc, actualBcc, null, null, subject, body, attachments);
     }
 
     private static List<String> actually(final List<String> original, final String overrideIfAny) {
