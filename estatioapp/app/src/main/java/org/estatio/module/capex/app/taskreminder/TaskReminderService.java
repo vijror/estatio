@@ -62,8 +62,8 @@ public class TaskReminderService {
     @Programmatic
     public void sendReminder(final Person person, final List<Task> overdueTasks) {
         final EmailAddress address = (EmailAddress) communicationChannelRepository.findByOwnerAndType(person, CommunicationChannelType.EMAIL_ADDRESS).first();
-        final String subject = String.format("You have %d overdue tasks in Estatio", overdueTasks.size());
-        final String body = String.format("Dear %s,\n\nThis is a friendly reminder that you have %d overdue tasks in Estatio:\n<ul>", person.getName(), overdueTasks.size())
+        final String subject = overdueTasks.size() == 1 ? String.format("You have %d overdue task in Estatio", overdueTasks.size()) : String.format("You have %d overdue tasks in Estatio", overdueTasks.size());
+        final String body = String.format("Dear %s,\n\nThis is a friendly reminder that you have %d overdue task(s) in Estatio:\n<ul>", person.getName(), overdueTasks.size())
                 + overdueTasks.stream()
                 .map(task -> String.format("<li>%s</li>", deepLinkService.deepLinkFor(task)))
                 .collect(Collectors.joining())
@@ -90,17 +90,17 @@ public class TaskReminderService {
     private TaskRepository taskRepository;
 
     @Inject
-    private CommunicationChannelRepository communicationChannelRepository;
+    CommunicationChannelRepository communicationChannelRepository;
 
     @Inject
     private ClockService clockService;
 
     // Does not inject interface emailService, since we expanded Estatio's impl with an override for the from address
     @Inject
-    private EmailServiceForEstatio emailService;
+    EmailServiceForEstatio emailService;
 
     @Inject
-    private DeepLinkService deepLinkService;
+    DeepLinkService deepLinkService;
 
     @Inject
     private ServiceRegistry2 serviceRegistry;
