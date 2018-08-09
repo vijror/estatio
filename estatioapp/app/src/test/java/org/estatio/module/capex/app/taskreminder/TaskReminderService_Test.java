@@ -20,7 +20,7 @@ import org.incode.module.communications.dom.impl.commchannel.CommunicationChanne
 import org.incode.module.communications.dom.impl.commchannel.CommunicationChannelType;
 import org.incode.module.communications.dom.impl.commchannel.EmailAddress;
 
-import org.estatio.module.application.spiimpl.email.EmailServiceForEstatio;
+import org.estatio.module.application.spiimpl.email.EmailService2;
 import org.estatio.module.capex.dom.task.Task;
 import org.estatio.module.party.dom.Person;
 import org.estatio.module.party.dom.role.PartyRoleType;
@@ -30,7 +30,7 @@ public class TaskReminderService_Test {
     @Rule
     public JUnitRuleMockery2 context = JUnitRuleMockery2.createFor(JUnitRuleMockery2.Mode.INTERFACES_AND_CLASSES);
 
-    @Mock EmailServiceForEstatio mockEmailService;
+    @Mock EmailService2 mockEmailService;
 
     @Mock CommunicationChannelRepository mockCommunicationChannelRepository;
 
@@ -43,7 +43,7 @@ public class TaskReminderService_Test {
         final Person person = new Person();
         person.setName("John Doe");
 
-        final EmailAddress emailAddress =  new EmailAddress();
+        final EmailAddress emailAddress = new EmailAddress();
         emailAddress.setEmailAddress("test@estatio.org");
         final PartyRoleType partyRoleType = new PartyRoleType("FOO", "FOO");
 
