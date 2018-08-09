@@ -12,7 +12,6 @@ import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.services.bookmark.Bookmark;
 import org.apache.isis.applib.services.bookmark.BookmarkService2;
 import org.apache.isis.applib.services.clock.ClockService;
-import org.apache.isis.applib.services.email.EmailService;
 import org.apache.isis.applib.services.linking.DeepLinkService;
 import org.apache.isis.applib.services.metamodel.MetaModelService5;
 import org.apache.isis.applib.services.registry.ServiceRegistry2;
@@ -23,7 +22,7 @@ import org.incode.module.communications.dom.impl.commchannel.CommunicationChanne
 import org.incode.module.communications.dom.impl.commchannel.CommunicationChannelType;
 import org.incode.module.communications.dom.impl.commchannel.EmailAddress;
 
-import org.estatio.module.application.spiimpl.email.EmailServiceForEstatio;
+import org.estatio.module.application.spiimpl.email.EmailService2;
 import org.estatio.module.capex.dom.task.Task;
 import org.estatio.module.capex.dom.task.TaskRepository;
 import org.estatio.module.party.dom.Person;
@@ -69,6 +68,8 @@ public class TaskReminderService {
                 .collect(Collectors.joining())
                 + "</ul>";
 
+        // TODO: Isis infers the correct implementation of EmailService through the menuOrder property of @DomainService. Directly injecting the implementing class does not work,
+        // TODO: as Isis then defaults to EmailServiceDefault. Looks like the framework's EmailService interface will have to be extended
         emailService.send(Collections.singletonList(address.getEmailAddress()), Collections.emptyList(), Collections.emptyList(), OVERRIDE_FROM_EMAIL, OVERRIDE_FROM_PASSWORD, subject, body);
     }
 
@@ -95,9 +96,8 @@ public class TaskReminderService {
     @Inject
     private ClockService clockService;
 
-    // Does not inject interface emailService, since we expanded Estatio's impl with an override for the from address
     @Inject
-    EmailServiceForEstatio emailService;
+    EmailService2 emailService;
 
     @Inject
     DeepLinkService deepLinkService;
