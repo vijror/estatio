@@ -9,14 +9,11 @@ import javax.inject.Inject;
 import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.NatureOfService;
 import org.apache.isis.applib.annotation.Programmatic;
-import org.apache.isis.applib.services.bookmark.Bookmark;
 import org.apache.isis.applib.services.bookmark.BookmarkService2;
 import org.apache.isis.applib.services.clock.ClockService;
 import org.apache.isis.applib.services.linking.DeepLinkService;
 import org.apache.isis.applib.services.metamodel.MetaModelService5;
 import org.apache.isis.applib.services.registry.ServiceRegistry2;
-
-import org.isisaddons.module.command.dom.CommandServiceJdoRepository;
 
 import org.incode.module.communications.dom.impl.commchannel.CommunicationChannelRepository;
 import org.incode.module.communications.dom.impl.commchannel.CommunicationChannelType;
@@ -68,19 +65,18 @@ public class TaskReminderService {
                 .collect(Collectors.joining())
                 + "</ul>";
 
-        // TODO: Isis infers the correct implementation of EmailService through the menuOrder property of @DomainService. Directly injecting the implementing class does not work,
-        // TODO: as Isis then defaults to EmailServiceDefault. Looks like the framework's EmailService interface will have to be extended
         emailService.send(Collections.singletonList(address.getEmailAddress()), Collections.emptyList(), Collections.emptyList(), OVERRIDE_FROM_EMAIL, OVERRIDE_FROM_PASSWORD, subject, body);
+
+        overdueTasks.forEach(task -> task.setRemindedOn(clockService.now()));
     }
 
     @Programmatic
-    public String disableSendReminder(final Person person, final List<Task> overdueTasks, final String memento) {
+    public String disableSendReminder(final Person person, final List<Task> overdueTasks) {
         if (communicationChannelRepository.findByOwnerAndType(person, CommunicationChannelType.EMAIL_ADDRESS).isEmpty()) {
             return String.format("No email address is known for %s", person.getName());
         }
 
-        Bookmark bookmark = new Bookmark(metaModelService.toObjectType(TaskOverview.class), memento);
-        if (!commandRepository.findByTargetAndFromAndTo(bookmark, clockService.now(), clockService.now()).isEmpty()) {
+        if (overdueTasks.stream().anyMatch(task -> task.getRemindedOn() != null && task.getRemindedOn().isEqual(clockService.now()))) {
             return String.format("A reminder has been sent to %s today already", person.getName());
         }
 
@@ -94,7 +90,7 @@ public class TaskReminderService {
     CommunicationChannelRepository communicationChannelRepository;
 
     @Inject
-    private ClockService clockService;
+    ClockService clockService;
 
     @Inject
     EmailService2 emailService;
@@ -107,9 +103,6 @@ public class TaskReminderService {
 
     @Inject
     private BookmarkService2 bookmarkService;
-
-    @Inject
-    private CommandServiceJdoRepository commandRepository;
 
     @Inject
     private MetaModelService5 metaModelService;
