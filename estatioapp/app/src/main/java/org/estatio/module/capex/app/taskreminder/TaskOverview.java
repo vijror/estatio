@@ -99,14 +99,22 @@ public class TaskOverview implements ViewModel {
     @Inject
     private MetaModelService5 metaModelService;
 
+    /**
+     * This is a bit hacky: in order to look up whether sendReminder has been invoked today, the viewmodel identifier is built up using the ID of the Person. This ensures that the identifier is always identical for a single person.
+     * However, generating the memento based on the bookmark of the Person, we lose the ObjectState's code for a viewmodel ('*'), and thus the query for a command fails because the identifiers do not match.
+     * Adding in the code manually resolves this.
+     */
     @Override
     public String viewModelMemento() {
-        return bookmarkService.bookmarkFor(getPerson()).getIdentifier();
+        return Bookmark.ObjectState.VIEW_MODEL.getCode() + bookmarkService.bookmarkFor(getPerson()).getIdentifier();
     }
 
+    /**
+     * Conversely for #viewModelMemento(): strip the viewmodel ObjectState code in order to successfully create the bookmark
+     */
     @Override
     public void viewModelInit(final String memento) {
-        Bookmark bookmark = new Bookmark(metaModelService.toObjectType(Person.class), memento);
+        Bookmark bookmark = new Bookmark(metaModelService.toObjectType(Person.class), memento.replace(Bookmark.ObjectState.VIEW_MODEL.getCode(), Bookmark.ObjectState.PERSISTENT.getCode()));
         setPerson(bookmarkService.lookup(bookmark, BookmarkService2.FieldResetPolicy.DONT_RESET, Person.class));
     }
 }
