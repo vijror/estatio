@@ -14,6 +14,6 @@ public interface EmailService2 extends EmailService {
      * a non-default email/password pair
      */
     @Programmatic
-    boolean send(final List<String> to, final List<String> cc, final List<String> bcc, final String overrideEmailFromKey, final String overridePasswordFromKey, final String subject, final String body, final DataSource... attachments);
+    boolean send(final List<String> to, final List<String> cc, final List<String> bcc, final String emailFromKey, final String passwordFromKey, final String subject, final String body, final DataSource... attachments);
 
 }
