@@ -73,8 +73,7 @@ public class TaskReminderService_Test {
                     Arrays.asList("test@estatio.org"),
                     Lists.emptyList(),
                     Lists.emptyList(),
-                    "isis.service.email.override.sender.address.task",
-                    "isis.service.email.override.sender.password.task",
+                    "no-reply-reminders@ecpnv.com",
                     "You have 1 overdue task in Estatio",
                     "Dear John Doe,\n\nThis is a friendly reminder that you have 1 overdue task(s) in Estatio:\n<ul><li>http://localhost:8080/wicket/entity/task.Task:0</li></ul>");
 

@@ -30,8 +30,7 @@ import org.estatio.module.party.dom.Person;
 )
 public class TaskReminderService {
 
-    public static final String OVERRIDE_FROM_EMAIL = "isis.service.email.override.sender.address.task";
-    public static final String OVERRIDE_FROM_PASSWORD = "isis.service.email.override.sender.password.task";
+    public static final String FROM_EMAIL_ADDRESS = "no-reply-reminders@ecpnv.com";
 
     @Programmatic
     private List<Person> getPersonsWithAssignedTasks() {
@@ -65,7 +64,7 @@ public class TaskReminderService {
                 .collect(Collectors.joining())
                 + "</ul>";
 
-        emailService.send(Collections.singletonList(address.getEmailAddress()), Collections.emptyList(), Collections.emptyList(), OVERRIDE_FROM_EMAIL, OVERRIDE_FROM_PASSWORD, subject, body);
+        emailService.send(Collections.singletonList(address.getEmailAddress()), Collections.emptyList(), Collections.emptyList(), FROM_EMAIL_ADDRESS, subject, body);
 
         overdueTasks.forEach(task -> task.setRemindedOn(clockService.now()));
     }

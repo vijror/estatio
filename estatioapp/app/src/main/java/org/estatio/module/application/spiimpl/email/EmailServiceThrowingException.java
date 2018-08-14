@@ -19,7 +19,9 @@
 package org.estatio.module.application.spiimpl.email;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import javax.activation.DataSource;
 import javax.annotation.PostConstruct;
@@ -121,28 +123,35 @@ public class EmailServiceThrowingException {
     //endregion
 
     //region > send
+    @Programmatic
+    public boolean send(
+            final List<String> toList, final List<String> ccList, final List<String> bccList, final String subject, final String body,
+            final DataSource... attachments) {
+        return send(toList, ccList, bccList, senderEmailAddress, subject, body, attachments);
+    }
 
     @Programmatic
     public boolean send(
-            final List<String> toList, final List<String> ccList, final List<String> bccList, final String overrideEmailFromKey, final String overridePasswordFromKey, final String subject, final String body,
+            final List<String> toList, final List<String> ccList, final List<String> bccList, final String from, final String subject, final String body,
             final DataSource... attachments) {
 
         try {
-            String overrideEmailFrom = null;
-            String overridePasswordFrom = null;
+            String passwordToUse = senderEmailPassword;
 
-            if (overrideEmailFromKey != null && overridePasswordFromKey != null) {
-                overrideEmailFrom = configuration.getString(overrideEmailFromKey);
-                overridePasswordFrom = configuration.getString(overridePasswordFromKey);
+            if (!from.equals(senderEmailAddress)) {
+                final String emailKey = configuration.asMap()
+                        .entrySet()
+                        .stream()
+                        .filter(entry -> from.equals(entry.getValue()))
+                        .map(Map.Entry::getKey)
+                        .collect(Collectors.toList())
+                        .get(0);
+                passwordToUse = configuration.getString(emailKey.replaceFirst("address", "password"));
             }
 
             final ImageHtmlEmail email = new ImageHtmlEmail();
 
-            if (overrideEmailFrom != null && overridePasswordFrom != null) {
-                email.setAuthenticator(new DefaultAuthenticator(overrideEmailFrom, overridePasswordFrom));
-            } else {
-                email.setAuthenticator(new DefaultAuthenticator(senderEmailAddress, senderEmailPassword));
-            }
+            email.setAuthenticator(new DefaultAuthenticator(from, passwordToUse));
 
             email.setHostName(getSenderEmailHostName());
             email.setSmtpPort(senderEmailPort);
@@ -165,11 +174,7 @@ public class EmailServiceThrowingException {
             properties.put("mail.smtps.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
             properties.put("mail.smtps.socketFactory.fallback", "false");
 
-            if (overrideEmailFrom == null) {
-                email.setFrom(senderEmailAddress);
-            } else {
-                email.setFrom(overrideEmailFrom);
-            }
+            email.setFrom(from);
 
             email.setSubject(subject);
             email.setHtmlMsg(body);

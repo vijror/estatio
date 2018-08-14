@@ -56,7 +56,7 @@ public class EmailServiceForEstatio implements EmailService {
         final List<String> actualTo = actually(to, overrideTo);
         final List<String> actualCc = actually(cc, overrideCc);
         final List<String> actualBcc = actually(bcc, overrideBcc);
-        return delegate.send(actualTo, actualCc, actualBcc, null, null, subject, body, attachments);
+        return delegate.send(actualTo, actualCc, actualBcc, subject, body, attachments);
     }
 
     private static List<String> actually(final List<String> original, final String overrideIfAny) {
