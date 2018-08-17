@@ -192,23 +192,23 @@ public class FastnetImportManager {
         WorksheetContent content1 = new WorksheetContent(getNonMatchingDataLines(), spec1);
         WorksheetSpec spec2 = new WorksheetSpec(FastNetRentRollOnLeaseDataLine.class, "partialMatchingDataLines");
         WorksheetContent content2 = new WorksheetContent(getPartialMatchingDataLines(), spec2);
-        WorksheetSpec spec3 = new WorksheetSpec(FastNetRentRollOnLeaseDataLine.class, "noChargingDetails");
-        WorksheetContent content3 = new WorksheetContent(getNoChargingDetails(), spec3);
+//        WorksheetSpec spec3 = new WorksheetSpec(FastNetRentRollOnLeaseDataLine.class, "noChargingDetails");
+//        WorksheetContent content3 = new WorksheetContent(getNoChargingDetails(), spec3);
         WorksheetSpec spec4 = new WorksheetSpec(FastNetRentRollOnLeaseDataLine.class, "doubleExternalReferences");
         WorksheetContent content4 = new WorksheetContent(getDoubleExternalReferences(), spec4);
         WorksheetSpec spec5 = new WorksheetSpec(FastNetChargingOnLeaseDataLine.class, "chargeNotFound");
         WorksheetContent content5 = new WorksheetContent(getChargeNotFound(), spec5);
-        WorksheetSpec spec6 = new WorksheetSpec(FastNetChargingOnLeaseDataLine.class, "duplicateChargeReferences");
-        WorksheetContent content6 = new WorksheetContent(getDuplicateChargeReferences(), spec6);
-        WorksheetSpec spec7 = new WorksheetSpec(FastNetChargingOnLeaseDataLine.class, "noUpdateNeeded");
-        WorksheetContent content7 = new WorksheetContent(getNoUpdateNeeded(), spec7);
+//        WorksheetSpec spec6 = new WorksheetSpec(FastNetChargingOnLeaseDataLine.class, "duplicateChargeReferences");
+//        WorksheetContent content6 = new WorksheetContent(getDuplicateChargeReferences(), spec6);
+//        WorksheetSpec spec7 = new WorksheetSpec(FastNetChargingOnLeaseDataLine.class, "noUpdateNeeded");
+//        WorksheetContent content7 = new WorksheetContent(getNoUpdateNeeded(), spec7);
         WorksheetSpec spec8 = new WorksheetSpec(FastNetChargingOnLeaseDataLine.class, "linesForItemUpdate");
         WorksheetContent content8 = new WorksheetContent(getLinesForItemUpdate(), spec8);
         WorksheetSpec spec9 = new WorksheetSpec(FastNetChargingOnLeaseDataLine.class, "linesForItemCreation");
         WorksheetContent content9 = new WorksheetContent(getLinesForItemCreation(), spec9);
         WorksheetSpec spec10 = new WorksheetSpec(FastNetChargingOnLeaseDataLine.class, "discardedLines");
         WorksheetContent content10 = new WorksheetContent(getDiscardedLines(), spec10);
-        return excelService.toExcel(Arrays.asList(content0, content1, content2, content3, content4, content5, content6, content7, content8, content9, content10), "analysis export date " + getExportDate().toString("yyyy-MM-dd") + ".xlsx");
+        return excelService.toExcel(Arrays.asList(content0, content1, content2, content4, content5, content8, content9, content10), "analysis export date " + getExportDate().toString("yyyy-MM-dd") + ".xlsx");
     }
 
     @Action
