@@ -395,11 +395,11 @@ public class ChargingLine implements Importable {
     public List<Object> importChargingLine(final boolean nonDiscardedOnly) {
         if (nonDiscardedOnly) {
             if (chargeRepository.findByReference(keyToChargeReference())!= null &&
-                    !chargeRepository.findByReference(keyToChargeReference()).getGroup().getReference().equals("SE_DISCARD")){
-                return importData(null);
-            } else {
+                    chargeRepository.findByReference(keyToChargeReference()).getGroup().getReference().equals("SE_DISCARD")){
                 // do not import
                 return Collections.emptyList();
+            } else {
+                return importData(null);
             }
 
         } else {
