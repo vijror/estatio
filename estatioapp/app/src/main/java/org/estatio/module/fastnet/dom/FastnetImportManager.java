@@ -168,10 +168,10 @@ public class FastnetImportManager {
         return this.leasesWithActiveRentNotInImport;
     }
 
-    @Action(associateWith = "readyForImport", publishing = Publishing.DISABLED)
+    @Action(publishing = Publishing.DISABLED)
     @ActionLayout(named = "import and apply")
     @CollectionLayout(defaultView = "excel")
-    public FastnetImportManager doImport() {
+    public Blob doImport() {
 
         getLinesForItemUpdate().forEach(cdl -> {
             fastnetImportService.updateOrCreateItem(cdl);
@@ -189,14 +189,14 @@ public class FastnetImportManager {
             fastnetImportService.noUpdate(cdl);
         });
 
-        return this;
+        return downloadImportLog();
     }
 
     @Action()
     public Blob downloadAnalysis() {
-        WorksheetSpec spec0 = new WorksheetSpec(LeaseViewModel.class, "activeLeasesNotInImport");
-        WorksheetContent content0 = new WorksheetContent(getActiveLeasesNotInImport(), spec0);
-        WorksheetSpec spec00 = new WorksheetSpec(LeaseViewModel.class, "leasesWithActiveRentNotInImport");
+//        WorksheetSpec spec0 = new WorksheetSpec(LeaseViewModel.class, "activeLeasesNotInImport");
+//        WorksheetContent content0 = new WorksheetContent(getActiveLeasesNotInImport(), spec0);
+        WorksheetSpec spec00 = new WorksheetSpec(LeaseViewModel.class, "leasesWithRentNotInImport");
         WorksheetContent content00 = new WorksheetContent(getLeasesWithActiveRentNotInImport(), spec00);
         WorksheetSpec spec1 = new WorksheetSpec(FastNetRentRollOnLeaseDataLine.class, "nonMatchingDataLines");
         WorksheetContent content1 = new WorksheetContent(getNonMatchingDataLines(), spec1);
@@ -218,11 +218,10 @@ public class FastnetImportManager {
         WorksheetContent content9 = new WorksheetContent(getLinesForItemCreation(), spec9);
         WorksheetSpec spec10 = new WorksheetSpec(FastNetChargingOnLeaseDataLine.class, "discardedLines");
         WorksheetContent content10 = new WorksheetContent(getDiscardedLines(), spec10);
-        return excelService.toExcel(Arrays.asList(content00, content0, content1, content2, content4, content5, content8, content9, content10), "analysis export date " + getExportDate().toString("yyyy-MM-dd") + ".xlsx");
+        return excelService.toExcel(Arrays.asList(content00, content1, content2, content4, content5, content8, content9, content10), "analysis export date " + getExportDate().toString("yyyy-MM-dd") + ".xlsx");
     }
 
-    @Action
-    public Blob downloadImportLog(){
+    private Blob downloadImportLog(){
         List<ChargingLineLogViewModel> linesWithLogMessage = chargingLineRepository.findByExportDate(getExportDate())
                 .stream()
                 .filter(line->line.getImportLog()!=null)
