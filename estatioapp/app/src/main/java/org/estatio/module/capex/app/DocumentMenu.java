@@ -18,9 +18,13 @@
  */
 package org.estatio.module.capex.app;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+
+import com.google.common.collect.Lists;
 
 import org.joda.time.LocalDate;
 
@@ -44,6 +48,7 @@ import org.isisaddons.module.security.dom.user.ApplicationUser;
 
 import org.incode.module.document.dom.impl.docs.Document;
 import org.incode.module.document.dom.impl.docs.DocumentRepository;
+import org.incode.module.document.dom.impl.paperclips.PaperclipRepository;
 import org.incode.module.document.dom.impl.types.DocumentType;
 import org.incode.module.document.dom.impl.types.DocumentTypeRepository;
 import org.incode.module.document.spi.DeriveBlobFromReturnedDocumentArg0;
@@ -51,6 +56,15 @@ import org.incode.module.document.spi.DeriveBlobFromReturnedDocumentArg0;
 import org.estatio.module.base.dom.UdoDomainService;
 import org.estatio.module.capex.dom.documents.IncomingDocumentRepository;
 import org.estatio.module.invoice.dom.DocumentTypeData;
+import org.estatio.module.invoice.dom.Invoice;
+import org.estatio.module.invoice.dom.InvoiceStatus;
+import org.estatio.module.lease.dom.Lease;
+import org.estatio.module.lease.dom.LeaseItem;
+import org.estatio.module.lease.dom.LeaseItemType;
+import org.estatio.module.lease.dom.LeaseRepository;
+import org.estatio.module.lease.dom.invoicing.InvoiceItemForLease;
+import org.estatio.module.lease.dom.invoicing.InvoiceItemForLeaseRepository;
+import org.estatio.module.lease.dom.invoicing.comms.PaperclipRoleNames;
 
 @DomainService(
         nature = NatureOfService.VIEW_MENU_ONLY,
@@ -158,13 +172,85 @@ public class DocumentMenu extends UdoDomainService<DocumentMenu> {
             return incomingDocumentRepository.upsert(type, atPath, name, blob);
         }
 
-        // implementation that supports order docs for Italy
+        // implementation that supports tax register docs for Italy
         if (documentTypeData==DocumentTypeData.TAX_REGISTER && !barcodeInDocName && atPath.startsWith("/ITA")){
+            return incomingDocumentRepository.upsert(type, atPath, name, blob);
+        }
+
+        // implementation that supports tax register docs for Gbr (used by integ test only)
+        if (documentTypeData==DocumentTypeData.TAX_REGISTER && !barcodeInDocName && atPath.startsWith("/GBR")){
             return incomingDocumentRepository.upsert(type, atPath, name, blob);
         }
 
         throw new IllegalArgumentException(String.format("Combination documentType =  %s, barcodeInDocName = %s and atPath = %s is not supported", documentType, barcodeInDocName, atPath));
 
+    }
+
+    // TODO: move this to somewhere else  I suppose ...
+    @Action(semantics = SemanticsOf.IDEMPOTENT)
+    public String attachTaxReceipts(final LocalDate dueDate){
+
+        StringBuilder builder = new StringBuilder();
+
+        findUnattachedTaxReceipts().forEach(d->{
+
+            final List<Invoice> invoiceCandidates = new ArrayList<>();
+            String possibleLeaseReference = deriveLeaseReferenceFromDocumentName(d);
+            Lease lease = leaseRepository.findLeaseByReference(possibleLeaseReference);
+            if (lease!=null){
+                List<LeaseItem> itemsForTax = lease.findItemsOfType(LeaseItemType.TAX);
+                if (itemsForTax.isEmpty()) {
+                    // report no items for tax found
+                    String message = String.format("[COULD NOT ATTACH] No tax items found for document %s on lease %s ", d.getName(), lease.getReference());
+                    builder.append(message);
+                } else {
+                    itemsForTax.forEach(li -> {
+                        Lists.newArrayList(li.getTerms())
+                                .stream()
+                                .filter(lt -> lt.getInterval().contains(dueDate))
+                                .collect(Collectors.toList())
+                                .forEach(lt -> {
+                                    List<InvoiceItemForLease> invoiceItemCandidates = invoiceItemForLeaseRepository.findByLeaseTermAndInvoiceStatus(lt, InvoiceStatus.APPROVED);
+                                    invoiceItemCandidates.forEach(iic->{
+                                        invoiceCandidates.add(iic.getInvoice());
+                                    });
+                                });
+                    });
+                }
+            } else {
+                String message = String.format("[COULD NOT ATTACH] Lease not found for document %s ", d.getName());
+                builder.append(message);
+            }
+
+            if (invoiceCandidates.isEmpty()){
+                String message = String.format("[COULD NOT ATTACH] Invoice not found for document %s ", d.getName());
+                builder.append(message);
+            }
+            if (invoiceCandidates.size()>1){
+                // report multiple invoices found
+                String message = String.format("[COULD NOT ATTACH] More than 1 invoice found for document %s ", d.getName());
+                builder.append(message);
+            }
+            if (invoiceCandidates.size()==1){
+                // process
+                paperclipRepository.attach(d, PaperclipRoleNames.SUPPORTING_DOCUMENT, invoiceCandidates.get(0));
+                // todo: attach to other unsent documents on the invoice (see InvoiceForLease_attachSupportingDocument)
+            }
+
+        });
+        return builder.toString();
+    }
+
+    List<Document> findUnattachedTaxReceipts() {
+        final DocumentType typeForTaxRegister = DocumentTypeData.TAX_REGISTER.findUsing(documentTypeRepository);
+        return incomingDocumentRepository.findWithNoPaperclips()
+                .stream()
+                .filter(d->d.getType()==typeForTaxRegister)
+                .collect(Collectors.toList());
+    }
+
+    String deriveLeaseReferenceFromDocumentName(final Document document){
+        return document.getName().split(".")[0];
     }
 
     @Inject
@@ -187,5 +273,11 @@ public class DocumentMenu extends UdoDomainService<DocumentMenu> {
 
     @Inject
     EventBusService eventBusService;
+
+    @Inject LeaseRepository leaseRepository;
+
+    @Inject InvoiceItemForLeaseRepository invoiceItemForLeaseRepository;
+
+    @Inject PaperclipRepository paperclipRepository;
 
 }
