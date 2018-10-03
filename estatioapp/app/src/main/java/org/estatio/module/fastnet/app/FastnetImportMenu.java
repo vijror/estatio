@@ -47,6 +47,12 @@ public class FastnetImportMenu {
     }
 
     @Action(semantics = SemanticsOf.SAFE, publishing = Publishing.DISABLED)
+    public Blob latestFastnetImportLog(){
+        final LocalDate latestDate = choices0FastnetImportLog().get(0);
+        return fastnetImportLog(latestDate);
+    }
+
+    @Action(semantics = SemanticsOf.SAFE, publishing = Publishing.DISABLED)
     public Blob fastnetImportLog(final LocalDate date){
         List<ChargingLine> lines = chargingLineRepository.findByExportDate(date);
         List<ChargingLineLogViewModel> linesWithLogMessage = lines
