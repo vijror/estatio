@@ -167,6 +167,26 @@ public class AdminDashboard {
     }
 
 
+    @Action(semantics = SemanticsOf.SAFE)
+    @MemberOrder(sequence = "3.3")
+    public AdminDashboard waitForAWhile(
+            @ParameterLayout(named = "Number of seconds")
+            final int numberOfSeconds) throws InterruptedException {
+        Thread.sleep(numberOfSeconds * 1000L);
+        messageService.warnUser(String.format("Waited for %d seconds", numberOfSeconds));
+        return this;
+    }
+    public String validate0WaitForAWhile(final int numberOfSeconds) {
+        final int MIN = 1;
+        final int MAX = 60 * 5;
+
+        if(numberOfSeconds < MIN || numberOfSeconds > MAX) {
+            return String.format("Must be between %d and %d seconds", MIN, MAX);
+        }
+        return null;
+    }
+
+
     @Action(semantics = SemanticsOf.NON_IDEMPOTENT_ARE_YOU_SURE)
     @MemberOrder(sequence = "3.4")
     public AdminDashboard patchDatabase(
