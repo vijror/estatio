@@ -42,6 +42,7 @@ import org.apache.isis.applib.annotation.Parameter;
 import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.annotation.Property;
 import org.apache.isis.applib.annotation.SemanticsOf;
+import org.apache.isis.applib.services.eventbus.ActionDomainEvent;
 import org.apache.isis.schema.utils.jaxbadapters.PersistentEntityAdapter;
 
 import org.incode.module.base.dom.types.ReferenceType;
@@ -66,11 +67,14 @@ import lombok.Setter;
                         + "FROM org.estatio.module.party.dom.Organisation "
                         + "WHERE chamberOfCommerceCode == :chamberOfCommerceCode ")
 })
-@DomainObject(editing = Editing.DISABLED)
+@DomainObject(editing = Editing.DISABLED, actionDomainEvent = Organisation.ActionDomainEventDefault.class)
 @XmlJavaTypeAdapter(PersistentEntityAdapter.class)
 public class Organisation
         extends Party
         implements WithApplicationTenancyCountry, WithApplicationTenancyPathPersisted {
+
+    public static class ActionDomainEventDefault
+            extends ActionDomainEvent<Object> { }
 
     public Organisation() {}
     public Organisation(final String reference) {
