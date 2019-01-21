@@ -12,12 +12,10 @@ import org.apache.isis.applib.services.user.UserService;
 
 import org.estatio.module.base.dom.EstatioRole;
 import org.estatio.module.budget.dom.budget.Budget;
-import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationRepository;
 import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationType;
 import org.estatio.module.budget.dom.budgetitem.BudgetItem;
 import org.estatio.module.budget.dom.partioning.PartitionItem;
 import org.estatio.module.budget.dom.partioning.PartitionItemRepository;
-import org.estatio.module.lease.dom.LeaseRepository;
 
 /**
  * This cannot be inlined (needs to be a mixin) because Budget doesn't know about BudgetCalculationResultLinkRepository
@@ -37,35 +35,7 @@ public class Budget_Remove {
             final boolean areYouSure
     ) {
 
-        // TODO: revisited after refactoring
-        /*
-
-        // delete results and runs
-        for (BudgetCalculationRun run : budgetCalculationRunRepository.allBudgetCalculationRuns().stream().filter(x->x.getBudget().equals(budget)).collect(Collectors.toList())){
-            for (BudgetCalculationResult result : run.getBudgetCalculationResults()){
-                // delete links and lease terms
-                for (BudgetCalculationResultLink link : budgetCalculationResultRepository.findByCalculationResult(result)){
-                    LeaseTermForServiceCharge leaseTermToRemove = null;
-                    if (link.getLeaseTermForServiceCharge()!=null) {
-                        leaseTermToRemove = link.getLeaseTermForServiceCharge();
-                    }
-                    link.remove();
-                    if (leaseTermToRemove!=null) {
-                        leaseTermToRemove.remove();
-                    }
-                }
-            }
-            run.remove();
-        }
-
-        // delete overrides and values
-        for (Lease lease : leaseRepository.findByAssetAndActiveOnDate(budget.getProperty(), budget.getStartDate())){
-            for (BudgetOverride override : budgetOverrideRepository.findByLease(lease)) {
-                override.remove();
-            }
-        }
-
-        */
+        budget.removeNewCalculations();
 
         // delete partition items
         for (BudgetItem budgetItem : budget.getItems()) {
@@ -73,7 +43,7 @@ public class Budget_Remove {
                 item.remove();
             }
         }
-
+        
         budget.remove();
     }
 
@@ -87,13 +57,7 @@ public class Budget_Remove {
     }
 
     @Inject
-    private BudgetCalculationRepository budgetCalculationRepository;
-
-    @Inject
     private PartitionItemRepository partitionItemRepository;
-
-    @Inject
-    private LeaseRepository leaseRepository;
 
     @Inject
     private UserService userService;

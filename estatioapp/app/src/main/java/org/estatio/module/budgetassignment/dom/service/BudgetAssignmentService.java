@@ -43,40 +43,43 @@ public class BudgetAssignmentService {
         // create calculation results
 
         List<BudgetCalculationResult> results = new ArrayList<>();
-        for (Unit unit : unitRepository.findByProperty(budget.getProperty()) ){
+        for (Unit unit : unitRepository.findByProperty(budget.getProperty())) {
 
             final List<Occupancy> occupanciesForUnitDuringBudgetInterval = occupancyRepository.occupanciesByUnitAndInterval(unit, budget.getInterval());
 
-            if (occupanciesForUnitDuringBudgetInterval.isEmpty()) break;
+            if (!occupanciesForUnitDuringBudgetInterval.isEmpty()) {
 
-            if (overlappingOccupanciesFoundIn(occupanciesForUnitDuringBudgetInterval)) {
-                String message = String.format("Overlapping occupancies found for unit %s", unit.getReference());
-                message.concat(". No calculation results made for this unit.");
-                messageService.warnUser(message);
-                break;
-            }
+                if (overlappingOccupanciesFoundIn(occupanciesForUnitDuringBudgetInterval)) {
+                    String message = String.format("Overlapping occupancies found for unit %s", unit.getReference());
+                    message.concat(". No calculation results made for this unit.");
+                    messageService.warnUser(message);
+                } else {
 
-            List<BudgetCalculation> calculationsForUnitAndType = budgetCalculationRepository.findByBudgetAndUnitAndType(budget, unit, type);
-            List<Charge> invoiceChargesUsed = calculationsForUnitAndType.stream().map(c -> c.getInvoiceCharge()).distinct().collect(Collectors.toList());
+                    List<BudgetCalculation> calculationsForUnitAndType = budgetCalculationRepository.findByBudgetAndUnitAndType(budget, unit, type);
+                    List<Charge> invoiceChargesUsed = calculationsForUnitAndType.stream().map(c -> c.getInvoiceCharge()).distinct().collect(Collectors.toList());
 
-            for (Occupancy occupancy : occupanciesForUnitDuringBudgetInterval) {
+                    for (Occupancy occupancy : occupanciesForUnitDuringBudgetInterval) {
 
-                for (Charge charge : invoiceChargesUsed) {
-                    BigDecimal value = BigDecimal.ZERO;
-                    List<BudgetCalculation> calculationsForCharge = calculationsForUnitAndType.stream().filter(c -> c.getInvoiceCharge().equals(charge)).collect(Collectors.toList());
-                    for (BudgetCalculation calc : calculationsForCharge) {
-                        if (calc.getStatus() != Status.ASSIGNED) {
-                            value = value.add(calc.getValue());
+                        for (Charge charge : invoiceChargesUsed) {
+                            BigDecimal value = BigDecimal.ZERO;
+                            List<BudgetCalculation> calculationsForCharge = calculationsForUnitAndType.stream().filter(c -> c.getInvoiceCharge().equals(charge)).collect(Collectors.toList());
+                            for (BudgetCalculation calc : calculationsForCharge) {
+                                if (calc.getStatus() != Status.ASSIGNED) {
+                                    value = value.add(calc.getValue());
+                                }
+                            }
+                            BudgetCalculationResult calcResult = budgetCalculationResultRepository.upsertBudgetCalculationResult(budget, occupancy, charge, type, value);
+                            results.add(calcResult);
                         }
-                    }
-                    BudgetCalculationResult calcResult = budgetCalculationResultRepository.upsertBudgetCalculationResult(budget, occupancy, charge, type, value);
-                    results.add(calcResult);
-                }
 
+                    }
+
+                    // finalize calculations
+                    calculationsForUnitAndType.stream().forEach(c -> c.setStatus(Status.ASSIGNED));
+
+                }
             }
 
-            // finalize calculations
-            calculationsForUnitAndType.stream().forEach(c -> c.setStatus(Status.ASSIGNED));
         }
 
         return results;
