@@ -23,8 +23,6 @@ import org.estatio.module.budget.dom.keytable.FoundationValueType;
 import org.estatio.module.budget.dom.keytable.KeyTable;
 import org.estatio.module.budget.fixtures.budgets.enums.Budget_enum;
 import org.estatio.module.budget.fixtures.partitioning.enums.Partitioning_enum;
-import org.estatio.module.budgetassignment.fixtures.override.enums.BudgetOverrideForFlatRate_enum;
-import org.estatio.module.budgetassignment.fixtures.override.enums.BudgetOverrideForMax_enum;
 import org.estatio.module.budgetassignment.integtests.BudgetAssignmentModuleIntegTestAbstract;
 import org.estatio.module.lease.fixtures.lease.enums.Lease_enum;
 
@@ -52,9 +50,6 @@ public class Budget_IntegTest extends BudgetAssignmentModuleIntegTestAbstract {
                     executionContext.executeChildT(this, Lease_enum.BudNlBank004Nl.builder());
                     executionContext.executeChildT(this, Lease_enum.BudHyper005Nl.builder());
                     executionContext.executeChildT(this, Lease_enum.BudHello006Nl.builder());
-                    executionContext.executeChildT(this, BudgetOverrideForFlatRate_enum.BudMiracle002Nl_2015.builder());
-                    executionContext.executeChildT(this, BudgetOverrideForMax_enum.BudPoison001Nl_2015.builder());
-
                 }
             });
         }
@@ -135,8 +130,6 @@ public class Budget_IntegTest extends BudgetAssignmentModuleIntegTestAbstract {
                     executionContext.executeChildT(this, Lease_enum.BudNlBank004Nl.builder());
                     executionContext.executeChildT(this, Lease_enum.BudHyper005Nl.builder());
                     executionContext.executeChildT(this, Lease_enum.BudHello006Nl.builder());
-                    executionContext.executeChildT(this, BudgetOverrideForFlatRate_enum.BudMiracle002Nl_2015.builder());
-                    executionContext.executeChildT(this, BudgetOverrideForMax_enum.BudPoison001Nl_2015.builder());
 
                 }
             });
@@ -171,8 +164,6 @@ public class Budget_IntegTest extends BudgetAssignmentModuleIntegTestAbstract {
                     executionContext.executeChildT(this, Lease_enum.BudNlBank004Nl.builder());
                     executionContext.executeChildT(this, Lease_enum.BudHyper005Nl.builder());
                     executionContext.executeChildT(this, Lease_enum.BudHello006Nl.builder());
-                    executionContext.executeChildT(this, BudgetOverrideForFlatRate_enum.BudMiracle002Nl_2015.builder());
-                    executionContext.executeChildT(this, BudgetOverrideForMax_enum.BudPoison001Nl_2015.builder());
 
                     executionContext.executeChild(this, Budget_enum.OxfBudget2016.builder());
                 }

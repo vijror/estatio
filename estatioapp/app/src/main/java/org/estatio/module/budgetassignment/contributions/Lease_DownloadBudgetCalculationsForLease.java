@@ -12,15 +12,13 @@ import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.value.Blob;
 
 import org.isisaddons.module.excel.dom.ExcelService;
-import org.isisaddons.module.excel.dom.WorksheetContent;
 import org.isisaddons.module.excel.dom.WorksheetSpec;
 
-import org.estatio.module.budgetassignment.dom.service.BudgetAssignmentService;
-import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationRunRepository;
-import org.estatio.module.budgetassignment.dom.service.DetailedCalculationResultViewmodel;
 import org.estatio.module.budget.dom.budget.Budget;
 import org.estatio.module.budget.dom.budget.BudgetRepository;
 import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationType;
+import org.estatio.module.budgetassignment.dom.service.BudgetAssignmentService;
+import org.estatio.module.budgetassignment.dom.service.DetailedCalculationResultViewmodel;
 import org.estatio.module.lease.dom.Lease;
 
 /**
@@ -40,8 +38,10 @@ public class Lease_DownloadBudgetCalculationsForLease {
     public Blob downloadBudgetCalculationsForLease(Budget budget, BudgetCalculationType type) {
         final String fileName =  lease.getReference() + " - budget details" + ".xlsx";
         WorksheetSpec spec = new WorksheetSpec(DetailedCalculationResultViewmodel.class, "values for lease");
-        WorksheetContent worksheetContent = new WorksheetContent(budgetAssignmentService.getDetailedCalculationResults(lease, budget, type), spec);
-        return excelService.toExcelPivot(worksheetContent, fileName);
+//        WorksheetContent worksheetContent = new WorksheetContent(budgetAssignmentService.getDetailedCalculationResults(lease, budget, type), spec);
+//        return excelService.toExcelPivot(worksheetContent, fileName);
+        // TODO: finish after refactoring
+        return null;
     }
 
     public List<Budget> choices0DownloadBudgetCalculationsForLease(final Budget budget){
@@ -50,9 +50,6 @@ public class Lease_DownloadBudgetCalculationsForLease {
 
     @Inject
     private BudgetAssignmentService budgetAssignmentService;
-
-    @Inject
-    private BudgetCalculationRunRepository budgetCalculationRunRepository;
 
     @Inject
     private BudgetRepository budgetRepository;
