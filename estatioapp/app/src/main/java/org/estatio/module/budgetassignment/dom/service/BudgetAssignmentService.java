@@ -144,8 +144,8 @@ public class BudgetAssignmentService {
 
     void recalculateTerm(final LeaseTermForServiceCharge term) {
 
-        term.setBudgetedValue(BigDecimal.ZERO);
-        term.setAuditedValue(BigDecimal.ZERO);
+        term.setBudgetedValue(null);
+        term.setAuditedValue(null);
 
         final List<BudgetCalculationResult> resultsForTerm = budgetCalculationResultRepository.findByLeaseTerm(term);
         for (BudgetCalculationResult result : resultsForTerm){
@@ -155,13 +155,13 @@ public class BudgetAssignmentService {
             switch (result.getType()){
             case BUDGETED:
                 BigDecimal oldBudgeted = term.getBudgetedValue();
-                newValue = oldBudgeted.add(result.getValue());
+                newValue = oldBudgeted!=null ? oldBudgeted.add(result.getValue()) : result.getValue();
                 term.setBudgetedValue(newValue);
                 break;
 
             case ACTUAL:
                 BigDecimal oldActual = term.getAuditedValue();
-                newValue = oldActual.add(result.getValue());
+                newValue = oldActual!=null ? oldActual.add(result.getValue()) : result.getValue();
                 term.setAuditedValue(newValue);
                 break;
             }
