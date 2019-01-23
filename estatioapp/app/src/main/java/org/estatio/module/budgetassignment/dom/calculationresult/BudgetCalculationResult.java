@@ -104,10 +104,9 @@ public class BudgetCalculationResult extends UdoDomainObject2<BudgetCalculationR
     public String title(){
         return TitleBuilder.start()
                 .withParent(getBudget())
-                .withName(" - ")
                 .withName(getInvoiceCharge())
                 .withName(" ")
-                .withReference(getOccupancy().title())
+                .withName(getOccupancy().title())
                 .toString();
     }
 
