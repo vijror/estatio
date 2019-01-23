@@ -44,18 +44,17 @@ import org.isisaddons.module.excel.dom.ExcelService;
 import org.isisaddons.module.excel.dom.WorksheetContent;
 import org.isisaddons.module.excel.dom.WorksheetSpec;
 
+import org.estatio.module.budget.dom.budget.Budget;
 import org.estatio.module.budget.dom.keyitem.DirectCost;
+import org.estatio.module.budget.dom.keyitem.KeyItem;
 import org.estatio.module.budget.dom.keytable.DirectCostTable;
+import org.estatio.module.budget.dom.keytable.KeyTable;
 import org.estatio.module.budget.dom.keytable.PartitioningTableRepository;
 import org.estatio.module.budgetassignment.imports.DirectCostLine;
 import org.estatio.module.budgetassignment.imports.KeyItemImportExportLineItem;
 import org.estatio.module.budgetassignment.imports.KeyItemImportExportService;
 import org.estatio.module.budgetassignment.imports.Status;
 import org.estatio.module.charge.imports.ChargeImport;
-import org.estatio.module.budget.dom.budget.Budget;
-import org.estatio.module.budget.dom.keyitem.KeyItem;
-import org.estatio.module.budget.dom.keytable.KeyTable;
-import org.estatio.module.budget.dom.keytable.KeyTableRepository;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -156,13 +155,12 @@ public class BudgetImportExportManager {
         WorksheetSpec spec1 = new WorksheetSpec(BudgetImportExport.class, "budget");
         WorksheetSpec spec2 = new WorksheetSpec(KeyItemImportExportLineItem.class, "keyItems");
         WorksheetSpec spec3 = new WorksheetSpec(DirectCostLine.class, "directCosts");
-//        WorksheetSpec spec4 = new WorksheetSpec(BudgetOverrideImportExport.class, "overrides");
-        WorksheetSpec spec5 = new WorksheetSpec(ChargeImport.class, "charges");
+        WorksheetSpec spec4 = new WorksheetSpec(ChargeImport.class, "charges");
         List<List<?>> objects =
-                excelService.fromExcel(spreadsheet, Arrays.asList(spec1, spec2, spec3, spec5));
+                excelService.fromExcel(spreadsheet, Arrays.asList(spec1, spec2, spec3, spec4));
 
         // first upsert charges
-        List<ChargeImport> chargeImportLines = (List<ChargeImport>) objects.get(4);
+        List<ChargeImport> chargeImportLines = (List<ChargeImport>) objects.get(3);
         for (ChargeImport lineItem : chargeImportLines){
             lineItem.importData(null);
         }
@@ -298,13 +296,11 @@ public class BudgetImportExportManager {
         WorksheetSpec spec1 = new WorksheetSpec(BudgetImportExport.class, "budget");
         WorksheetSpec spec2 = new WorksheetSpec(KeyItemImportExportLineItem.class, "keyItems");
         WorksheetSpec spec3 = new WorksheetSpec(DirectCostLine.class, "directCosts");
-//        WorksheetSpec spec4 = new WorksheetSpec(BudgetOverrideImportExport.class, "overrides");
-        WorksheetSpec spec5 = new WorksheetSpec(ChargeImport.class, "charges");
+        WorksheetSpec spec4 = new WorksheetSpec(ChargeImport.class, "charges");
         WorksheetContent worksheetContent = new WorksheetContent(getLines(), spec1);
         WorksheetContent keyItemsContent = new WorksheetContent(getKeyItemLines(), spec2);
         WorksheetContent directCostsContent = new WorksheetContent(getDirectCostLines(), spec3);
-//        WorksheetContent overridesContent = new WorksheetContent(getOverrides(), spec4);
-        WorksheetContent chargesContent = new WorksheetContent(getCharges(), spec5);
+        WorksheetContent chargesContent = new WorksheetContent(getCharges(), spec4);
         return excelService.toExcel(Arrays.asList(worksheetContent, keyItemsContent, directCostsContent, chargesContent), fileName);
 
     }
@@ -325,10 +321,7 @@ public class BudgetImportExportManager {
 
     @Inject
     private KeyItemImportExportService keyItemImportExportService;
-
-    @Inject
-    private KeyTableRepository keyTableRepository;
-
+    
     @Inject
     PartitioningTableRepository partitioningTableRepository;
 
