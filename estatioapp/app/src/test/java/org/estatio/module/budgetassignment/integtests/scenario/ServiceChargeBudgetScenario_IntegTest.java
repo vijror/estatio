@@ -19,7 +19,6 @@ import org.estatio.module.asset.dom.UnitRepository;
 import org.estatio.module.budget.dom.budget.Budget;
 import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculation;
 import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationRepository;
-import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationService;
 import org.estatio.module.budget.dom.budgetcalculation.BudgetCalculationType;
 import org.estatio.module.budget.dom.budgetcalculation.Status;
 import org.estatio.module.budget.dom.keytable.KeyTable;
@@ -28,15 +27,11 @@ import org.estatio.module.budget.fixtures.partitioning.enums.Partitioning_enum;
 import org.estatio.module.budgetassignment.contributions.Budget_Calculate;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult;
 import org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResultRepository;
-import org.estatio.module.budgetassignment.dom.service.BudgetAssignmentService;
-import org.estatio.module.budgetassignment.dom.service.CalculationResultViewModel;
-import org.estatio.module.budgetassignment.dom.service.DetailedCalculationResultViewmodel;
 import org.estatio.module.budgetassignment.integtests.BudgetAssignmentModuleIntegTestAbstract;
 import org.estatio.module.charge.dom.Charge;
 import org.estatio.module.charge.fixtures.charges.enums.Charge_enum;
 import org.estatio.module.lease.dom.Lease;
 import org.estatio.module.lease.dom.LeaseItem;
-import org.estatio.module.lease.dom.LeaseItemRepository;
 import org.estatio.module.lease.dom.LeaseItemType;
 import org.estatio.module.lease.dom.LeaseTermForServiceCharge;
 import org.estatio.module.lease.fixtures.lease.enums.Lease_enum;
@@ -46,15 +41,6 @@ import lombok.Getter;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModuleIntegTestAbstract {
-
-    @Inject
-    BudgetCalculationService budgetCalculationService;
-
-    @Inject
-    BudgetAssignmentService budgetAssignmentService;
-
-    @Inject
-    LeaseItemRepository leaseItemRepository;
 
     @Inject
     BudgetCalculationResultRepository budgetCalculationResultRepository;
@@ -83,13 +69,8 @@ public class ServiceChargeBudgetScenario_IntegTest extends BudgetAssignmentModul
         });
     }
 
-
-
-
     Budget budget;
     List<BudgetCalculation> calculations;
-    List<CalculationResultViewModel> calculationResultViewModels;
-    List<DetailedCalculationResultViewmodel> detailedCalculationResultViewmodels;
 
     Lease leasePoison;
     Lease leaseMiracle;

@@ -207,7 +207,6 @@ public class BudgetAssignmentService {
 
     @Inject MessageService messageService;
 
-    @Inject
-    BudgetCalculationResultRepository budgetCalculationResultRepository;
+    @Inject BudgetCalculationResultRepository budgetCalculationResultRepository;
 
 }

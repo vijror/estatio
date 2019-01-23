@@ -66,7 +66,19 @@ import lombok.Setter;
                 name = "findByLeaseTerm", language = "JDOQL",
                 value = "SELECT " +
                         "FROM org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult " +
-                        "WHERE leaseTerm == :leaseTerm ")
+                        "WHERE leaseTerm == :leaseTerm "),
+        @Query(
+                name = "findByBudget", language = "JDOQL",
+                value = "SELECT " +
+                        "FROM org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult " +
+                        "WHERE budget == :budget "),
+        @Query(
+                name = "findByLeaseTermAndBudgetAndType", language = "JDOQL",
+                value = "SELECT " +
+                        "FROM org.estatio.module.budgetassignment.dom.calculationresult.BudgetCalculationResult " +
+                        "WHERE leaseTerm == :leaseTerm && "
+                        + "budget == :budget && "
+                        + "type == :type")
 })
 
 @DomainObject(
@@ -92,9 +104,10 @@ public class BudgetCalculationResult extends UdoDomainObject2<BudgetCalculationR
     public String title(){
         return TitleBuilder.start()
                 .withParent(getBudget())
-                .withReference(getOccupancy().title())
+                .withName(" - ")
                 .withName(getInvoiceCharge())
-                .withName(getType())
+                .withName(" ")
+                .withReference(getOccupancy().title())
                 .toString();
     }
 

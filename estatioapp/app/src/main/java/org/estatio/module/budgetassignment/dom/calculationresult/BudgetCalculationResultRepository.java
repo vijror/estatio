@@ -64,6 +64,14 @@ public class BudgetCalculationResultRepository extends UdoDomainRepositoryAndFac
         return allMatches("findByLeaseTerm", "leaseTerm", leaseTerm);
     }
 
+    public List<BudgetCalculationResult> findByBudget(final Budget budget) {
+        return allMatches("findByBudget", "budget", budget);
+    }
+
+    public List<BudgetCalculationResult> findByLeaseTermAndBudgetAndType(final LeaseTermForServiceCharge term, final Budget budget, final BudgetCalculationType type) {
+        return allMatches("findByLeaseTermAndBudgetAndType", "leaseTerm", term, "budget", budget, "type", type);
+    }
+
     public List<BudgetCalculationResult> allBudgetCalculationResults(){
         return allInstances();
     }
@@ -71,6 +79,5 @@ public class BudgetCalculationResultRepository extends UdoDomainRepositoryAndFac
     @Inject private RepositoryService repositoryService;
 
     @Inject private ServiceRegistry2 serviceRegistry2;
-
 }
 
