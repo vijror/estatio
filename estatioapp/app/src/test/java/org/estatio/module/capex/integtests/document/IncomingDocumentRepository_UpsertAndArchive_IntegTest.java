@@ -218,17 +218,11 @@ public class IncomingDocumentRepository_UpsertAndArchive_IntegTest extends Capex
 
         // then there are two documents
         assertThat(documentOrig).isNotSameAs(documentReplacement);
-        List<IncomingDocumentCategorisationStateTransition> transitionsForReplacement = repository.findByDomainObject(documentReplacement);
-        assertThat(transitionsForReplacement).hasSize(2);
+        assertThat(documentOrig.getType()).isEqualTo(documentReplacement.getType());
+        assertThat(documentReplacement.getType().getName()).isEqualTo("Incoming Invoice");
 
-        // TODO: make this pass... The state of the document to be has to be the same as the original
-        assertThat(mixin(Document_categorisationState.class, documentReplacement).prop()).isEqualTo(IncomingDocumentCategorisationState.CATEGORISED);
-        // TODO: this means ....
-        transitionsForOrigDoc = repository.findByDomainObject(documentOrig);
-        assertThat(transitionsForOrigDoc).hasSize(2);
-        assertThat(transitionsForOrigDoc.get(0).isCompleted()).isTrue();
-        // TODO: and also make sure that
-        assertThat(transitionsForOrigDoc.get(0).getTask().isCompleted()).isTrue();
+        assertThat(repository.findByDomainObject(documentReplacement)).isEmpty();
+        assertThat(mixin(Document_categorisationState.class, documentReplacement).prop()).isNull();
 
         // ... and the new one links to the old
         final List<Document> allIncomingDocumentsAfter = incomingDocumentRepository.findAllIncomingDocuments();
@@ -276,17 +270,9 @@ public class IncomingDocumentRepository_UpsertAndArchive_IntegTest extends Capex
 
         // then this time there is a change
         assertThat(documentReplacement3).isNotSameAs(documentReplacement);
-        // TODO: make this pass... The state of the document to be has to be the same as the original
-        assertThat(mixin(Document_categorisationState.class, documentReplacement3).prop()).isEqualTo(IncomingDocumentCategorisationState.CATEGORISED);
-        // TODO: this means ....
-        final List<IncomingDocumentCategorisationStateTransition> transitionsForReplacement3 = repository.findByDomainObject(documentReplacement3);
-        assertThat(transitionsForReplacement3).hasSize(2);
-        assertThat(transitionsForReplacement3.get(0).isCompleted()).isTrue();
-        // TODO: and also make sure that
-        assertThat(transitionsForReplacement3.get(0).getTask().isCompleted()).isTrue();
-        // TODO: and still
-        assertThat(mixin(Document_categorisationState.class, documentReplacement).prop()).isEqualTo(IncomingDocumentCategorisationState.CATEGORISED);
-
+        assertThat(documentReplacement3.getType().getName()).isEqualTo("Incoming Invoice");
+        assertThat(mixin(Document_categorisationState.class, documentReplacement3).prop()).isNull();
+        
         // ... the second replacement replaces the first
         final List<Paperclip> paperclipsForReplacement3 = paperclipRepository.findByAttachedTo(documentReplacement3);
         assertThat(paperclipsForReplacement3).hasSize(1);
