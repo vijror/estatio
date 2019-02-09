@@ -376,6 +376,7 @@ public class Order extends UdoDomainObject2<Order> implements Stateful {
         return meService.me().getAtPath().startsWith("/ITA");
     }
 
+    @Programmatic
     public void updateOrderNumber() {
         if (getAtPath().startsWith("/ITA")) {
             String possibleMultiPropertyReference = orderNumber.split("/").length > 1 ? orderNumber.split("/")[1] : "";
@@ -1140,7 +1141,7 @@ public class Order extends UdoDomainObject2<Order> implements Stateful {
     public Order updateAttribute(
             final OrderAttributeName name,
             @Parameter(maxLength = NotesType.Meta.MAX_LEN)
-            @ParameterLayout(multiLine = Order.DescriptionType.Meta.MULTI_LINE) final String value
+            @ParameterLayout(multiLine = AttributeDescriptionType.Meta.MULTI_LINE) final String value
     ) {
         final OrderAttribute orderAttribute = orderAttributeRepository.findByOrderAndName(this, name);
         if (orderAttribute == null) {
@@ -1203,15 +1204,15 @@ public class Order extends UdoDomainObject2<Order> implements Stateful {
     @Inject
     OrderRepository orderRepository;
 
-    public static class DescriptionType {
+    public static class AttributeDescriptionType {
 
-        private DescriptionType() {
+        private AttributeDescriptionType() {
         }
 
         public static class Meta {
 
             public static final int MAX_LEN = OrderAttribute.ValueType.Meta.MAX_LEN;
-            public static final int MULTI_LINE = 10;
+            public static final int MULTI_LINE = 2;
 
             private Meta() {
             }
