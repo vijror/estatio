@@ -41,11 +41,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import static org.estatio.module.asset.fixtures.property.enums.Property_enum.OxfGb;
 import static org.estatio.module.asset.fixtures.property.enums.Property_enum.RonIt;
 import static org.estatio.module.asset.fixtures.property.enums.Property_enum.VivFr;
 import static org.incode.module.apptenancy.fixtures.enums.ApplicationTenancy_enum.Fr;
-import static org.incode.module.apptenancy.fixtures.enums.ApplicationTenancy_enum.Gb;
 import static org.incode.module.apptenancy.fixtures.enums.ApplicationTenancy_enum.It;
 import static org.incode.module.apptenancy.fixtures.enums.ApplicationTenancy_enum.Nl;
 import static org.incode.module.base.integtests.VT.bd;
@@ -56,12 +54,6 @@ import static org.incode.module.base.integtests.VT.ld;
 @Accessors(chain = true)
 public enum Project_enum implements PersonaWithBuilderScript<Project, ProjectBuilder>, PersonaWithFinder<Project> {
 
-    OxfProject  ("OXF-02", "New extension", ld(2016, 1, 1), ld(2019, 7, 1), Gb,
-            new ItemSpec[]{
-                new ItemSpec(IncomingCharge_enum.FrWorks, "works", bd("40000.00"), null, null, OxfGb, null)
-            },
-            new TermSpec[]{}
-    ),
     GraProject  ("PR3", "Place commercial signs", ld(1999, 1, 1), ld(1999, 7, 1), Nl,
             new ItemSpec[]{},
             new TermSpec[]{}

@@ -133,7 +133,8 @@ public class ProjectItem extends UdoDomainObject<ProjectItem> implements Financi
 			@Parameter(optionality = Optionality.OPTIONAL)
 			final BigDecimal add,
 			@Parameter(optionality = Optionality.OPTIONAL)
-			final BigDecimal subtract){
+			final BigDecimal subtract,
+			final LocalDate date){
 		BigDecimal newAmount = getBudgetedAmount()!=null ? getBudgetedAmount() : BigDecimal.ZERO;
 		if (add!=null){
 			newAmount = newAmount.add(add);
@@ -141,8 +142,19 @@ public class ProjectItem extends UdoDomainObject<ProjectItem> implements Financi
 		if (subtract!=null){
 			newAmount = newAmount.subtract(subtract);
 		}
+		projectItemAmendmentRepository.upsert(this, date, newAmount, getBudgetedAmount());
 		setBudgetedAmount(newAmount);
 		return this;
+	}
+
+	public String validateAmendAmount(final BigDecimal add,	final BigDecimal subtract, final LocalDate date){
+		if (add == null && subtract == null) return "You should add or subtract an amount";
+		if (!projectItemAmendmentRepository.findByProjectItemSorted(this).isEmpty() && projectItemAmendmentRepository.findByProjectItemSorted(this).get(0).getDate().isAfter(date)) return "There is an amendment after the chosen date already";
+		return null;
+	}
+
+	public LocalDate default2AmendAmount(){
+		return clockService.now();
 	}
 
 	@Action(semantics = SemanticsOf.NON_IDEMPOTENT_ARE_YOU_SURE)
@@ -186,4 +198,7 @@ public class ProjectItem extends UdoDomainObject<ProjectItem> implements Financi
 
 	@Inject
 	FactoryService factoryService;
+
+	@Inject
+	ProjectItemAmendmentRepository projectItemAmendmentRepository;
 }
